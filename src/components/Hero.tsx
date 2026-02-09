@@ -14,7 +14,7 @@ const Hero = () => {
         <div className="max-w-3xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6 animate-fade-in">
             <Users className="h-4 w-4" />
-            <span>Join 10,000+ expats finding their community</span>
+            <span>Join 10,000+ expats finding their crew</span>
           </div>
 
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
@@ -23,7 +23,7 @@ const Hero = () => {
           </h1>
 
           <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-            Discover curated events from Meetup, Eventbrite, and Lu.ma. Filter by activity level, connect with attendees before you go, and never feel like a stranger again.
+            Built for everyone — especially if you're tired of struggling to find your people. Discover curated events from Meetup, Eventbrite, and Lu.ma. Filter by vibe, connect with attendees before you go, and build real friendships.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
