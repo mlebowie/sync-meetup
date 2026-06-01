@@ -41,4 +41,5 @@ export interface FilterState {
   intensity: Intensity[];
   groupSize: GroupSize[];
   interests: string[];
+  location: string[];
 }

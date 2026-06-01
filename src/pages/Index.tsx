@@ -16,6 +16,7 @@ const Index = () => {
     intensity: [],
     groupSize: [],
     interests: [],
+    location: [],
   });
   const [events, setEvents] = useState<Event[]>(mockEvents);
 

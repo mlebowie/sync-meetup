@@ -29,6 +29,12 @@ const EventGrid = ({ events, filters, onAttend }: EventGridProps) => {
         return false;
       }
 
+      // Filter by location
+      if (filters.location.length > 0 && 
+          !filters.location.some(loc => event.location.toLowerCase().includes(loc.toLowerCase()))) {
+        return false;
+      }
+
       // Filter by interests (match any interest/tag)
       if (filters.interests.length > 0) {
         const interestLabels = filters.interests.map(id => {
