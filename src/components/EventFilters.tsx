@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { FilterState, ActivityLevel, Intensity, GroupSize } from '@/types/event';
-import { Zap, Users, Activity } from 'lucide-react';
+import { Zap, Users, Activity, MapPin } from 'lucide-react';
 
 interface EventFiltersProps {
   filters: FilterState;
@@ -25,6 +25,10 @@ const groupSizes: { value: GroupSize; label: string; range: string }[] = [
   { value: 'large', label: 'Large', range: '25+' },
 ];
 
+const locations: { value: string; label: string }[] = [
+  { value: 'Porto', label: 'Porto, Portugal' },
+];
+
 const EventFilters = ({ filters, onFiltersChange }: EventFiltersProps) => {
   const toggleActivityLevel = (value: ActivityLevel) => {
     const newValues = filters.activityLevel.includes(value)
@@ -45,6 +49,13 @@ const EventFilters = ({ filters, onFiltersChange }: EventFiltersProps) => {
       ? filters.groupSize.filter(v => v !== value)
       : [...filters.groupSize, value];
     onFiltersChange({ ...filters, groupSize: newValues });
+  };
+
+  const toggleLocation = (value: string) => {
+    const newValues = filters.location.includes(value)
+      ? filters.location.filter(v => v !== value)
+      : [...filters.location, value];
+    onFiltersChange({ ...filters, location: newValues });
   };
 
   return (
