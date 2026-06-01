@@ -60,7 +60,7 @@ const EventFilters = ({ filters, onFiltersChange }: EventFiltersProps) => {
 
   return (
     <div className="bg-card rounded-2xl shadow-card p-6 mb-8">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Activity Level */}
         <div>
           <div className="flex items-center gap-2 mb-3">
@@ -127,6 +127,29 @@ const EventFilters = ({ filters, onFiltersChange }: EventFiltersProps) => {
                 }`}
               >
                 {label} ({range})
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Location */}
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <MapPin className="h-4 w-4 text-danger" />
+            <span className="text-sm font-semibold text-foreground">Location</span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {locations.map(({ value, label }) => (
+              <button
+                key={value}
+                onClick={() => toggleLocation(value)}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                  filters.location.includes(value)
+                    ? 'bg-primary text-primary-foreground shadow-button'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                }`}
+              >
+                {label}
               </button>
             ))}
           </div>
