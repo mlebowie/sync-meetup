@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
 import InterestSelector from '@/components/InterestSelector';
+import IntakeForm from '@/components/IntakeForm';
 import EventFilters from '@/components/EventFilters';
 import EventGrid from '@/components/EventGrid';
 import { mockEvents } from '@/data/mockData';
