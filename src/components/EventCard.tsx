@@ -30,7 +30,7 @@ const intensityLabels = {
   energetic: '⚡ Energetic',
 };
 
-const EventCard = ({ event, onAttend }: EventCardProps) => {
+const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat }: EventCardProps) => {
   const [isAttending, setIsAttending] = useState(event.isAttending || false);
   const [isHovered, setIsHovered] = useState(false);
 
