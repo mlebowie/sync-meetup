@@ -9,6 +9,7 @@ import ParticipantProfileDialog from '@/components/ParticipantProfileDialog';
 import EventGroupChatDialog from '@/components/EventGroupChatDialog';
 import DirectMessagesDialog from '@/components/DirectMessagesDialog';
 import { mockEvents } from '@/data/mockData';
+import { getDailyRotatingEvents } from '@/lib/dailyEvents';
 import { FilterState, Event, Participant } from '@/types/event';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -24,7 +25,7 @@ const Index = () => {
     interests: [],
     location: [],
   });
-  const [events, setEvents] = useState<Event[]>(mockEvents);
+  const [events, setEvents] = useState<Event[]>(() => getDailyRotatingEvents(mockEvents));
 
   const [profileParticipant, setProfileParticipant] = useState<Participant | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
