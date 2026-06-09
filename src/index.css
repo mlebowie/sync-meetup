@@ -2,30 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @layer base {
   :root {
-    --background: 40 33% 98%;
-    --foreground: 220 25% 10%;
+    --background: 32 40% 97%;
+    --foreground: 24 18% 18%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 220 25% 10%;
+    --card: 30 35% 99%;
+    --card-foreground: 24 18% 18%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 25% 10%;
+    --popover: 30 35% 99%;
+    --popover-foreground: 24 18% 18%;
 
-    --primary: 174 72% 40%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 18 55% 65%;
+    --primary-foreground: 30 35% 99%;
 
-    --secondary: 40 30% 95%;
-    --secondary-foreground: 220 25% 20%;
+    --secondary: 30 30% 92%;
+    --secondary-foreground: 24 18% 22%;
 
-    --muted: 40 20% 92%;
-    --muted-foreground: 220 10% 45%;
+    --muted: 30 25% 90%;
+    --muted-foreground: 24 10% 42%;
 
-    --accent: 15 85% 60%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 22 60% 72%;
+    --accent-foreground: 24 25% 18%;
 
     --success: 150 60% 45%;
     --success-foreground: 0 0% 100%;
