@@ -17,9 +17,9 @@ const Hero = () => {
             <span>Join 10,000+ expats finding their crew</span>
           </div>
 
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-light tracking-tight text-foreground mb-6 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
             Find Your People,{' '}
-            <span className="text-gradient-primary">Sync Your Life</span>
+            <span className="text-gradient-primary font-normal">Sync Your Life</span>
           </h1>
 
           <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
