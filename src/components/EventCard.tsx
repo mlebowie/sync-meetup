@@ -104,10 +104,11 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat }: Eve
 
         {/* Participants */}
         <div className="flex items-center justify-between mb-4">
-          <ParticipantAvatars 
-            participants={event.participants} 
+          <ParticipantAvatars
+            participants={event.participants}
             maxVisible={4}
             totalCount={event.currentParticipants}
+            onParticipantClick={onParticipantClick}
           />
           <div className="flex items-center gap-1 text-sm text-muted-foreground">
             <Users className="h-4 w-4" />
@@ -116,7 +117,7 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat }: Eve
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3">
+        <div className="flex gap-2">
           <Button
             variant={isAttending ? 'attend' : 'default'}
             className="flex-1"
@@ -134,9 +135,16 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat }: Eve
               </>
             )}
           </Button>
-          <Button variant="outline" className="px-3">
-            <Users className="h-4 w-4" />
-          </Button>
+          {isAttending && onOpenGroupChat && (
+            <Button
+              variant="outline"
+              className="px-3"
+              onClick={() => onOpenGroupChat(event)}
+              title="Open group chat"
+            >
+              <MessageSquare className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </div>
     </div>
