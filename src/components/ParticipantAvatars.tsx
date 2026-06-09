@@ -9,12 +9,14 @@ interface ParticipantAvatarsProps {
   participants: Participant[];
   maxVisible?: number;
   totalCount?: number;
+  onParticipantClick?: (participant: Participant) => void;
 }
 
-const ParticipantAvatars = ({ 
-  participants, 
-  maxVisible = 4, 
-  totalCount 
+const ParticipantAvatars = ({
+  participants,
+  maxVisible = 4,
+  totalCount,
+  onParticipantClick,
 }: ParticipantAvatarsProps) => {
   const visibleParticipants = participants.slice(0, maxVisible);
   const remainingCount = (totalCount || participants.length) - maxVisible;
@@ -25,22 +27,26 @@ const ParticipantAvatars = ({
         {visibleParticipants.map((participant, index) => (
           <Tooltip key={participant.id}>
             <TooltipTrigger asChild>
-              <div
-                className="relative w-8 h-8 rounded-full border-2 border-card overflow-hidden transition-transform hover:scale-110 hover:z-10 cursor-pointer"
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onParticipantClick?.(participant);
+                }}
+                className="relative w-8 h-8 rounded-full border-2 border-card overflow-hidden transition-transform hover:scale-110 hover:z-10 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
                 style={{ zIndex: maxVisible - index }}
+                aria-label={`View ${participant.name}'s profile`}
               >
                 <img
                   src={participant.avatar}
                   alt={participant.name}
                   className="w-full h-full object-cover"
                 />
-              </div>
+              </button>
             </TooltipTrigger>
             <TooltipContent>
               <p className="font-medium">{participant.name}</p>
-              {participant.bio && (
-                <p className="text-xs text-muted-foreground">{participant.bio}</p>
-              )}
+              <p className="text-xs text-muted-foreground">Click to view profile</p>
             </TooltipContent>
           </Tooltip>
         ))}

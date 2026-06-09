@@ -1,4 +1,4 @@
-import { Event, FilterState } from '@/types/event';
+import { Event, FilterState, Participant } from '@/types/event';
 import EventCard from './EventCard';
 import { useMemo } from 'react';
 
@@ -6,9 +6,11 @@ interface EventGridProps {
   events: Event[];
   filters: FilterState;
   onAttend: (eventId: string) => void;
+  onParticipantClick?: (participant: Participant) => void;
+  onOpenGroupChat?: (event: Event) => void;
 }
 
-const EventGrid = ({ events, filters, onAttend }: EventGridProps) => {
+const EventGrid = ({ events, filters, onAttend, onParticipantClick, onOpenGroupChat }: EventGridProps) => {
   const filteredEvents = useMemo(() => {
     return events.filter(event => {
       // Filter by activity level
@@ -92,7 +94,12 @@ const EventGrid = ({ events, filters, onAttend }: EventGridProps) => {
           className="animate-fade-in-up"
           style={{ animationDelay: `${index * 0.1}s` }}
         >
-          <EventCard event={event} onAttend={onAttend} />
+          <EventCard
+            event={event}
+            onAttend={onAttend}
+            onParticipantClick={onParticipantClick}
+            onOpenGroupChat={onOpenGroupChat}
+          />
         </div>
       ))}
     </div>

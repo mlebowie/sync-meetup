@@ -1,13 +1,23 @@
 import { Event, Interest, Participant } from '@/types/event';
 
-const mockParticipants: Participant[] = [
-  { id: '1', name: 'Sarah M.', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face', bio: 'Expat from Canada, love hiking!' },
-  { id: '2', name: 'James L.', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face', bio: 'Software dev, new to the city' },
-  { id: '3', name: 'Maria K.', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face', bio: 'Art enthusiast and coffee lover' },
-  { id: '4', name: 'David R.', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face', bio: 'Music producer, always exploring' },
-  { id: '5', name: 'Emma T.', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=face', bio: 'Yoga instructor & foodie' },
-  { id: '6', name: 'Alex P.', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face', bio: 'Startup founder, running fan' },
+export const mockParticipants: Participant[] = [
+  { id: '1', name: 'Sarah M.', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face', bio: 'Expat from Canada, love hiking!', neighborhood: 'Cedofeita, Porto', preferredActivities: ['Hiking', 'Yoga', 'Photography'], pastEvents: ['Sunrise Yoga in Foz', 'Douro Valley Day Hike', 'Photo Walk in Ribeira'] },
+  { id: '2', name: 'James L.', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face', bio: 'Software dev, new to the city', neighborhood: 'Bonfim, Porto', preferredActivities: ['Tech meetups', 'Running', 'Board games'], pastEvents: ['Founders Coffee', 'Sunday 5K Run', 'Board Game Night'] },
+  { id: '3', name: 'Maria K.', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face', bio: 'Art enthusiast and coffee lover', neighborhood: 'Miragaia, Porto', preferredActivities: ['Art galleries', 'Coffee tastings', 'Wine'], pastEvents: ['Serralves Gallery Visit', 'Specialty Coffee Crawl'] },
+  { id: '4', name: 'David R.', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face', bio: 'Music producer, always exploring', neighborhood: 'Foz do Douro, Porto', preferredActivities: ['Live music', 'Beach walks', 'DJ sets'], pastEvents: ['Open-Air Jazz Night', 'Beach Sunset Sessions'] },
+  { id: '5', name: 'Emma T.', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=face', bio: 'Yoga instructor & foodie', neighborhood: 'Cedofeita, Porto', preferredActivities: ['Yoga', 'Cooking', 'Picnics'], pastEvents: ['Park Yoga Sunday', 'Vegan Brunch Meetup'] },
+  { id: '6', name: 'Alex P.', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face', bio: 'Startup founder, running fan', neighborhood: 'Boavista, Porto', preferredActivities: ['Running', 'Networking', 'Surfing'], pastEvents: ['Founders Mixer', 'Matosinhos Surf Morning'] },
 ];
+
+export const currentUser: Participant = {
+  id: 'me',
+  name: 'You',
+  avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face',
+  bio: 'New in town and looking to meet cool people.',
+  neighborhood: 'Ribeira, Porto',
+  preferredActivities: ['Outdoors', 'Networking', 'Food'],
+  pastEvents: [],
+};
 
 export const mockEvents: Event[] = [
   {

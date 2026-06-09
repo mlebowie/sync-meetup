@@ -7,6 +7,9 @@ export interface Participant {
   name: string;
   avatar: string;
   bio?: string;
+  neighborhood?: string;
+  preferredActivities?: string[];
+  pastEvents?: string[];
 }
 
 export interface Event {
@@ -27,6 +30,7 @@ export interface Event {
   category: string;
   tags: string[];
   isAttending?: boolean;
+  icebreaker?: string;
 }
 
 export interface Interest {
@@ -42,4 +46,14 @@ export interface FilterState {
   groupSize: GroupSize[];
   interests: string[];
   location: string[];
+}
+
+export interface ChatMessage {
+  id: string;
+  authorId: string;
+  authorName: string;
+  authorAvatar: string;
+  content: string;
+  type: 'text' | 'meme';
+  timestamp: Date;
 }
