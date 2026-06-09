@@ -94,7 +94,12 @@ const EventGrid = ({ events, filters, onAttend, onParticipantClick, onOpenGroupC
           className="animate-fade-in-up"
           style={{ animationDelay: `${index * 0.1}s` }}
         >
-          <EventCard event={event} onAttend={onAttend} />
+          <EventCard
+            event={event}
+            onAttend={onAttend}
+            onParticipantClick={onParticipantClick}
+            onOpenGroupChat={onOpenGroupChat}
+          />
         </div>
       ))}
     </div>
