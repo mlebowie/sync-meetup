@@ -31,6 +31,9 @@ const Header = ({ onOpenMessages }: HeaderProps) => {
         </nav>
 
         <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" onClick={onOpenMessages} title="Messages">
+            <MessageCircle className="h-5 w-5" />
+          </Button>
           <Button variant="ghost" size="icon" className="relative">
             <Bell className="h-5 w-5" />
             <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-accent text-[10px] font-bold flex items-center justify-center text-accent-foreground">
