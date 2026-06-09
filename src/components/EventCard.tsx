@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Event } from '@/types/event';
-import { Calendar, MapPin, Users, Clock, ArrowRight, Check } from 'lucide-react';
+import { Event, Participant } from '@/types/event';
+import { Calendar, MapPin, Users, Clock, ArrowRight, Check, MessageSquare } from 'lucide-react';
 import { format } from 'date-fns';
 import ParticipantAvatars from './ParticipantAvatars';
 
 interface EventCardProps {
   event: Event;
   onAttend?: (eventId: string) => void;
+  onParticipantClick?: (participant: Participant) => void;
+  onOpenGroupChat?: (event: Event) => void;
 }
 
 const sourceColors = {
