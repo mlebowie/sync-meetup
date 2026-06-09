@@ -1,4 +1,4 @@
-import { Event, FilterState } from '@/types/event';
+import { Event, FilterState, Participant } from '@/types/event';
 import EventCard from './EventCard';
 import { useMemo } from 'react';
 
@@ -6,9 +6,11 @@ interface EventGridProps {
   events: Event[];
   filters: FilterState;
   onAttend: (eventId: string) => void;
+  onParticipantClick?: (participant: Participant) => void;
+  onOpenGroupChat?: (event: Event) => void;
 }
 
-const EventGrid = ({ events, filters, onAttend }: EventGridProps) => {
+const EventGrid = ({ events, filters, onAttend, onParticipantClick, onOpenGroupChat }: EventGridProps) => {
   const filteredEvents = useMemo(() => {
     return events.filter(event => {
       // Filter by activity level
