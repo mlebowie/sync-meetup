@@ -53,6 +53,13 @@ const Index = () => {
         selectedInterests={selectedInterests}
         onInterestsChange={handleInterestsChange}
       />
+      <IntakeForm
+        onSubmit={(newFilters, interestIds) => {
+          setSelectedInterests(interestIds);
+          setFilters(prev => ({ ...prev, ...newFilters }));
+        }}
+      />
+
       
       <section id="events" className="py-12 md:py-16">
         <div className="container px-4 md:px-6">
