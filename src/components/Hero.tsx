@@ -4,10 +4,12 @@ import { ArrowRight, Users, Calendar, MapPin } from 'lucide-react';
 const Hero = () => {
   return (
     <section className="relative overflow-hidden gradient-hero py-16 md:py-24 lg:py-32">
-      {/* Background decoration */}
+      {/* Animated sunset background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-primary/10 blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-accent/10 blur-3xl" />
+        <div className="sun-orb" style={{ width: '480px', height: '480px', top: '20%', left: '50%', transform: 'translateX(-50%)', filter: 'blur(8px)' }} />
+        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-[hsl(35_95%_70%/0.35)] blur-3xl animate-pulse-soft" />
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-[hsl(345_70%_55%/0.3)] blur-3xl animate-pulse-soft" />
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[hsl(275_50%_30%/0.4)] to-transparent" />
       </div>
 
       <div className="container relative px-4 md:px-6">
