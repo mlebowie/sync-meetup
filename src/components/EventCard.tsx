@@ -39,7 +39,11 @@ const intensityLabels = {
 
 const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat }: EventCardProps) => {
   const [isAttending, setIsAttending] = useState(event.isAttending || false);
-  const [isHovered, setIsHovered] = useState(false);
+  const [, setIsHovered] = useState(false);
+  const { seriesCount, crossedPathsWith } = useActivityHistory();
+
+  const seriesTimes = seriesCount(event.seriesId);
+  const familiarCount = event.participants.filter(p => crossedPathsWith(p.id) > 0).length;
 
   const handleAttend = () => {
     setIsAttending(!isAttending);
