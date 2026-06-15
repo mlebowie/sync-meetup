@@ -170,8 +170,8 @@ const Index = () => {
             </summary>
             <div className="mt-4">
               <IntakeForm
-                onSubmit={(newFilters) => {
-                  setFilters(prev => ({ ...prev, ...newFilters, interests: prev.interests }));
+                onSubmit={(newFilters, _interestIds) => {
+                  setFilters(prev => ({ ...prev, ...newFilters }));
                 }}
               />
             </div>
