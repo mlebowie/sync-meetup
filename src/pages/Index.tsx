@@ -171,7 +171,7 @@ const Index = () => {
             <div className="mt-4">
               <IntakeForm
                 onSubmit={(newFilters) => {
-                  setFilters(prev => ({ ...prev, ...newFilters }));
+                  setFilters(prev => ({ ...prev, ...newFilters, interests: prev.interests }));
                 }}
               />
             </div>
