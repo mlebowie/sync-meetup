@@ -2,7 +2,8 @@ import { Participant } from '@/types/event';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useSocial } from '@/context/SocialContext';
-import { MapPin, Check, UserPlus, MessageCircle, Sparkles } from 'lucide-react';
+import { useActivityHistory } from '@/context/ActivityHistoryContext';
+import { MapPin, Check, UserPlus, MessageCircle, Repeat, Trophy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface Props {
@@ -14,23 +15,24 @@ interface Props {
 
 const ParticipantProfileDialog = ({ participant, open, onOpenChange, onOpenDM }: Props) => {
   const { following, isMutual, toggleFollow, currentUser } = useSocial();
+  const { crossedPathsWith, isConnected, hasTaggedMe } = useActivityHistory();
   const { toast } = useToast();
 
   if (!participant) return null;
   const isMe = participant.id === currentUser.id;
   const isFollowing = following.has(participant.id);
-  const mutual = isMutual(participant.id);
+  const mutual = isMutual(participant.id) || isConnected(participant.id);
+  const crossed = crossedPathsWith(participant.id);
 
   const handleFollow = () => {
     toggleFollow(participant.id);
     if (!isFollowing) {
-      // simulate that some already follow back
-      const wouldBeMutual = isMutual(participant.id) || ['1', '2', '4', '6'].includes(participant.id);
+      const wouldBeMutual = isMutual(participant.id) || hasTaggedMe(participant.id);
       toast({
-        title: wouldBeMutual ? `You & ${participant.name} follow each other 🎉` : `Following ${participant.name}`,
+        title: wouldBeMutual ? `Connected with ${participant.name} 🎉` : `Following ${participant.name}`,
         description: wouldBeMutual
-          ? 'You can now send each other direct messages.'
-          : 'They’ll see you’re interested in connecting.',
+          ? 'DMs are unlocked — you can message each other now.'
+          : 'They\'ll see you next time you cross paths at an event.',
       });
     }
   };
@@ -39,7 +41,7 @@ const ParticipantProfileDialog = ({ participant, open, onOpenChange, onOpenDM }:
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="sr-only">{participant.name}'s profile</DialogTitle>
+          <DialogTitle className="sr-only">{participant.name}'s activity</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col items-center text-center">
           <img
@@ -54,43 +56,48 @@ const ParticipantProfileDialog = ({ participant, open, onOpenChange, onOpenDM }:
               <span>{participant.neighborhood}</span>
             </div>
           )}
-          {participant.bio && (
-            <p className="text-sm text-muted-foreground mt-3 max-w-sm">{participant.bio}</p>
-          )}
         </div>
 
-        <div className="mt-4 space-y-4">
-          {participant.preferredActivities && participant.preferredActivities.length > 0 && (
-            <div>
-              <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-                Preferred activities
-              </h4>
-              <div className="flex flex-wrap gap-2">
-                {participant.preferredActivities.map(a => (
-                  <span key={a} className="px-2.5 py-1 text-xs rounded-full bg-secondary text-secondary-foreground">
-                    {a}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {participant.pastEvents && participant.pastEvents.length > 0 && (
-            <div>
-              <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-                Previously attended
-              </h4>
-              <ul className="space-y-1.5">
-                {participant.pastEvents.map(e => (
-                  <li key={e} className="text-sm text-foreground flex items-start gap-2">
-                    <Sparkles className="h-3.5 w-3.5 mt-0.5 text-primary shrink-0" />
-                    <span>{e}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+        {/* Activity-history-first profile — no external interest tags */}
+        <div className="grid grid-cols-2 gap-3 mt-5">
+          <div className="bg-secondary/40 rounded-xl p-3 text-center">
+            <div className="text-2xl font-bold text-foreground">{participant.totalAttended ?? 0}</div>
+            <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Events attended</div>
+          </div>
+          <div className="bg-primary/10 rounded-xl p-3 text-center">
+            <div className="text-2xl font-bold text-primary">{crossed}×</div>
+            <div className="text-[11px] uppercase tracking-wide text-muted-foreground">You've crossed paths</div>
+          </div>
         </div>
+
+        {participant.recurringSeries && participant.recurringSeries.length > 0 && (
+          <div className="mt-5">
+            <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1">
+              <Repeat className="h-3.5 w-3.5" /> Shows up to
+            </h4>
+            <ul className="space-y-1.5">
+              {participant.recurringSeries.map(s => (
+                <li key={s} className="text-sm text-foreground flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                  <span>{s}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {participant.pastEvents && participant.pastEvents.length > 0 && (
+          <div className="mt-4">
+            <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1">
+              <Trophy className="h-3.5 w-3.5" /> Recent history
+            </h4>
+            <div className="flex flex-wrap gap-1.5">
+              {participant.pastEvents.slice(0, 6).map(e => (
+                <span key={e} className="px-2 py-0.5 text-xs rounded-md bg-secondary text-secondary-foreground">{e}</span>
+              ))}
+            </div>
+          </div>
+        )}
 
         {!isMe && (
           <div className="flex gap-2 mt-6">
@@ -99,11 +106,7 @@ const ParticipantProfileDialog = ({ participant, open, onOpenChange, onOpenDM }:
               className="flex-1"
               onClick={handleFollow}
             >
-              {isFollowing ? (
-                <><Check className="h-4 w-4 mr-1" /> Following</>
-              ) : (
-                <><UserPlus className="h-4 w-4 mr-1" /> Follow</>
-              )}
+              {isFollowing ? (<><Check className="h-4 w-4 mr-1" /> Following</>) : (<><UserPlus className="h-4 w-4 mr-1" /> Follow</>)}
             </Button>
             {mutual && onOpenDM && (
               <Button variant="outline" onClick={() => { onOpenChange(false); onOpenDM(participant.id); }}>
@@ -114,7 +117,7 @@ const ParticipantProfileDialog = ({ participant, open, onOpenChange, onOpenDM }:
         )}
         {!isMe && isFollowing && !mutual && (
           <p className="text-xs text-muted-foreground text-center mt-3">
-            Once {participant.name.split(' ')[0]} follows you back, you can DM each other.
+            Show up to another event together — or tag each other after one — to unlock DMs.
           </p>
         )}
       </DialogContent>

@@ -1,15 +1,22 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Event, Participant } from '@/types/event';
-import { Calendar, MapPin, Users, Clock, ArrowRight, Check, MessageSquare } from 'lucide-react';
+import { Calendar, MapPin, Users, Clock, ArrowRight, Check, MessageSquare, Repeat } from 'lucide-react';
 import { format } from 'date-fns';
 import ParticipantAvatars from './ParticipantAvatars';
+import { useActivityHistory } from '@/context/ActivityHistoryContext';
 
 interface EventCardProps {
   event: Event;
   onAttend?: (eventId: string) => void;
   onParticipantClick?: (participant: Participant) => void;
   onOpenGroupChat?: (event: Event) => void;
+}
+
+function ordinal(n: number) {
+  const s = ['th', 'st', 'nd', 'rd'];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
 }
 
 const sourceColors = {
@@ -32,7 +39,11 @@ const intensityLabels = {
 
 const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat }: EventCardProps) => {
   const [isAttending, setIsAttending] = useState(event.isAttending || false);
-  const [isHovered, setIsHovered] = useState(false);
+  const [, setIsHovered] = useState(false);
+  const { seriesCount, crossedPathsWith } = useActivityHistory();
+
+  const seriesTimes = seriesCount(event.seriesId);
+  const familiarCount = event.participants.filter(p => crossedPathsWith(p.id) > 0).length;
 
   const handleAttend = () => {
     setIsAttending(!isAttending);
@@ -78,10 +89,24 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat }: Eve
 
       {/* Content */}
       <div className="p-5">
+        <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+          {event.recurrence && event.recurrence !== 'one-off' && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-full bg-primary/10 text-primary">
+              <Repeat className="h-3 w-3" />
+              {event.recurrence.charAt(0).toUpperCase() + event.recurrence.slice(1)}
+              {seriesTimes > 0 && ` · ${ordinal(seriesTimes + 1)} time for you`}
+            </span>
+          )}
+          {familiarCount > 0 && (
+            <span className="px-2 py-0.5 text-[11px] font-medium rounded-full bg-accent/15 text-accent">
+              {familiarCount} familiar {familiarCount === 1 ? 'face' : 'faces'}
+            </span>
+          )}
+        </div>
         <h3 className="text-lg font-bold text-foreground mb-2 line-clamp-1 group-hover:text-primary transition-colors">
           {event.title}
         </h3>
-        
+
         <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
           {event.description}
         </p>
