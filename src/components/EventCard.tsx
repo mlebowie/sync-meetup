@@ -1,15 +1,22 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Event, Participant } from '@/types/event';
-import { Calendar, MapPin, Users, Clock, ArrowRight, Check, MessageSquare } from 'lucide-react';
+import { Calendar, MapPin, Users, Clock, ArrowRight, Check, MessageSquare, Repeat } from 'lucide-react';
 import { format } from 'date-fns';
 import ParticipantAvatars from './ParticipantAvatars';
+import { useActivityHistory } from '@/context/ActivityHistoryContext';
 
 interface EventCardProps {
   event: Event;
   onAttend?: (eventId: string) => void;
   onParticipantClick?: (participant: Participant) => void;
   onOpenGroupChat?: (event: Event) => void;
+}
+
+function ordinal(n: number) {
+  const s = ['th', 'st', 'nd', 'rd'];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
 }
 
 const sourceColors = {
