@@ -89,10 +89,24 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat }: Eve
 
       {/* Content */}
       <div className="p-5">
+        <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+          {event.recurrence && event.recurrence !== 'one-off' && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-full bg-primary/10 text-primary">
+              <Repeat className="h-3 w-3" />
+              {event.recurrence.charAt(0).toUpperCase() + event.recurrence.slice(1)}
+              {seriesTimes > 0 && ` · ${ordinal(seriesTimes + 1)} time for you`}
+            </span>
+          )}
+          {familiarCount > 0 && (
+            <span className="px-2 py-0.5 text-[11px] font-medium rounded-full bg-accent/15 text-accent">
+              {familiarCount} familiar {familiarCount === 1 ? 'face' : 'faces'}
+            </span>
+          )}
+        </div>
         <h3 className="text-lg font-bold text-foreground mb-2 line-clamp-1 group-hover:text-primary transition-colors">
           {event.title}
         </h3>
-        
+
         <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
           {event.description}
         </p>
