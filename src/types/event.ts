@@ -10,6 +10,13 @@ export interface PastAttendance {
   date: Date;
   category: string;
   coAttendeeIds: string[];
+  /** Human-readable location of the event */
+  location?: string;
+  /** Total people who showed up to this occurrence */
+  attendeeCount?: number;
+  /** Approximate coordinates for map pins */
+  lat?: number;
+  lng?: number;
 }
 
 export interface Participant {
@@ -24,6 +31,8 @@ export interface Participant {
   recurringSeries?: string[];
   /** Total events attended (used to show momentum / consistency) */
   totalAttended?: number;
+  /** Detailed recent attendance history (drives last-attended card, map, feed) */
+  recentHistory?: PastAttendance[];
 }
 
 export interface Event {
