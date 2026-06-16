@@ -1,7 +1,8 @@
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
 import { mockParticipants } from '@/data/mockData';
-import { formatDistanceToNow } from 'date-fns';
-import { CheckCircle2 } from 'lucide-react';
+import { format, formatDistanceToNow } from 'date-fns';
+import { CheckCircle2, MapPin, Users, Calendar } from 'lucide-react';
+
 
 const ActivityFeed = () => {
   const { history, seriesCount } = useActivityHistory();
