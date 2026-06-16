@@ -31,11 +31,16 @@ export interface Participant {
   neighborhood?: string;
   preferredActivities?: string[];
   pastEvents?: string[];
+  /** Rich details for the most recent past events (preferred over `pastEvents`). */
+  pastEventDetails?: PastEventDetail[];
+  /** Most recent event the user showed up to — surfaced as a card on their profile. */
+  lastAttendedEvent?: PastEventDetail & { timesAttended?: number };
   /** Past event titles / series this user reliably shows up to */
   recurringSeries?: string[];
   /** Total events attended (used to show momentum / consistency) */
   totalAttended?: number;
 }
+
 
 export interface Event {
   id: string;
