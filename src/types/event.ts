@@ -10,7 +10,18 @@ export interface PastAttendance {
   date: Date;
   category: string;
   coAttendeeIds: string[];
+  location?: string;
+  attendeeCount?: number;
 }
+
+export interface PastEventDetail {
+  title: string;
+  date: Date;
+  location: string;
+  attendeeCount: number;
+  seriesId?: string;
+}
+
 
 export interface Participant {
   id: string;
