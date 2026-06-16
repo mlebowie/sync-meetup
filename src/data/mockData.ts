@@ -107,6 +107,9 @@ mockParticipants[5].recentHistory = makeHistory([
   { s: 'trail-run', title: 'Saturday Trail Run', cat: 'Sports', days: 16, co: ['me', '0'], count: 21 },
 ]);
 
+// Attach to current user too so opening "your" profile reuses the same UI
+currentUser.recentHistory = currentUserHistory;
+
 export const mockEvents: Event[] = [
   {
     id: '1',
