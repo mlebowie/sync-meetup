@@ -3,7 +3,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { useSocial } from '@/context/SocialContext';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
-import { MapPin, Check, UserPlus, MessageCircle, Repeat, Trophy } from 'lucide-react';
+import { MapPin, Check, UserPlus, MessageCircle, Repeat, Trophy, Calendar, Users } from 'lucide-react';
+import { format, formatDistanceToNow } from 'date-fns';
+
 import { useToast } from '@/hooks/use-toast';
 
 interface Props {
