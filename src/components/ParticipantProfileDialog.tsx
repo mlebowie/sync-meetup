@@ -3,8 +3,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { useSocial } from '@/context/SocialContext';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
-import { MapPin, Check, UserPlus, MessageCircle, Repeat, Trophy } from 'lucide-react';
+import { MapPin, Check, UserPlus, MessageCircle, Repeat, Trophy, Users, Calendar } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { format, formatDistanceToNow } from 'date-fns';
+import AttendedEventsMap from './AttendedEventsMap';
+
 
 interface Props {
   participant: Participant | null;
@@ -39,7 +42,7 @@ const ParticipantProfileDialog = ({ participant, open, onOpenChange, onOpenDM }:
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="sr-only">{participant.name}'s activity</DialogTitle>
         </DialogHeader>
@@ -70,6 +73,44 @@ const ParticipantProfileDialog = ({ participant, open, onOpenChange, onOpenDM }:
           </div>
         </div>
 
+        {/* Last attended event card */}
+        {(() => {
+          const recent = [...(participant.recentHistory ?? [])].sort((a, b) => b.date.getTime() - a.date.getTime());
+          const last = recent[0];
+          if (!last) return null;
+          const timesAtSeries = last.seriesId
+            ? recent.filter(r => r.seriesId === last.seriesId).length
+            : 0;
+          return (
+            <div className="mt-5">
+              <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1">
+                <Calendar className="h-3.5 w-3.5" /> Last attended
+              </h4>
+              <div className="rounded-xl border border-border bg-card p-3 shadow-card">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="font-semibold text-foreground truncate">{last.title}</div>
+                    {last.location && (
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+                        <MapPin className="h-3 w-3" />
+                        <span className="truncate">{last.location}</span>
+                      </div>
+                    )}
+                    <div className="text-xs text-muted-foreground mt-0.5">
+                      {format(last.date, 'EEE, MMM d')} · {formatDistanceToNow(last.date, { addSuffix: true })}
+                    </div>
+                  </div>
+                  {last.seriesId && timesAtSeries > 1 && (
+                    <span className="shrink-0 px-2 py-0.5 text-[11px] rounded-full bg-primary/10 text-primary font-medium flex items-center gap-1">
+                      <Repeat className="h-3 w-3" /> {timesAtSeries}× attended
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
         {participant.recurringSeries && participant.recurringSeries.length > 0 && (
           <div className="mt-5">
             <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1">
@@ -86,7 +127,38 @@ const ParticipantProfileDialog = ({ participant, open, onOpenChange, onOpenDM }:
           </div>
         )}
 
-        {participant.pastEvents && participant.pastEvents.length > 0 && (
+        {participant.recentHistory && participant.recentHistory.length > 0 ? (
+          <div className="mt-5">
+            <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1">
+              <Trophy className="h-3.5 w-3.5" /> Recent history
+            </h4>
+            <ul className="space-y-2">
+              {[...participant.recentHistory]
+                .sort((a, b) => b.date.getTime() - a.date.getTime())
+                .slice(0, 5)
+                .map(h => (
+                  <li key={h.eventId} className="rounded-lg bg-secondary/40 px-3 py-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-medium text-foreground truncate">{h.title}</span>
+                      <span className="text-[11px] text-muted-foreground shrink-0">{format(h.date, 'MMM d')}</span>
+                    </div>
+                    <div className="flex items-center gap-3 mt-1 text-[11px] text-muted-foreground flex-wrap">
+                      {h.location && (
+                        <span className="flex items-center gap-1 truncate">
+                          <MapPin className="h-3 w-3" /> {h.location}
+                        </span>
+                      )}
+                      {h.attendeeCount != null && (
+                        <span className="flex items-center gap-1">
+                          <Users className="h-3 w-3" /> {h.attendeeCount} attended
+                        </span>
+                      )}
+                    </div>
+                  </li>
+                ))}
+            </ul>
+          </div>
+        ) : participant.pastEvents && participant.pastEvents.length > 0 && (
           <div className="mt-4">
             <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1">
               <Trophy className="h-3.5 w-3.5" /> Recent history
@@ -98,6 +170,12 @@ const ParticipantProfileDialog = ({ participant, open, onOpenChange, onOpenDM }:
             </div>
           </div>
         )}
+
+        {/* Map of attended locations with time filters */}
+        {participant.recentHistory && participant.recentHistory.length > 0 && (
+          <AttendedEventsMap history={participant.recentHistory} />
+        )}
+
 
         {!isMe && (
           <div className="flex gap-2 mt-6">

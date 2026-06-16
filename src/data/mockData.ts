@@ -21,22 +21,94 @@ export const currentUser: Participant = {
 };
 
 // Seeded past activity for the current user — drives the Activity Feed,
-// recommendations, and the "crossed paths" counters.
+// recommendations, the map, and the "crossed paths" counters.
 const daysAgo = (n: number) => {
   const d = new Date();
   d.setDate(d.getDate() - n);
   return d;
 };
+const hoursAgo = (n: number) => {
+  const d = new Date();
+  d.setHours(d.getHours() - n);
+  return d;
+};
+
+// Approximate Porto coordinates for known venues
+export const VENUE_COORDS: Record<string, { lat: number; lng: number; location: string }> = {
+  'trail-run': { lat: 41.1695, lng: -8.6820, location: 'Parque da Cidade, Porto' },
+  'brunch-club': { lat: 41.1500, lng: -8.6160, location: 'Café Candelabro, Porto' },
+  'padel': { lat: 41.1580, lng: -8.6450, location: 'Padel Boavista, Porto' },
+  '5aside': { lat: 41.1585, lng: -8.6400, location: 'Campo de Boavista, Porto' },
+  'surf': { lat: 41.1830, lng: -8.7000, location: 'Praia de Matosinhos, Porto' },
+  'founders-mixer': { lat: 41.1430, lng: -8.6200, location: 'Miragaia Rooftop, Porto' },
+  'climbing': { lat: 41.1700, lng: -8.6000, location: 'Vertigo Climbing, Porto' },
+  'sunset-walk': { lat: 41.1400, lng: -8.6120, location: 'Ribeira, Porto' },
+};
+
+const venue = (seriesId: keyof typeof VENUE_COORDS) => VENUE_COORDS[seriesId];
 
 export const currentUserHistory: PastAttendance[] = [
-  { eventId: 'h1', seriesId: 'trail-run', title: 'Saturday Trail Run', date: daysAgo(2), category: 'Sports', coAttendeeIds: ['1', '4', '6'] },
-  { eventId: 'h2', seriesId: 'brunch-club', title: 'Sunday Brunch Club', date: daysAgo(6), category: 'Social', coAttendeeIds: ['2', '4'] },
-  { eventId: 'h3', seriesId: 'padel', title: 'Wednesday Padel', date: daysAgo(10), category: 'Sports', coAttendeeIds: ['1', '3'] },
-  { eventId: 'h4', seriesId: 'trail-run', title: 'Saturday Trail Run', date: daysAgo(9), category: 'Sports', coAttendeeIds: ['1', '6'] },
-  { eventId: 'h5', seriesId: 'trail-run', title: 'Saturday Trail Run', date: daysAgo(16), category: 'Sports', coAttendeeIds: ['1', '4', '6'] },
-  { eventId: 'h6', seriesId: 'brunch-club', title: 'Sunday Brunch Club', date: daysAgo(13), category: 'Social', coAttendeeIds: ['2', '4'] },
-  { eventId: 'h7', seriesId: 'padel', title: 'Wednesday Padel', date: daysAgo(17), category: 'Sports', coAttendeeIds: ['1', '3'] },
+  { eventId: 'h0', seriesId: 'trail-run', title: 'Saturday Trail Run', date: hoursAgo(14), category: 'Sports', coAttendeeIds: ['1', '4', '6'], attendeeCount: 19, ...venue('trail-run') },
+  { eventId: 'h1', seriesId: 'padel', title: 'Wednesday Padel', date: daysAgo(2), category: 'Sports', coAttendeeIds: ['1', '3'], attendeeCount: 8, ...venue('padel') },
+  { eventId: 'h2', seriesId: 'brunch-club', title: 'Sunday Brunch Club', date: daysAgo(6), category: 'Social', coAttendeeIds: ['2', '4'], attendeeCount: 12, ...venue('brunch-club') },
+  { eventId: 'h3', seriesId: 'trail-run', title: 'Saturday Trail Run', date: daysAgo(9), category: 'Sports', coAttendeeIds: ['1', '6'], attendeeCount: 17, ...venue('trail-run') },
+  { eventId: 'h4', seriesId: 'founders-mixer', title: 'Outdoor Founders Mixer', date: daysAgo(12), category: 'Networking', coAttendeeIds: ['1', '4'], attendeeCount: 24, ...venue('founders-mixer') },
+  { eventId: 'h5', seriesId: 'trail-run', title: 'Saturday Trail Run', date: daysAgo(16), category: 'Sports', coAttendeeIds: ['1', '4', '6'], attendeeCount: 21, ...venue('trail-run') },
+  { eventId: 'h6', seriesId: 'brunch-club', title: 'Sunday Brunch Club', date: daysAgo(13), category: 'Social', coAttendeeIds: ['2', '4'], attendeeCount: 14, ...venue('brunch-club') },
+  { eventId: 'h7', seriesId: 'padel', title: 'Wednesday Padel', date: daysAgo(17), category: 'Sports', coAttendeeIds: ['1', '3'], attendeeCount: 6, ...venue('padel') },
+  { eventId: 'h8', seriesId: 'sunset-walk', title: 'Douro Sunset Walk + Beers', date: daysAgo(22), category: 'Social', coAttendeeIds: ['1', '4'], attendeeCount: 11, ...venue('sunset-walk') },
+  { eventId: 'h9', seriesId: 'climbing', title: 'Bouldering Night', date: daysAgo(28), category: 'Sports', coAttendeeIds: ['3'], attendeeCount: 9, ...venue('climbing') },
 ];
+
+// Seed a per-participant recent history so their profile shows last attended + map
+const makeHistory = (seeds: Array<{ s: keyof typeof VENUE_COORDS; title: string; cat: string; days: number; co: string[]; count: number }>): PastAttendance[] =>
+  seeds.map((seed, i) => ({
+    eventId: `p-${seed.s}-${i}`,
+    seriesId: seed.s,
+    title: seed.title,
+    date: daysAgo(seed.days),
+    category: seed.cat,
+    coAttendeeIds: seed.co,
+    attendeeCount: seed.count,
+    ...VENUE_COORDS[seed.s],
+  }));
+
+// Attach to existing participants
+mockParticipants[0].recentHistory = makeHistory([
+  { s: 'trail-run', title: 'Saturday Trail Run', cat: 'Sports', days: 0, co: ['me', '4', '6'], count: 19 },
+  { s: 'padel', title: 'Wednesday Padel', cat: 'Sports', days: 2, co: ['me', '3'], count: 8 },
+  { s: 'trail-run', title: 'Saturday Trail Run', cat: 'Sports', days: 9, co: ['me', '6'], count: 17 },
+  { s: 'brunch-club', title: 'Sunday Brunch Club', cat: 'Social', days: 20, co: ['2'], count: 13 },
+]);
+mockParticipants[1].recentHistory = makeHistory([
+  { s: '5aside', title: 'Tuesday 5-a-side Football', cat: 'Sports', days: 1, co: ['4', '2'], count: 10 },
+  { s: 'brunch-club', title: 'Sunday Brunch Club', cat: 'Social', days: 6, co: ['me', '4'], count: 12 },
+  { s: '5aside', title: 'Tuesday 5-a-side Football', cat: 'Sports', days: 8, co: ['4'], count: 11 },
+]);
+mockParticipants[2].recentHistory = makeHistory([
+  { s: 'padel', title: 'Wednesday Padel', cat: 'Sports', days: 2, co: ['me', '0'], count: 8 },
+  { s: 'padel', title: 'Wednesday Padel', cat: 'Sports', days: 17, co: ['0'], count: 6 },
+  { s: 'climbing', title: 'Bouldering Night', cat: 'Sports', days: 28, co: ['me'], count: 9 },
+]);
+mockParticipants[3].recentHistory = makeHistory([
+  { s: 'surf', title: 'Matosinhos Surf', cat: 'Sports', days: 1, co: ['5'], count: 7 },
+  { s: 'trail-run', title: 'Saturday Trail Run', cat: 'Sports', days: 0, co: ['me', '0', '5'], count: 19 },
+  { s: 'brunch-club', title: 'Sunday Brunch Club', cat: 'Social', days: 6, co: ['me', '1'], count: 12 },
+  { s: 'founders-mixer', title: 'Outdoor Founders Mixer', cat: 'Networking', days: 12, co: ['me', '0'], count: 24 },
+]);
+mockParticipants[4].recentHistory = makeHistory([
+  { s: '5aside', title: 'Tuesday 5-a-side Football', cat: 'Sports', days: 1, co: ['1', '2'], count: 10 },
+  { s: '5aside', title: 'Tuesday 5-a-side Football', cat: 'Sports', days: 8, co: ['1'], count: 11 },
+]);
+mockParticipants[5].recentHistory = makeHistory([
+  { s: 'trail-run', title: 'Saturday Trail Run', cat: 'Sports', days: 0, co: ['me', '0', '3'], count: 19 },
+  { s: 'surf', title: 'Matosinhos Surf', cat: 'Sports', days: 1, co: ['3'], count: 7 },
+  { s: 'founders-mixer', title: 'Outdoor Founders Mixer', cat: 'Networking', days: 12, co: ['me', '0'], count: 24 },
+  { s: 'trail-run', title: 'Saturday Trail Run', cat: 'Sports', days: 16, co: ['me', '0'], count: 21 },
+]);
+
+// Attach to current user too so opening "your" profile reuses the same UI
+currentUser.recentHistory = currentUserHistory;
 
 export const mockEvents: Event[] = [
   {
