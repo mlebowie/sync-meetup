@@ -1,12 +1,94 @@
 import { Event, Interest, Participant, PastAttendance } from '@/types/event';
 
+const daysAgo = (n: number) => {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return d;
+};
+
+const LOC = {
+  trail: 'Parque da Cidade, Porto',
+  brunch: 'Café Candelabro, Cedofeita',
+  padel: 'Padel Porto Club, Boavista',
+  surf: 'Praia de Matosinhos',
+  football: 'Campo do Bessa, Porto',
+};
+
 export const mockParticipants: Participant[] = [
-  { id: '1', name: 'Tom B.', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face', bio: 'Berlin → Porto. Trail runner, padel regular.', neighborhood: 'Cedofeita, Porto', recurringSeries: ['Saturday Trail Run', 'Wednesday Padel'], totalAttended: 22, pastEvents: ['Saturday Trail Run', 'Wednesday Padel', 'Sunday Brunch Club'] },
-  { id: '2', name: 'James L.', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face', bio: 'Software dev, new to the city.', neighborhood: 'Bonfim, Porto', recurringSeries: ['Tuesday 5-a-side', 'Sunday Brunch Club'], totalAttended: 14, pastEvents: ['Tuesday 5-a-side', 'Sunday Brunch Club'] },
-  { id: '3', name: 'Marco K.', avatar: 'https://images.unsplash.com/photo-1463453091185-61582044d556?w=100&h=100&fit=crop&crop=face', bio: 'Italian, here since 2024.', neighborhood: 'Miragaia, Porto', recurringSeries: ['Wednesday Padel'], totalAttended: 9, pastEvents: ['Wednesday Padel', 'Saturday Trail Run'] },
-  { id: '4', name: 'David R.', avatar: 'https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?w=100&h=100&fit=crop&crop=face', bio: 'Producer, surfs every weekend.', neighborhood: 'Foz do Douro, Porto', recurringSeries: ['Matosinhos Surf', 'Sunday Brunch Club'], totalAttended: 18, pastEvents: ['Matosinhos Surf', 'Sunday Brunch Club', 'Saturday Trail Run'] },
-  { id: '5', name: 'Lucas T.', avatar: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=100&h=100&fit=crop&crop=face', bio: 'Brazilian dev. Always down for football.', neighborhood: 'Cedofeita, Porto', recurringSeries: ['Tuesday 5-a-side'], totalAttended: 11, pastEvents: ['Tuesday 5-a-side'] },
-  { id: '6', name: 'Alex P.', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face', bio: 'Founder, runs early, surfs late.', neighborhood: 'Boavista, Porto', recurringSeries: ['Saturday Trail Run', 'Matosinhos Surf'], totalAttended: 26, pastEvents: ['Saturday Trail Run', 'Matosinhos Surf'] },
+  {
+    id: '1', name: 'Tom B.',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face',
+    bio: 'Berlin → Porto. Trail runner, padel regular.', neighborhood: 'Cedofeita, Porto',
+    recurringSeries: ['Saturday Trail Run', 'Wednesday Padel'], totalAttended: 22,
+    pastEvents: ['Saturday Trail Run', 'Wednesday Padel', 'Sunday Brunch Club'],
+    lastAttendedEvent: { title: 'Saturday Trail Run', date: daysAgo(2), location: LOC.trail, attendeeCount: 14, seriesId: 'trail-run', timesAttended: 9 },
+    pastEventDetails: [
+      { title: 'Saturday Trail Run', date: daysAgo(2), location: LOC.trail, attendeeCount: 14, seriesId: 'trail-run' },
+      { title: 'Wednesday Padel', date: daysAgo(10), location: LOC.padel, attendeeCount: 8, seriesId: 'padel' },
+      { title: 'Sunday Brunch Club', date: daysAgo(20), location: LOC.brunch, attendeeCount: 11, seriesId: 'brunch-club' },
+    ],
+  },
+  {
+    id: '2', name: 'James L.',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face',
+    bio: 'Software dev, new to the city.', neighborhood: 'Bonfim, Porto',
+    recurringSeries: ['Tuesday 5-a-side', 'Sunday Brunch Club'], totalAttended: 14,
+    pastEvents: ['Tuesday 5-a-side', 'Sunday Brunch Club'],
+    lastAttendedEvent: { title: 'Tuesday 5-a-side', date: daysAgo(3), location: LOC.football, attendeeCount: 10, seriesId: 'football', timesAttended: 6 },
+    pastEventDetails: [
+      { title: 'Tuesday 5-a-side', date: daysAgo(3), location: LOC.football, attendeeCount: 10, seriesId: 'football' },
+      { title: 'Sunday Brunch Club', date: daysAgo(6), location: LOC.brunch, attendeeCount: 11, seriesId: 'brunch-club' },
+    ],
+  },
+  {
+    id: '3', name: 'Marco K.',
+    avatar: 'https://images.unsplash.com/photo-1463453091185-61582044d556?w=100&h=100&fit=crop&crop=face',
+    bio: 'Italian, here since 2024.', neighborhood: 'Miragaia, Porto',
+    recurringSeries: ['Wednesday Padel'], totalAttended: 9,
+    pastEvents: ['Wednesday Padel', 'Saturday Trail Run'],
+    lastAttendedEvent: { title: 'Wednesday Padel', date: daysAgo(4), location: LOC.padel, attendeeCount: 8, seriesId: 'padel', timesAttended: 5 },
+    pastEventDetails: [
+      { title: 'Wednesday Padel', date: daysAgo(4), location: LOC.padel, attendeeCount: 8, seriesId: 'padel' },
+      { title: 'Saturday Trail Run', date: daysAgo(16), location: LOC.trail, attendeeCount: 12, seriesId: 'trail-run' },
+    ],
+  },
+  {
+    id: '4', name: 'David R.',
+    avatar: 'https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?w=100&h=100&fit=crop&crop=face',
+    bio: 'Producer, surfs every weekend.', neighborhood: 'Foz do Douro, Porto',
+    recurringSeries: ['Matosinhos Surf', 'Sunday Brunch Club'], totalAttended: 18,
+    pastEvents: ['Matosinhos Surf', 'Sunday Brunch Club', 'Saturday Trail Run'],
+    lastAttendedEvent: { title: 'Matosinhos Surf', date: daysAgo(1), location: LOC.surf, attendeeCount: 9, seriesId: 'surf', timesAttended: 12 },
+    pastEventDetails: [
+      { title: 'Matosinhos Surf', date: daysAgo(1), location: LOC.surf, attendeeCount: 9, seriesId: 'surf' },
+      { title: 'Sunday Brunch Club', date: daysAgo(6), location: LOC.brunch, attendeeCount: 11, seriesId: 'brunch-club' },
+      { title: 'Saturday Trail Run', date: daysAgo(16), location: LOC.trail, attendeeCount: 12, seriesId: 'trail-run' },
+    ],
+  },
+  {
+    id: '5', name: 'Lucas T.',
+    avatar: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=100&h=100&fit=crop&crop=face',
+    bio: 'Brazilian dev. Always down for football.', neighborhood: 'Cedofeita, Porto',
+    recurringSeries: ['Tuesday 5-a-side'], totalAttended: 11,
+    pastEvents: ['Tuesday 5-a-side'],
+    lastAttendedEvent: { title: 'Tuesday 5-a-side', date: daysAgo(3), location: LOC.football, attendeeCount: 10, seriesId: 'football', timesAttended: 8 },
+    pastEventDetails: [
+      { title: 'Tuesday 5-a-side', date: daysAgo(3), location: LOC.football, attendeeCount: 10, seriesId: 'football' },
+      { title: 'Tuesday 5-a-side', date: daysAgo(10), location: LOC.football, attendeeCount: 9, seriesId: 'football' },
+    ],
+  },
+  {
+    id: '6', name: 'Alex P.',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
+    bio: 'Founder, runs early, surfs late.', neighborhood: 'Boavista, Porto',
+    recurringSeries: ['Saturday Trail Run', 'Matosinhos Surf'], totalAttended: 26,
+    pastEvents: ['Saturday Trail Run', 'Matosinhos Surf'],
+    lastAttendedEvent: { title: 'Saturday Trail Run', date: daysAgo(2), location: LOC.trail, attendeeCount: 14, seriesId: 'trail-run', timesAttended: 15 },
+    pastEventDetails: [
+      { title: 'Saturday Trail Run', date: daysAgo(2), location: LOC.trail, attendeeCount: 14, seriesId: 'trail-run' },
+      { title: 'Matosinhos Surf', date: daysAgo(8), location: LOC.surf, attendeeCount: 9, seriesId: 'surf' },
+    ],
+  },
 ];
 
 export const currentUser: Participant = {
@@ -18,25 +100,19 @@ export const currentUser: Participant = {
   recurringSeries: ['Saturday Trail Run', 'Sunday Brunch Club'],
   totalAttended: 7,
   pastEvents: ['Saturday Trail Run', 'Sunday Brunch Club', 'Wednesday Padel'],
-};
-
-// Seeded past activity for the current user — drives the Activity Feed,
-// recommendations, and the "crossed paths" counters.
-const daysAgo = (n: number) => {
-  const d = new Date();
-  d.setDate(d.getDate() - n);
-  return d;
+  lastAttendedEvent: { title: 'Saturday Trail Run', date: daysAgo(2), location: LOC.trail, attendeeCount: 14, seriesId: 'trail-run', timesAttended: 3 },
 };
 
 export const currentUserHistory: PastAttendance[] = [
-  { eventId: 'h1', seriesId: 'trail-run', title: 'Saturday Trail Run', date: daysAgo(2), category: 'Sports', coAttendeeIds: ['1', '4', '6'] },
-  { eventId: 'h2', seriesId: 'brunch-club', title: 'Sunday Brunch Club', date: daysAgo(6), category: 'Social', coAttendeeIds: ['2', '4'] },
-  { eventId: 'h3', seriesId: 'padel', title: 'Wednesday Padel', date: daysAgo(10), category: 'Sports', coAttendeeIds: ['1', '3'] },
-  { eventId: 'h4', seriesId: 'trail-run', title: 'Saturday Trail Run', date: daysAgo(9), category: 'Sports', coAttendeeIds: ['1', '6'] },
-  { eventId: 'h5', seriesId: 'trail-run', title: 'Saturday Trail Run', date: daysAgo(16), category: 'Sports', coAttendeeIds: ['1', '4', '6'] },
-  { eventId: 'h6', seriesId: 'brunch-club', title: 'Sunday Brunch Club', date: daysAgo(13), category: 'Social', coAttendeeIds: ['2', '4'] },
-  { eventId: 'h7', seriesId: 'padel', title: 'Wednesday Padel', date: daysAgo(17), category: 'Sports', coAttendeeIds: ['1', '3'] },
+  { eventId: 'h1', seriesId: 'trail-run', title: 'Saturday Trail Run', date: daysAgo(2), category: 'Sports', coAttendeeIds: ['1', '4', '6'], location: LOC.trail, attendeeCount: 14 },
+  { eventId: 'h2', seriesId: 'brunch-club', title: 'Sunday Brunch Club', date: daysAgo(6), category: 'Social', coAttendeeIds: ['2', '4'], location: LOC.brunch, attendeeCount: 11 },
+  { eventId: 'h3', seriesId: 'padel', title: 'Wednesday Padel', date: daysAgo(10), category: 'Sports', coAttendeeIds: ['1', '3'], location: LOC.padel, attendeeCount: 8 },
+  { eventId: 'h4', seriesId: 'trail-run', title: 'Saturday Trail Run', date: daysAgo(9), category: 'Sports', coAttendeeIds: ['1', '6'], location: LOC.trail, attendeeCount: 13 },
+  { eventId: 'h5', seriesId: 'trail-run', title: 'Saturday Trail Run', date: daysAgo(16), category: 'Sports', coAttendeeIds: ['1', '4', '6'], location: LOC.trail, attendeeCount: 12 },
+  { eventId: 'h6', seriesId: 'brunch-club', title: 'Sunday Brunch Club', date: daysAgo(13), category: 'Social', coAttendeeIds: ['2', '4'], location: LOC.brunch, attendeeCount: 10 },
+  { eventId: 'h7', seriesId: 'padel', title: 'Wednesday Padel', date: daysAgo(17), category: 'Sports', coAttendeeIds: ['1', '3'], location: LOC.padel, attendeeCount: 9 },
 ];
+
 
 export const mockEvents: Event[] = [
   {
