@@ -3,9 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { useSocial } from '@/context/SocialContext';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
-import { MapPin, Check, UserPlus, MessageCircle, Repeat, Trophy, Calendar, Users } from 'lucide-react';
-import { format, formatDistanceToNow } from 'date-fns';
-
+import { MapPin, Check, UserPlus, MessageCircle, Repeat, Trophy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface Props {
@@ -72,37 +70,6 @@ const ParticipantProfileDialog = ({ participant, open, onOpenChange, onOpenDM }:
           </div>
         </div>
 
-        {participant.lastAttendedEvent && (
-          <div className="mt-5">
-            <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-              Last attended
-            </h4>
-            <div className="bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/15 rounded-xl p-3.5">
-              <div className="flex items-start justify-between gap-2">
-                <div className="font-semibold text-foreground leading-tight">
-                  {participant.lastAttendedEvent.title}
-                </div>
-                {participant.lastAttendedEvent.seriesId && participant.lastAttendedEvent.timesAttended && (
-                  <span className="shrink-0 px-2 py-0.5 text-[11px] rounded-full bg-primary/15 text-primary font-medium flex items-center gap-1">
-                    <Repeat className="h-3 w-3" />
-                    {participant.lastAttendedEvent.timesAttended}× attended
-                  </span>
-                )}
-              </div>
-              <div className="mt-2 space-y-1 text-xs text-muted-foreground">
-                <div className="flex items-center gap-1.5">
-                  <Calendar className="h-3.5 w-3.5" />
-                  <span>{format(participant.lastAttendedEvent.date, 'EEE, MMM d')} · {formatDistanceToNow(participant.lastAttendedEvent.date, { addSuffix: true })}</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <MapPin className="h-3.5 w-3.5" />
-                  <span>{participant.lastAttendedEvent.location}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
         {participant.recurringSeries && participant.recurringSeries.length > 0 && (
           <div className="mt-5">
             <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1">
@@ -119,29 +86,7 @@ const ParticipantProfileDialog = ({ participant, open, onOpenChange, onOpenDM }:
           </div>
         )}
 
-        {participant.pastEventDetails && participant.pastEventDetails.length > 0 ? (
-          <div className="mt-4">
-            <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1">
-              <Trophy className="h-3.5 w-3.5" /> Recent history
-            </h4>
-            <ul className="space-y-2">
-              {participant.pastEventDetails.slice(0, 5).map((e, i) => (
-                <li key={`${e.title}-${i}`} className="bg-secondary/50 rounded-lg px-3 py-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-sm font-medium text-foreground truncate">{e.title}</span>
-                    <span className="text-[11px] text-muted-foreground shrink-0">
-                      {format(e.date, 'MMM d')}
-                    </span>
-                  </div>
-                  <div className="mt-1 flex items-center gap-3 text-[11px] text-muted-foreground">
-                    <span className="flex items-center gap-1"><Users className="h-3 w-3" />{e.attendeeCount} attended</span>
-                    <span className="flex items-center gap-1 truncate"><MapPin className="h-3 w-3" />{e.location}</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : participant.pastEvents && participant.pastEvents.length > 0 && (
+        {participant.pastEvents && participant.pastEvents.length > 0 && (
           <div className="mt-4">
             <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1">
               <Trophy className="h-3.5 w-3.5" /> Recent history
@@ -153,7 +98,6 @@ const ParticipantProfileDialog = ({ participant, open, onOpenChange, onOpenDM }:
             </div>
           </div>
         )}
-
 
         {!isMe && (
           <div className="flex gap-2 mt-6">

@@ -1,8 +1,7 @@
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
 import { mockParticipants } from '@/data/mockData';
-import { format, formatDistanceToNow } from 'date-fns';
-import { CheckCircle2, MapPin, Users, Calendar } from 'lucide-react';
-
+import { formatDistanceToNow } from 'date-fns';
+import { CheckCircle2 } from 'lucide-react';
 
 const ActivityFeed = () => {
   const { history, seriesCount } = useActivityHistory();
@@ -41,25 +40,9 @@ const ActivityFeed = () => {
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {format(h.date, 'MMM d')} · {formatDistanceToNow(h.date, { addSuffix: true })}
-                      </span>
-                      {typeof h.attendeeCount === 'number' && (
-                        <span className="flex items-center gap-1">
-                          <Users className="h-3 w-3" />
-                          {h.attendeeCount} attended
-                        </span>
-                      )}
-                      {h.location && (
-                        <span className="flex items-center gap-1">
-                          <MapPin className="h-3 w-3" />
-                          {h.location}
-                        </span>
-                      )}
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {formatDistanceToNow(h.date, { addSuffix: true })} · {h.category}
                     </p>
-
                     {co.length > 0 && (
                       <div className="flex items-center gap-2 mt-2">
                         <div className="flex -space-x-2">

@@ -10,18 +10,7 @@ export interface PastAttendance {
   date: Date;
   category: string;
   coAttendeeIds: string[];
-  location?: string;
-  attendeeCount?: number;
 }
-
-export interface PastEventDetail {
-  title: string;
-  date: Date;
-  location: string;
-  attendeeCount: number;
-  seriesId?: string;
-}
-
 
 export interface Participant {
   id: string;
@@ -31,16 +20,11 @@ export interface Participant {
   neighborhood?: string;
   preferredActivities?: string[];
   pastEvents?: string[];
-  /** Rich details for the most recent past events (preferred over `pastEvents`). */
-  pastEventDetails?: PastEventDetail[];
-  /** Most recent event the user showed up to — surfaced as a card on their profile. */
-  lastAttendedEvent?: PastEventDetail & { timesAttended?: number };
   /** Past event titles / series this user reliably shows up to */
   recurringSeries?: string[];
   /** Total events attended (used to show momentum / consistency) */
   totalAttended?: number;
 }
-
 
 export interface Event {
   id: string;
