@@ -177,14 +177,18 @@ const Index = () => {
             </div>
           </details>
 
-          <EventFilters filters={filters} onFiltersChange={setFilters} />
-          <EventGrid
-            events={events}
-            filters={filters}
-            onAttend={handleAttend}
-            onParticipantClick={handleParticipantClick}
-            onOpenGroupChat={handleOpenGroupChat}
-          />
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8">
+            <EventGrid
+              events={events}
+              filters={filters}
+              onAttend={handleAttend}
+              onParticipantClick={handleParticipantClick}
+              onOpenGroupChat={handleOpenGroupChat}
+            />
+            <aside className="lg:sticky lg:top-24 h-fit">
+              <EventFilters filters={filters} onFiltersChange={setFilters} />
+            </aside>
+          </div>
         </div>
       </section>
 
