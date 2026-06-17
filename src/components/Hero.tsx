@@ -19,13 +19,12 @@ const Hero = () => {
           </div>
 
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-light tracking-tight text-foreground mb-6 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-            Show up. Same faces.{' '}
-            <span className="text-gradient-primary font-normal">Real friendships.</span>
+            New to the city?{' '}
+            <span className="text-gradient-primary font-normal">SYNC finds your friends in the first 90 days.</span>
           </h1>
 
           <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-            Sync matches you on what you actually do, not what you say you like.
-            Pick a recurring run, padel night, or surf session — keep showing up, watch your crew form.
+            Get matched to events, build new habits, meet your people.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
