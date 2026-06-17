@@ -1,74 +1,45 @@
-# Reposition Sync: Activity-history-driven app for male expats (25-40)
+## Goal
+Replace the current warm peachy palette with the selected Ocean & Blaze scheme to achieve a gender-neutral, dynamic, and friendship-forward aesthetic.
 
-This is a meaningful product pivot. The current app relies heavily on interest tags, public profiles, and one-off events. The new direction is the opposite: **what you've done** matters more than **what you say you like**, and recurring touchpoints drive friendships.
+## Selected Palette
+- **Deep Ocean**: `#0c2340` — HSL(212, 69%, 15%) — used for deep backgrounds, hero base
+- **Medium Ocean**: `#1a4a6e` — HSL(207, 61%, 27%) — used for secondary elements, depth
+- **Bright Amber**: `#f7931e` — HSL(33, 93%, 54%) — primary action, energy highlights
+- **Blaze Orange**: `#ff6b35` — HSL(16, 100%, 60%) — accent, CTAs, warm energy
 
-Memory updates first: target audience and product positioning rules will be saved so future sessions stay consistent (replacing the existing "gender-neutral" memory).
+## Files to Update
 
-## 1. Repositioning (copy + framing)
-- Update Hero headline, sub-copy, and footer tagline to speak directly to unmarried male expats 25-40 looking for a consistent crew, not a dating/social-tag app.
-- Replace the public-facing `InterestSelector` chip section with a more motivational "Your momentum" panel (streaks, events attended this month, recurring crews you're part of).
-- Remove external-facing tags/interests from `ParticipantProfileDialog`. Replace with: activity history, recurring series they show up to, and how many times you've crossed paths.
+### 1. `src/index.css`
+- **Light mode (`:root`)**: Replace all warm HSL tokens with Ocean & Blaze equivalents
+  - `--primary`: amber at HSL(33, 93%, 54%)
+  - `--accent`: blaze orange at HSL(16, 100%, 60%)
+  - `--gradient-primary`: deep ocean → medium ocean
+  - `--gradient-accent`: amber → blaze orange
+  - `--gradient-hero`: deep ocean base with amber/blaze highlights
+  - `--ring`, `--activity-*`, `--intensity-*`: map to ocean/amber range
+- **Dark mode (`.dark`)**: Update primary, accent, muted, and gradient tokens to match
+- **Utility classes** (`@layer utilities`): Update `.gradient-hero`, `.sun-orb`, and animation keyframes to use the new palette
+- **Remove the Google Fonts @import** for Space Grotesk / Inter (only if switching fonts; otherwise keep)
 
-## 2. Activity history as the core signal
-New `ActivityHistoryContext` (client-side, mock-backed for now) tracks per-user:
-- Events attended (with date, type, recurring series id)
-- "Crossed paths" counter — incremented whenever current user + another user attend the same event
-- Tagged-after-event connections (see §4)
+### 2. `src/components/Hero.tsx`
+- Replace hardcoded warm HSL values in decorative orbs and background elements:
+  - `hsl(35_95%_70%)` → amber/blaze
+  - `hsl(345_70%_55%)` → blaze orange
+  - `hsl(275_50%_30%)` → deep ocean
+- Ensure the hero still feels energetic and warm while using the new palette
 
-New components:
-- `ActivityFeed.tsx` — chronological feed of past events with stats ("3rd time at Saturday Trail Run", "Crossed paths with Tom 4 times").
-- `MomentumPanel.tsx` — streak, weekly cadence, top recurring crew.
+### 3. `tailwind.config.ts`
+- Verify all semantic tokens map correctly to the updated CSS variables (no hardcoded values to change here, but confirm the variable bindings remain intact)
 
-## 3. Recurring event series + history-based recommendations
-- Extend `Event` type with `seriesId`, `recurrence` ("weekly" | "biweekly" | "monthly"), and `nextOccurrence`.
-- Seed `mockData.ts` with 4-5 recurring series (e.g. Saturday Trail Run, Tuesday 5-a-side, Wednesday Padel, Sunday Brunch Club) plus one-off events.
-- New `RecommendedForYou` section above `Upcoming Events`, ranked by:
-  1. Series user has already attended (habit reinforcement)
-  2. Events featuring users you've crossed paths with most
-  3. Pattern match on activity type/time-of-day from history
-- The generic interest filter UI stays available but de-emphasized; recommendations come first.
+## What Stays the Same
+- Font families (Space Grotesk / Inter)
+- Border radius system
+- Animation keyframes and durations
+- Layout and spacing tokens
+- Dark mode toggle behavior
 
-## 4. Post-event reflection & connection flow
-- When an event's end time has passed and the user attended, surface a `PostEventReflectionDialog`:
-  - Prompt: "Who did you click with at <Event>?"
-  - User taps 1-3 attendee avatars to tag them.
-  - Optional one-line note per tag (private to user).
-- Tags are mutual-aware: when two users tag each other, they become a "connection" (stronger than a follow) and unlock DM automatically (replaces current mutual-follow gate for tagged users).
-
-## 5. Auto-formed groups
-- New `Group` concept: when 3+ users have mutually tagged each other OR repeatedly attended the same recurring series together, a group is auto-suggested.
-- New `GroupsSection.tsx` on the home page showing "Your crews" — each card lists members, the series/event that brought them together, and a group chat entry point (reuses `EventGroupChatDialog` styling).
-
-## 6. Files
-
-**New**
-- `src/context/ActivityHistoryContext.tsx`
-- `src/components/MomentumPanel.tsx`
-- `src/components/ActivityFeed.tsx`
-- `src/components/RecommendedForYou.tsx`
-- `src/components/PostEventReflectionDialog.tsx`
-- `src/components/GroupsSection.tsx`
-- `src/lib/recommendations.ts` (ranking logic)
-- `src/lib/groupFormation.ts` (auto-group rules)
-
-**Edited**
-- `src/types/event.ts` — add `seriesId`, `recurrence`, `pastAttendance`, `Group` type, `TaggedConnection` type
-- `src/data/mockData.ts` — recurring series, past-attendance history, sample tagged connections
-- `src/components/Hero.tsx` — repositioned copy
-- `src/components/ParticipantProfileDialog.tsx` — drop interest tags, show activity history + crossed-paths count
-- `src/context/SocialContext.tsx` — integrate tagged-connection DM unlock
-- `src/pages/Index.tsx` — new section order: Hero → MomentumPanel → RecommendedForYou → ActivityFeed → GroupsSection → Upcoming Events; remove `InterestSelector`; keep `IntakeForm` collapsed/optional
-- `src/components/EventCard.tsx` — show recurrence badge ("Weekly · 3rd time for you") and crossed-paths hint ("4 people you know going")
-- `mem://index.md` and new `mem://project/target-audience` (overwrite) + `mem://project/positioning`
-
-## 7. Scope notes
-- All data stays client-side / mock for now (no backend schema changes). Lovable Cloud is enabled but this pivot is UI + logic; persistence can be a follow-up.
-- Existing intake form, filters, group chat, DMs, and daily-rotating-events logic remain functional but are restyled/repositioned, not removed.
-- No changes to auth, edge functions, or DB schema in this step.
-
-## Open question
-The current app exposes interest selection prominently. You said the new product "doesn't rely on a social profile with external-facing tags or interests." Should I:
-- (a) **Remove** the interest selector + interest filters entirely, or
-- (b) **Keep them private** (used only to seed recommendations on day one, never shown on profiles)?
-
-I'll default to **(b)** unless you say otherwise — it gives the recommender something to work with before the user has history.
+## Verification
+- Build should pass without errors
+- Hero section should display the new ocean-to-blaze gradient
+- Buttons, badges, and interactive elements should use amber/blaze accents
+- No residual warm peach tones in any visible element
