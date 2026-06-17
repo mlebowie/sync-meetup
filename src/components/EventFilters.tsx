@@ -59,8 +59,8 @@ const EventFilters = ({ filters, onFiltersChange }: EventFiltersProps) => {
   };
 
   return (
-    <div className="bg-card rounded-2xl shadow-card p-6 mb-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="bg-card rounded-2xl shadow-card p-5">
+      <div className="grid grid-cols-1 gap-5">
         {/* Activity Level */}
         <div>
           <div className="flex items-center gap-2 mb-3">
