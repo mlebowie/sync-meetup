@@ -153,6 +153,13 @@ const Index = () => {
         </section>
       )}
 
+      <PersonalizedFeed
+        profile={profile}
+        onAttend={handleAttend}
+        onParticipantClick={handleParticipantClick}
+        onOpenGroupChat={handleOpenGroupChat}
+      />
+
       <ActivityFeed />
 
       <GroupsSection onOpenDM={handleOpenDM} />
