@@ -4,6 +4,7 @@ import { Event, Participant } from '@/types/event';
 import { Calendar, MapPin, Users, Clock, ArrowRight, Check, MessageSquare, Repeat } from 'lucide-react';
 import { format } from 'date-fns';
 import ParticipantAvatars from './ParticipantAvatars';
+import OrganizerPopover from './OrganizerPopover';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
 
 interface EventCardProps {
@@ -103,9 +104,14 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat }: Eve
             </span>
           )}
         </div>
-        <h3 className="text-lg font-bold text-foreground mb-2 line-clamp-1 group-hover:text-primary transition-colors">
+        <h3 className="text-lg font-bold text-foreground mb-1 line-clamp-1 group-hover:text-primary transition-colors">
           {event.title}
         </h3>
+        {event.organizer && (
+          <div className="mb-2">
+            <OrganizerPopover organizer={event.organizer} />
+          </div>
+        )}
 
         <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
           {event.description}

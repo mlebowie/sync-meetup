@@ -1,4 +1,61 @@
-import { Event, Interest, Participant, PastAttendance } from '@/types/event';
+import { Event, Interest, Organizer, Participant, PastAttendance } from '@/types/event';
+
+export const mockOrganizers: Record<string, Organizer> = {
+  'porto-trail': {
+    id: 'org-1', name: 'Porto Trail Collective', type: 'company',
+    avatar: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=120&h=120&fit=crop',
+    rating: 4.8, reviewCount: 142, location: 'Foz do Douro, Porto', eventsHosted: 86,
+    recentReview: { author: 'Sofia M.', rating: 5, text: 'Friendly pace groups, the coffee after is the best part. Felt welcome from week one.', date: daysAgoStatic(3) },
+  },
+  'boavista-fc': {
+    id: 'org-2', name: 'Boavista Pickup FC', type: 'company',
+    avatar: 'https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?w=120&h=120&fit=crop',
+    rating: 4.6, reviewCount: 98, location: 'Boavista, Porto', eventsHosted: 124,
+    recentReview: { author: 'Diego R.', rating: 5, text: 'Real games, fair teams, no egos. Show up twice and people know your name.', date: daysAgoStatic(5) },
+  },
+  'padel-porto': {
+    id: 'org-3', name: 'Padel Porto Social', type: 'company',
+    avatar: 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=120&h=120&fit=crop',
+    rating: 4.9, reviewCount: 67, location: 'Boavista, Porto', eventsHosted: 52,
+    recentReview: { author: 'Marta L.', rating: 5, text: 'Rotating doubles is genius — you actually meet everyone. Booked next 4 weeks.', date: daysAgoStatic(2) },
+  },
+  'brunch-host': {
+    id: 'org-4', name: 'Helena V.', type: 'person',
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=120&h=120&fit=crop',
+    rating: 4.7, reviewCount: 53, location: 'Cedofeita, Porto', eventsHosted: 41,
+    recentReview: { author: 'Tom B.', rating: 5, text: 'Helena makes sure no one sits alone. Long table, easy conversation.', date: daysAgoStatic(7) },
+  },
+  'atlantic-surf': {
+    id: 'org-5', name: 'Atlantic Surf Crew', type: 'company',
+    avatar: 'https://images.unsplash.com/photo-1530549387789-4c1017266635?w=120&h=120&fit=crop',
+    rating: 4.5, reviewCount: 81, location: 'Matosinhos, Porto', eventsHosted: 73,
+    recentReview: { author: 'James L.', rating: 4, text: 'Solid for beginners, boards included. Bring a thicker wetsuit in spring.', date: daysAgoStatic(4) },
+  },
+  'founders-porto': {
+    id: 'org-6', name: 'Founders Porto', type: 'company',
+    avatar: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=120&h=120&fit=crop',
+    rating: 4.4, reviewCount: 39, location: 'Miragaia, Porto', eventsHosted: 18,
+    recentReview: { author: 'Alex P.', rating: 5, text: 'No pitch decks, just real talk with operators. Met two people I now work with.', date: daysAgoStatic(10) },
+  },
+  'vertigo': {
+    id: 'org-7', name: 'Vertigo Climbing', type: 'company',
+    avatar: 'https://images.unsplash.com/photo-1522163182402-834f871fd851?w=120&h=120&fit=crop',
+    rating: 4.7, reviewCount: 112, location: 'Bonfim, Porto', eventsHosted: 64,
+    recentReview: { author: 'Marco K.', rating: 5, text: 'Coaches are patient with beginners. Good vibes, great walls.', date: daysAgoStatic(6) },
+  },
+  'douro-walks': {
+    id: 'org-8', name: 'Carlos M.', type: 'person',
+    avatar: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=120&h=120&fit=crop',
+    rating: 4.6, reviewCount: 28, location: 'Ribeira, Porto', eventsHosted: 22,
+    recentReview: { author: 'David R.', rating: 5, text: 'Carlos knows every cervejaria on the river. Easy crowd, easy night.', date: daysAgoStatic(8) },
+  },
+};
+
+function daysAgoStatic(n: number) {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return d;
+}
 
 export const mockParticipants: Participant[] = [
   { id: '1', name: 'Tom B.', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face', bio: 'Berlin → Porto. Trail runner, padel regular.', neighborhood: 'Cedofeita, Porto', recurringSeries: ['Saturday Trail Run', 'Wednesday Padel'], totalAttended: 22, pastEvents: ['Saturday Trail Run', 'Wednesday Padel', 'Sunday Brunch Club'], social: { instagram: 'tom.bruns', linkedin: 'tom-bruns', whatsapp: '+4915123456789' } },
@@ -114,6 +171,7 @@ currentUser.recentHistory = currentUserHistory;
 export const mockEvents: Event[] = [
   {
     id: '1',
+    organizer: mockOrganizers['porto-trail'],
     title: 'Saturday Trail Run',
     description: 'Weekly 10km trail run along the coast — same crew most weeks. Easy, moderate, and faster pace groups, coffee after.',
     date: new Date('2026-06-06'),
@@ -134,6 +192,7 @@ export const mockEvents: Event[] = [
   },
   {
     id: '2',
+    organizer: mockOrganizers['boavista-fc'],
     title: 'Tuesday 5-a-side Football',
     description: 'Casual 5-a-side with the same regulars every Tuesday. Mixed levels, real games, beers after.',
     date: new Date('2026-06-09'),
@@ -154,6 +213,7 @@ export const mockEvents: Event[] = [
   },
   {
     id: '3',
+    organizer: mockOrganizers['padel-porto'],
     title: 'Wednesday Padel',
     description: 'Reserved courts every Wednesday. Rotating doubles so you play with everyone — perfect for building a regular crew.',
     date: new Date('2026-06-10'),
@@ -174,6 +234,7 @@ export const mockEvents: Event[] = [
   },
   {
     id: '4',
+    organizer: mockOrganizers['brunch-host'],
     title: 'Sunday Brunch Club',
     description: 'Same long table every Sunday. Familiar faces, new ones too — show up enough and you have a crew.',
     date: new Date('2026-06-14'),
@@ -194,6 +255,7 @@ export const mockEvents: Event[] = [
   },
   {
     id: '5',
+    organizer: mockOrganizers['atlantic-surf'],
     title: 'Matosinhos Surf',
     description: 'Saturday morning surf with the same Atlantic regulars. Boards available, all levels.',
     date: new Date('2026-06-13'),
@@ -214,6 +276,7 @@ export const mockEvents: Event[] = [
   },
   {
     id: '6',
+    organizer: mockOrganizers['founders-porto'],
     title: 'Outdoor Founders Mixer',
     description: 'Garden mixer for founders and operators. Drinks, real conversations, no pitch decks.',
     date: new Date('2026-06-12'),
@@ -234,6 +297,7 @@ export const mockEvents: Event[] = [
   },
   {
     id: '7',
+    organizer: mockOrganizers['vertigo'],
     title: 'Bouldering Night',
     description: 'Casual bouldering session — climb, eat, repeat. Beginners welcome.',
     date: new Date('2026-06-18'),
@@ -253,6 +317,7 @@ export const mockEvents: Event[] = [
   },
   {
     id: '8',
+    organizer: mockOrganizers['douro-walks'],
     title: 'Douro Sunset Walk + Beers',
     description: 'Easy riverside walk at golden hour, ending at a cervejaria. Good way to log a chill social evening.',
     date: new Date('2026-06-11'),
