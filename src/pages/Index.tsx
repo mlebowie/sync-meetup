@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
 import IntakeForm from '@/components/IntakeForm';
@@ -19,6 +20,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { MessageCircle, Sparkles } from 'lucide-react';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
+import PersonalizedFeed from '@/components/PersonalizedFeed';
+import { getUserProfile } from '@/lib/userProfile';
 
 const Index = () => {
   const { toast } = useToast();
