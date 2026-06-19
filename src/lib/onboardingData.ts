@@ -1,0 +1,90 @@
+// City -> neighborhoods. Extendable.
+export const CITY_NEIGHBORHOODS: Record<string, string[]> = {
+  Porto: [
+    'Aldoar',
+    'Bonfim',
+    'Campanhã',
+    'Cedofeita',
+    'Foz do Douro',
+    'Lordelo do Ouro',
+    'Massarelos',
+    'Miragaia',
+    'Nevogilde',
+    'Paranhos',
+    'Ramalde',
+    'Ribeira',
+    'Santo Ildefonso',
+    'São Nicolau',
+    'Sé',
+    'Vitória',
+  ],
+};
+
+export const CITIES = Object.keys(CITY_NEIGHBORHOODS);
+
+export interface Country {
+  name: string;     // nationality demonym e.g. "German"
+  country: string;  // country name e.g. "Germany"
+  code: string;     // ISO 3166-1 alpha-2
+  flag: string;     // emoji flag
+}
+
+// Curated, expat-relevant list. Add freely.
+export const NATIONALITIES: Country[] = [
+  { name: 'Argentinian', country: 'Argentina', code: 'AR', flag: '🇦🇷' },
+  { name: 'Australian', country: 'Australia', code: 'AU', flag: '🇦🇺' },
+  { name: 'Austrian', country: 'Austria', code: 'AT', flag: '🇦🇹' },
+  { name: 'Belgian', country: 'Belgium', code: 'BE', flag: '🇧🇪' },
+  { name: 'Brazilian', country: 'Brazil', code: 'BR', flag: '🇧🇷' },
+  { name: 'British', country: 'United Kingdom', code: 'GB', flag: '🇬🇧' },
+  { name: 'Bulgarian', country: 'Bulgaria', code: 'BG', flag: '🇧🇬' },
+  { name: 'Canadian', country: 'Canada', code: 'CA', flag: '🇨🇦' },
+  { name: 'Chilean', country: 'Chile', code: 'CL', flag: '🇨🇱' },
+  { name: 'Chinese', country: 'China', code: 'CN', flag: '🇨🇳' },
+  { name: 'Colombian', country: 'Colombia', code: 'CO', flag: '🇨🇴' },
+  { name: 'Croatian', country: 'Croatia', code: 'HR', flag: '🇭🇷' },
+  { name: 'Czech', country: 'Czech Republic', code: 'CZ', flag: '🇨🇿' },
+  { name: 'Danish', country: 'Denmark', code: 'DK', flag: '🇩🇰' },
+  { name: 'Dutch', country: 'Netherlands', code: 'NL', flag: '🇳🇱' },
+  { name: 'Egyptian', country: 'Egypt', code: 'EG', flag: '🇪🇬' },
+  { name: 'Estonian', country: 'Estonia', code: 'EE', flag: '🇪🇪' },
+  { name: 'Finnish', country: 'Finland', code: 'FI', flag: '🇫🇮' },
+  { name: 'French', country: 'France', code: 'FR', flag: '🇫🇷' },
+  { name: 'German', country: 'Germany', code: 'DE', flag: '🇩🇪' },
+  { name: 'Greek', country: 'Greece', code: 'GR', flag: '🇬🇷' },
+  { name: 'Hungarian', country: 'Hungary', code: 'HU', flag: '🇭🇺' },
+  { name: 'Indian', country: 'India', code: 'IN', flag: '🇮🇳' },
+  { name: 'Indonesian', country: 'Indonesia', code: 'ID', flag: '🇮🇩' },
+  { name: 'Irish', country: 'Ireland', code: 'IE', flag: '🇮🇪' },
+  { name: 'Israeli', country: 'Israel', code: 'IL', flag: '🇮🇱' },
+  { name: 'Italian', country: 'Italy', code: 'IT', flag: '🇮🇹' },
+  { name: 'Japanese', country: 'Japan', code: 'JP', flag: '🇯🇵' },
+  { name: 'Latvian', country: 'Latvia', code: 'LV', flag: '🇱🇻' },
+  { name: 'Lithuanian', country: 'Lithuania', code: 'LT', flag: '🇱🇹' },
+  { name: 'Mexican', country: 'Mexico', code: 'MX', flag: '🇲🇽' },
+  { name: 'Moroccan', country: 'Morocco', code: 'MA', flag: '🇲🇦' },
+  { name: 'New Zealander', country: 'New Zealand', code: 'NZ', flag: '🇳🇿' },
+  { name: 'Nigerian', country: 'Nigeria', code: 'NG', flag: '🇳🇬' },
+  { name: 'Norwegian', country: 'Norway', code: 'NO', flag: '🇳🇴' },
+  { name: 'Pakistani', country: 'Pakistan', code: 'PK', flag: '🇵🇰' },
+  { name: 'Peruvian', country: 'Peru', code: 'PE', flag: '🇵🇪' },
+  { name: 'Polish', country: 'Poland', code: 'PL', flag: '🇵🇱' },
+  { name: 'Portuguese', country: 'Portugal', code: 'PT', flag: '🇵🇹' },
+  { name: 'Romanian', country: 'Romania', code: 'RO', flag: '🇷🇴' },
+  { name: 'Russian', country: 'Russia', code: 'RU', flag: '🇷🇺' },
+  { name: 'Singaporean', country: 'Singapore', code: 'SG', flag: '🇸🇬' },
+  { name: 'Slovak', country: 'Slovakia', code: 'SK', flag: '🇸🇰' },
+  { name: 'Slovenian', country: 'Slovenia', code: 'SI', flag: '🇸🇮' },
+  { name: 'South African', country: 'South Africa', code: 'ZA', flag: '🇿🇦' },
+  { name: 'South Korean', country: 'South Korea', code: 'KR', flag: '🇰🇷' },
+  { name: 'Spanish', country: 'Spain', code: 'ES', flag: '🇪🇸' },
+  { name: 'Swedish', country: 'Sweden', code: 'SE', flag: '🇸🇪' },
+  { name: 'Swiss', country: 'Switzerland', code: 'CH', flag: '🇨🇭' },
+  { name: 'Thai', country: 'Thailand', code: 'TH', flag: '🇹🇭' },
+  { name: 'Turkish', country: 'Turkey', code: 'TR', flag: '🇹🇷' },
+  { name: 'Ukrainian', country: 'Ukraine', code: 'UA', flag: '🇺🇦' },
+  { name: 'American', country: 'United States', code: 'US', flag: '🇺🇸' },
+  { name: 'Uruguayan', country: 'Uruguay', code: 'UY', flag: '🇺🇾' },
+  { name: 'Venezuelan', country: 'Venezuela', code: 'VE', flag: '🇻🇪' },
+  { name: 'Vietnamese', country: 'Vietnam', code: 'VN', flag: '🇻🇳' },
+];
