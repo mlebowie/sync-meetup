@@ -141,18 +141,61 @@ const Onboarding = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="location">Location (city)</Label>
-              <Input id="location" placeholder="e.g. Porto" value={location} onChange={e => setLocation(e.target.value)} maxLength={80} />
+              <TypeaheadSelect
+                id="location"
+                value={location}
+                onChange={(v) => {
+                  setLocation(v);
+                  // Reset neighborhood when city changes to one with its own list
+                  if (CITY_NEIGHBORHOODS[v]) setNeighborhood('');
+                }}
+                allowFreeText
+                placeholder="Start typing… e.g. Porto"
+                options={CITIES.map(c => ({ value: c, label: c }))}
+                emptyText="Keep typing — we'll add more cities soon"
+              />
             </div>
             <div>
               <Label htmlFor="neighborhood">Neighborhood</Label>
-              <Input id="neighborhood" placeholder="e.g. Cedofeita" value={neighborhood} onChange={e => setNeighborhood(e.target.value)} maxLength={80} />
+              {CITY_NEIGHBORHOODS[location] ? (
+                <TypeaheadSelect
+                  id="neighborhood"
+                  value={neighborhood}
+                  onChange={setNeighborhood}
+                  placeholder={`Pick a ${location} neighborhood`}
+                  options={CITY_NEIGHBORHOODS[location].map(n => ({ value: n, label: n }))}
+                  emptyText="No matching neighborhoods"
+                />
+              ) : (
+                <Input
+                  id="neighborhood"
+                  placeholder={location ? 'e.g. Cedofeita' : 'Pick a city first'}
+                  value={neighborhood}
+                  onChange={e => setNeighborhood(e.target.value)}
+                  maxLength={80}
+                  disabled={!location}
+                />
+              )}
             </div>
           </div>
 
           {/* Nationality */}
           <div>
             <Label htmlFor="nationality">Nationality</Label>
-            <Input id="nationality" placeholder="e.g. German" value={nationality} onChange={e => setNationality(e.target.value)} maxLength={60} />
+            <TypeaheadSelect
+              id="nationality"
+              value={nationality}
+              onChange={setNationality}
+              placeholder="Type a nationality or country"
+              options={NATIONALITIES.map(n => ({
+                value: n.name,
+                label: n.name,
+                leading: n.flag,
+                sub: n.country,
+                searchText: `${n.country} ${n.code}`,
+              }))}
+              emptyText="No matching nationality"
+            />
           </div>
 
           {/* Interests */}
