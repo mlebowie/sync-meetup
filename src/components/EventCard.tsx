@@ -44,8 +44,8 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat }: Eve
   const [isAttending, setIsAttending] = useState(event.isAttending || false);
   const [, setIsHovered] = useState(false);
   const { seriesCount, crossedPathsWith } = useActivityHistory();
-
-  const seriesTimes = seriesCount(event.seriesId);
+  const { isWishlisted, toggle: toggleWishlist } = useWishlist();
+  const wishlisted = isWishlisted(event.id);
   const familiarCount = event.participants.filter(p => crossedPathsWith(p.id) > 0).length;
 
   const handleAttend = () => {
