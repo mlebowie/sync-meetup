@@ -26,6 +26,8 @@ import { getUserProfile } from '@/lib/userProfile';
 const Index = () => {
   const { toast } = useToast();
   const { history } = useActivityHistory();
+  const profile = getUserProfile();
+  if (!profile) return <Navigate to="/onboarding" replace />;
   const [filters, setFilters] = useState<FilterState>({
     activityLevel: [],
     intensity: [],
