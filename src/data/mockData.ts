@@ -1,12 +1,12 @@
 import { Event, Interest, Participant, PastAttendance } from '@/types/event';
 
 export const mockParticipants: Participant[] = [
-  { id: '1', name: 'Tom B.', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face', bio: 'Berlin → Porto. Trail runner, padel regular.', neighborhood: 'Cedofeita, Porto', recurringSeries: ['Saturday Trail Run', 'Wednesday Padel'], totalAttended: 22, pastEvents: ['Saturday Trail Run', 'Wednesday Padel', 'Sunday Brunch Club'] },
-  { id: '2', name: 'James L.', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face', bio: 'Software dev, new to the city.', neighborhood: 'Bonfim, Porto', recurringSeries: ['Tuesday 5-a-side', 'Sunday Brunch Club'], totalAttended: 14, pastEvents: ['Tuesday 5-a-side', 'Sunday Brunch Club'] },
-  { id: '3', name: 'Marco K.', avatar: 'https://images.unsplash.com/photo-1463453091185-61582044d556?w=100&h=100&fit=crop&crop=face', bio: 'Italian, here since 2024.', neighborhood: 'Miragaia, Porto', recurringSeries: ['Wednesday Padel'], totalAttended: 9, pastEvents: ['Wednesday Padel', 'Saturday Trail Run'] },
-  { id: '4', name: 'David R.', avatar: 'https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?w=100&h=100&fit=crop&crop=face', bio: 'Producer, surfs every weekend.', neighborhood: 'Foz do Douro, Porto', recurringSeries: ['Matosinhos Surf', 'Sunday Brunch Club'], totalAttended: 18, pastEvents: ['Matosinhos Surf', 'Sunday Brunch Club', 'Saturday Trail Run'] },
-  { id: '5', name: 'Lucas T.', avatar: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=100&h=100&fit=crop&crop=face', bio: 'Brazilian dev. Always down for football.', neighborhood: 'Cedofeita, Porto', recurringSeries: ['Tuesday 5-a-side'], totalAttended: 11, pastEvents: ['Tuesday 5-a-side'] },
-  { id: '6', name: 'Alex P.', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face', bio: 'Founder, runs early, surfs late.', neighborhood: 'Boavista, Porto', recurringSeries: ['Saturday Trail Run', 'Matosinhos Surf'], totalAttended: 26, pastEvents: ['Saturday Trail Run', 'Matosinhos Surf'] },
+  { id: '1', name: 'Tom B.', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face', bio: 'Berlin → Porto. Trail runner, padel regular.', neighborhood: 'Cedofeita, Porto', recurringSeries: ['Saturday Trail Run', 'Wednesday Padel'], totalAttended: 22, pastEvents: ['Saturday Trail Run', 'Wednesday Padel', 'Sunday Brunch Club'], social: { instagram: 'tom.bruns', linkedin: 'tom-bruns', whatsapp: '+4915123456789' } },
+  { id: '2', name: 'James L.', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face', bio: 'Software dev, new to the city.', neighborhood: 'Bonfim, Porto', recurringSeries: ['Tuesday 5-a-side', 'Sunday Brunch Club'], totalAttended: 14, pastEvents: ['Tuesday 5-a-side', 'Sunday Brunch Club'], social: { instagram: 'james.codes', linkedin: 'james-l-software' } },
+  { id: '3', name: 'Marco K.', avatar: 'https://images.unsplash.com/photo-1463453091185-61582044d556?w=100&h=100&fit=crop&crop=face', bio: 'Italian, here since 2024.', neighborhood: 'Miragaia, Porto', recurringSeries: ['Wednesday Padel'], totalAttended: 9, pastEvents: ['Wednesday Padel', 'Saturday Trail Run'], social: { instagram: 'marco.kappa', whatsapp: '+393471112222' } },
+  { id: '4', name: 'David R.', avatar: 'https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?w=100&h=100&fit=crop&crop=face', bio: 'Producer, surfs every weekend.', neighborhood: 'Foz do Douro, Porto', recurringSeries: ['Matosinhos Surf', 'Sunday Brunch Club'], totalAttended: 18, pastEvents: ['Matosinhos Surf', 'Sunday Brunch Club', 'Saturday Trail Run'], social: { instagram: 'david.reef', linkedin: 'david-r-producer', whatsapp: '+351912345678' } },
+  { id: '5', name: 'Lucas T.', avatar: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=100&h=100&fit=crop&crop=face', bio: 'Brazilian dev. Always down for football.', neighborhood: 'Cedofeita, Porto', recurringSeries: ['Tuesday 5-a-side'], totalAttended: 11, pastEvents: ['Tuesday 5-a-side'], social: { instagram: 'lucas.travels', linkedin: 'lucas-tavares' } },
+  { id: '6', name: 'Alex P.', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face', bio: 'Founder, runs early, surfs late.', neighborhood: 'Boavista, Porto', recurringSeries: ['Saturday Trail Run', 'Matosinhos Surf'], totalAttended: 26, pastEvents: ['Saturday Trail Run', 'Matosinhos Surf'], social: { instagram: 'alex.pioneer', linkedin: 'alex-p-founder', whatsapp: '+14155551234' } },
 ];
 
 export const currentUser: Participant = {
@@ -18,6 +18,7 @@ export const currentUser: Participant = {
   recurringSeries: ['Saturday Trail Run', 'Sunday Brunch Club'],
   totalAttended: 7,
   pastEvents: ['Saturday Trail Run', 'Sunday Brunch Club', 'Wednesday Padel'],
+  social: { instagram: 'you.in.porto', linkedin: 'you-profile' },
 };
 
 // Seeded past activity for the current user — drives the Activity Feed,
