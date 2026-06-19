@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { FilterState, ActivityLevel, Intensity, GroupSize } from '@/types/event';
-import { Zap, Users, Activity, MapPin } from 'lucide-react';
+import { Zap, Users, Activity, MapPin, Heart } from 'lucide-react';
 
 interface EventFiltersProps {
   filters: FilterState;

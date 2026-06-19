@@ -1,6 +1,7 @@
 import { Event, FilterState, Participant } from '@/types/event';
 import EventCard from './EventCard';
 import { useMemo } from 'react';
+import { useSocial } from '@/context/SocialContext';
 
 interface EventGridProps {
   events: Event[];
