@@ -34,6 +34,7 @@ const Index = () => {
     groupSize: [],
     interests: [],
     location: [],
+    followFriends: false,
   });
   const [events, setEvents] = useState<Event[]>(() => getDailyRotatingEvents(mockEvents));
 

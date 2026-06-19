@@ -1,6 +1,7 @@
 import { Event, FilterState, Participant } from '@/types/event';
 import EventCard from './EventCard';
 import { useMemo } from 'react';
+import { useSocial } from '@/context/SocialContext';
 
 interface EventGridProps {
   events: Event[];
@@ -11,6 +12,7 @@ interface EventGridProps {
 }
 
 const EventGrid = ({ events, filters, onAttend, onParticipantClick, onOpenGroupChat }: EventGridProps) => {
+  const { following } = useSocial();
   const filteredEvents = useMemo(() => {
     return events.filter(event => {
       // Filter by activity level
@@ -35,6 +37,12 @@ const EventGrid = ({ events, filters, onAttend, onParticipantClick, onOpenGroupC
       if (filters.location.length > 0 && 
           !filters.location.some(loc => event.location.toLowerCase().includes(loc.toLowerCase()))) {
         return false;
+      }
+
+      // Filter by friends attending
+      if (filters.followFriends && following.size > 0) {
+        const hasFriendAttending = event.participants.some(p => following.has(p.id));
+        if (!hasFriendAttending) return false;
       }
 
       // Filter by interests (match any interest/tag)
@@ -70,7 +78,7 @@ const EventGrid = ({ events, filters, onAttend, onParticipantClick, onOpenGroupC
 
       return true;
     });
-  }, [events, filters]);
+  }, [events, filters, following]);
 
   if (filteredEvents.length === 0) {
     return (

@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { FilterState, ActivityLevel, Intensity, GroupSize } from '@/types/event';
-import { Zap, Users, Activity, MapPin } from 'lucide-react';
+import { Zap, Users, Activity, MapPin, Heart } from 'lucide-react';
 
 interface EventFiltersProps {
   filters: FilterState;
@@ -56,6 +56,10 @@ const EventFilters = ({ filters, onFiltersChange }: EventFiltersProps) => {
       ? filters.location.filter(v => v !== value)
       : [...filters.location, value];
     onFiltersChange({ ...filters, location: newValues });
+  };
+
+  const toggleFollowFriends = () => {
+    onFiltersChange({ ...filters, followFriends: !filters.followFriends });
   };
 
   return (
@@ -153,6 +157,25 @@ const EventFilters = ({ filters, onFiltersChange }: EventFiltersProps) => {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Follow my friends */}
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <Heart className="h-4 w-4 text-accent" />
+            <span className="text-sm font-semibold text-foreground">Social</span>
+          </div>
+          <button
+            onClick={toggleFollowFriends}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+              filters.followFriends
+                ? 'bg-primary text-primary-foreground shadow-button'
+                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+            }`}
+          >
+            <Heart className={`h-3.5 w-3.5 ${filters.followFriends ? 'fill-current' : ''}`} />
+            Follow my friends
+          </button>
         </div>
       </div>
     </div>
