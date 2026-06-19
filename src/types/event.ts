@@ -41,7 +41,25 @@ export interface Participant {
   };
 }
 
+export interface Organizer {
+  id: string;
+  name: string;
+  type: 'person' | 'company';
+  avatar?: string;
+  rating: number; // 0-5
+  reviewCount: number;
+  location: string;
+  eventsHosted: number;
+  recentReview?: {
+    author: string;
+    rating: number;
+    text: string;
+    date: Date;
+  };
+}
+
 export interface Event {
+  organizer?: Organizer;
   id: string;
   title: string;
   description: string;
