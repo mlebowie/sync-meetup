@@ -33,6 +33,12 @@ export interface Participant {
   totalAttended?: number;
   /** Detailed recent attendance history (drives last-attended card, map, feed) */
   recentHistory?: PastAttendance[];
+  /** Social media handles (shown as icons under profile photo) */
+  social?: {
+    instagram?: string;
+    linkedin?: string;
+    whatsapp?: string;
+  };
 }
 
 export interface Event {
