@@ -171,6 +171,7 @@ currentUser.recentHistory = currentUserHistory;
 export const mockEvents: Event[] = [
   {
     id: '1',
+    organizer: mockOrganizers['porto-trail'],
     title: 'Saturday Trail Run',
     description: 'Weekly 10km trail run along the coast — same crew most weeks. Easy, moderate, and faster pace groups, coffee after.',
     date: new Date('2026-06-06'),
@@ -191,6 +192,7 @@ export const mockEvents: Event[] = [
   },
   {
     id: '2',
+    organizer: mockOrganizers['boavista-fc'],
     title: 'Tuesday 5-a-side Football',
     description: 'Casual 5-a-side with the same regulars every Tuesday. Mixed levels, real games, beers after.',
     date: new Date('2026-06-09'),
@@ -211,6 +213,7 @@ export const mockEvents: Event[] = [
   },
   {
     id: '3',
+    organizer: mockOrganizers['padel-porto'],
     title: 'Wednesday Padel',
     description: 'Reserved courts every Wednesday. Rotating doubles so you play with everyone — perfect for building a regular crew.',
     date: new Date('2026-06-10'),
@@ -231,6 +234,7 @@ export const mockEvents: Event[] = [
   },
   {
     id: '4',
+    organizer: mockOrganizers['brunch-host'],
     title: 'Sunday Brunch Club',
     description: 'Same long table every Sunday. Familiar faces, new ones too — show up enough and you have a crew.',
     date: new Date('2026-06-14'),
@@ -251,6 +255,7 @@ export const mockEvents: Event[] = [
   },
   {
     id: '5',
+    organizer: mockOrganizers['atlantic-surf'],
     title: 'Matosinhos Surf',
     description: 'Saturday morning surf with the same Atlantic regulars. Boards available, all levels.',
     date: new Date('2026-06-13'),
@@ -271,6 +276,7 @@ export const mockEvents: Event[] = [
   },
   {
     id: '6',
+    organizer: mockOrganizers['founders-porto'],
     title: 'Outdoor Founders Mixer',
     description: 'Garden mixer for founders and operators. Drinks, real conversations, no pitch decks.',
     date: new Date('2026-06-12'),
@@ -291,6 +297,7 @@ export const mockEvents: Event[] = [
   },
   {
     id: '7',
+    organizer: mockOrganizers['vertigo'],
     title: 'Bouldering Night',
     description: 'Casual bouldering session — climb, eat, repeat. Beginners welcome.',
     date: new Date('2026-06-18'),
@@ -310,6 +317,7 @@ export const mockEvents: Event[] = [
   },
   {
     id: '8',
+    organizer: mockOrganizers['douro-walks'],
     title: 'Douro Sunset Walk + Beers',
     description: 'Easy riverside walk at golden hour, ending at a cervejaria. Good way to log a chill social evening.',
     date: new Date('2026-06-11'),
