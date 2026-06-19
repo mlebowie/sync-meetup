@@ -41,8 +41,10 @@ const Header = ({ onOpenMessages }: HeaderProps) => {
               3
             </span>
           </Button>
-          <Button variant="ghost" size="icon">
-            <User className="h-5 w-5" />
+          <Button variant="ghost" size="icon" asChild title="Profile">
+            <Link to="/profile">
+              <User className="h-5 w-5" />
+            </Link>
           </Button>
         </div>
       </div>
