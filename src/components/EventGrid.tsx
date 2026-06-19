@@ -78,7 +78,7 @@ const EventGrid = ({ events, filters, onAttend, onParticipantClick, onOpenGroupC
 
       return true;
     });
-  }, [events, filters]);
+  }, [events, filters, following]);
 
   if (filteredEvents.length === 0) {
     return (
