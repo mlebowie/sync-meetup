@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Bell, User, MessageCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface HeaderProps {
   onOpenMessages?: () => void;
@@ -40,8 +41,10 @@ const Header = ({ onOpenMessages }: HeaderProps) => {
               3
             </span>
           </Button>
-          <Button variant="ghost" size="icon">
-            <User className="h-5 w-5" />
+          <Button variant="ghost" size="icon" asChild title="Profile">
+            <Link to="/profile">
+              <User className="h-5 w-5" />
+            </Link>
           </Button>
         </div>
       </div>

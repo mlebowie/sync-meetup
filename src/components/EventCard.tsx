@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Event, Participant } from '@/types/event';
-import { Calendar, MapPin, Users, Clock, ArrowRight, Check, MessageSquare, Repeat } from 'lucide-react';
+import { Calendar, MapPin, Users, Clock, ArrowRight, Check, MessageSquare, Repeat, Heart } from 'lucide-react';
 import { format } from 'date-fns';
 import ParticipantAvatars from './ParticipantAvatars';
 import OrganizerPopover from './OrganizerPopover';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
+import { useWishlist } from '@/context/WishlistContext';
+import { cn } from '@/lib/utils';
 
 interface EventCardProps {
   event: Event;
@@ -42,7 +44,8 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat }: Eve
   const [isAttending, setIsAttending] = useState(event.isAttending || false);
   const [, setIsHovered] = useState(false);
   const { seriesCount, crossedPathsWith } = useActivityHistory();
-
+  const { isWishlisted, toggle: toggleWishlist } = useWishlist();
+  const wishlisted = isWishlisted(event.id);
   const seriesTimes = seriesCount(event.seriesId);
   const familiarCount = event.participants.filter(p => crossedPathsWith(p.id) > 0).length;
 
@@ -86,6 +89,26 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat }: Eve
             {intensityLabels[event.intensity]}
           </span>
         </div>
+
+        {/* Wishlist heart */}
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); toggleWishlist(event.id); }}
+          aria-label={wishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
+          aria-pressed={wishlisted}
+          className={cn(
+            'absolute top-3 right-3 h-9 w-9 rounded-full flex items-center justify-center transition-all',
+            'bg-white/90 hover:bg-white shadow-md backdrop-blur-sm',
+            wishlisted && 'bg-white'
+          )}
+        >
+          <Heart
+            className={cn(
+              'h-5 w-5 transition-colors',
+              wishlisted ? 'fill-destructive text-destructive' : 'text-foreground'
+            )}
+          />
+        </button>
       </div>
 
       {/* Content */}
