@@ -58,6 +58,10 @@ const EventFilters = ({ filters, onFiltersChange }: EventFiltersProps) => {
     onFiltersChange({ ...filters, location: newValues });
   };
 
+  const toggleFollowFriends = () => {
+    onFiltersChange({ ...filters, followFriends: !filters.followFriends });
+  };
+
   return (
     <div className="bg-card rounded-2xl shadow-card p-5">
       <div className="grid grid-cols-1 gap-5">
