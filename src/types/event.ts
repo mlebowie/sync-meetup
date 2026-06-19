@@ -97,6 +97,7 @@ export interface FilterState {
   groupSize: GroupSize[];
   interests: string[];
   location: string[];
+  followFriends?: boolean;
 }
 
 export interface ChatMessage {
