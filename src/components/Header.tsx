@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Bell, User, MessageCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface HeaderProps {
   onOpenMessages?: () => void;
