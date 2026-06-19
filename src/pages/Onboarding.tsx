@@ -6,6 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Camera, Sparkles } from 'lucide-react';
 import { ONBOARDING_INTERESTS, saveUserProfile, UserProfile } from '@/lib/userProfile';
 import { useToast } from '@/hooks/use-toast';
+import { TypeaheadSelect } from '@/components/TypeaheadSelect';
+import { CITIES, CITY_NEIGHBORHOODS, NATIONALITIES } from '@/lib/onboardingData';
 
 const fileToDataUrl = (file: File): Promise<string> =>
   new Promise((res, rej) => {
