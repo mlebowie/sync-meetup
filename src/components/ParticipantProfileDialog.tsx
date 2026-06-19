@@ -77,6 +77,43 @@ const ParticipantProfileDialog = ({ participant, open, onOpenChange, onOpenDM }:
               <span>{participant.neighborhood}</span>
             </div>
           )}
+          {participant.social && (
+            <div className="flex items-center gap-3 mt-3">
+              {participant.social.instagram && (
+                <a
+                  href={`https://instagram.com/${participant.social.instagram}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                  title={`@${participant.social.instagram}`}
+                >
+                  <InstagramIcon className="h-5 w-5" />
+                </a>
+              )}
+              {participant.social.linkedin && (
+                <a
+                  href={`https://linkedin.com/in/${participant.social.linkedin}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                  title={participant.social.linkedin}
+                >
+                  <LinkedInIcon className="h-5 w-5" />
+                </a>
+              )}
+              {participant.social.whatsapp && (
+                <a
+                  href={`https://wa.me/${participant.social.whatsapp.replace(/[^0-9]/g, '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                  title={participant.social.whatsapp}
+                >
+                  <WhatsAppIcon className="h-5 w-5" />
+                </a>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Activity-history-first profile — no external interest tags */}
