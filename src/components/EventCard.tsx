@@ -14,6 +14,7 @@ interface EventCardProps {
   onAttend?: (eventId: string) => void;
   onParticipantClick?: (participant: Participant) => void;
   onOpenGroupChat?: (event: Event) => void;
+  guest?: boolean;
 }
 
 function ordinal(n: number) {
@@ -40,14 +41,14 @@ const intensityLabels = {
   energetic: '⚡ Energetic',
 };
 
-const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat }: EventCardProps) => {
+const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest = false }: EventCardProps) => {
   const [isAttending, setIsAttending] = useState(event.isAttending || false);
   const [, setIsHovered] = useState(false);
   const { seriesCount, crossedPathsWith } = useActivityHistory();
   const { isWishlisted, toggle: toggleWishlist } = useWishlist();
   const wishlisted = isWishlisted(event.id);
-  const seriesTimes = seriesCount(event.seriesId);
-  const familiarCount = event.participants.filter(p => crossedPathsWith(p.id) > 0).length;
+  const seriesTimes = guest ? 0 : seriesCount(event.seriesId);
+  const familiarCount = guest ? 0 : event.participants.filter(p => crossedPathsWith(p.id) > 0).length;
 
   const handleAttend = () => {
     setIsAttending(!isAttending);
@@ -91,24 +92,26 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat }: Eve
         </div>
 
         {/* Wishlist heart */}
-        <button
-          type="button"
-          onClick={(e) => { e.stopPropagation(); toggleWishlist(event.id); }}
-          aria-label={wishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
-          aria-pressed={wishlisted}
-          className={cn(
-            'absolute top-3 right-3 h-9 w-9 rounded-full flex items-center justify-center transition-all',
-            'bg-white/90 hover:bg-white shadow-md backdrop-blur-sm',
-            wishlisted && 'bg-white'
-          )}
-        >
-          <Heart
+        {!guest && (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); toggleWishlist(event.id); }}
+            aria-label={wishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
+            aria-pressed={wishlisted}
             className={cn(
-              'h-5 w-5 transition-colors',
-              wishlisted ? 'fill-destructive text-destructive' : 'text-foreground'
+              'absolute top-3 right-3 h-9 w-9 rounded-full flex items-center justify-center transition-all',
+              'bg-white/90 hover:bg-white shadow-md backdrop-blur-sm',
+              wishlisted && 'bg-white'
             )}
-          />
-        </button>
+          >
+            <Heart
+              className={cn(
+                'h-5 w-5 transition-colors',
+                wishlisted ? 'fill-destructive text-destructive' : 'text-foreground'
+              )}
+            />
+          </button>
+        )}
       </div>
 
       {/* Content */}
