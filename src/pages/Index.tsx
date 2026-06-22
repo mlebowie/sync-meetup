@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
 import IntakeForm from '@/components/IntakeForm';
@@ -13,6 +12,8 @@ import ActivityFeed from '@/components/ActivityFeed';
 import RecommendedForYou from '@/components/RecommendedForYou';
 import GroupsSection from '@/components/GroupsSection';
 import PostEventReflectionDialog from '@/components/PostEventReflectionDialog';
+import GuestLanding from '@/components/GuestLanding';
+import RecommendedCarousel from '@/components/RecommendedCarousel';
 import { mockEvents } from '@/data/mockData';
 import { getDailyRotatingEvents } from '@/lib/dailyEvents';
 import { FilterState, Event, Participant } from '@/types/event';
@@ -27,7 +28,7 @@ const Index = () => {
   const { toast } = useToast();
   const { history } = useActivityHistory();
   const profile = getUserProfile();
-  if (!profile) return <Navigate to="/onboarding" replace />;
+  const isGuest = !profile;
   const [filters, setFilters] = useState<FilterState>({
     activityLevel: [],
     intensity: [],
@@ -37,6 +38,8 @@ const Index = () => {
     followFriends: false,
   });
   const [events, setEvents] = useState<Event[]>(() => getDailyRotatingEvents(mockEvents));
+
+
 
   const [profileParticipant, setProfileParticipant] = useState<Participant | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
