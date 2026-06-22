@@ -51,3 +51,24 @@ export const clearUserProfile = () => {
 
 export const getInterestKeywords = (interestIds: string[]): string[] =>
   interestIds.flatMap(id => ONBOARDING_INTERESTS.find(i => i.id === id)?.keywords ?? []);
+
+export const calculateAge = (dateOfBirth: string): number => {
+  const birth = new Date(dateOfBirth);
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+  return age;
+};
+
+export const DEFAULT_PROFILE: UserProfile = {
+  firstName: 'Thandiwe',
+  lastName: 'Nkosi',
+  email: 'thandiwe.nkosi@example.com',
+  dateOfBirth: '1995-08-14',
+  location: 'Porto',
+  neighborhood: 'Cedofeita',
+  nationality: 'South African',
+  photo: '/__l5e/assets-v1/a4f70df6-c027-49e5-a43d-1b0852f12c3e/default-profile.jpg',
+  interests: ['social-networking', 'dining-cooking', 'arts-theatre', 'tech-ai', 'music-live', 'education'],
+};
