@@ -124,49 +124,69 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header onOpenMessages={() => { setDmInitialId(null); setDmOpen(true); }} />
-      <Hero />
 
-      <MomentumPanel />
+      {isGuest ? (
+        <>
+          <Hero />
+          <GuestLanding
+            onAttend={handleAttend}
+            onParticipantClick={handleParticipantClick}
+          />
+        </>
+      ) : (
+        <>
+          <RecommendedCarousel
+            profile={profile!}
+            onAttend={handleAttend}
+            onParticipantClick={handleParticipantClick}
+            onOpenGroupChat={handleOpenGroupChat}
+          />
 
-      <RecommendedForYou
-        events={events}
-        onAttend={handleAttend}
-        onParticipantClick={handleParticipantClick}
-        onOpenGroupChat={handleOpenGroupChat}
-      />
+          <MomentumPanel />
 
-      {/* Post-event reflection trigger */}
-      {reflectionEvent && (
-        <section className="py-6">
-          <div className="container px-4 md:px-6">
-            <div className="max-w-5xl mx-auto bg-gradient-to-r from-primary/10 to-accent/10 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-primary font-semibold">
-                  <Sparkles className="h-3.5 w-3.5" /> Reflect
+          <RecommendedForYou
+            events={events}
+            onAttend={handleAttend}
+            onParticipantClick={handleParticipantClick}
+            onOpenGroupChat={handleOpenGroupChat}
+          />
+
+          {/* Post-event reflection trigger */}
+          {reflectionEvent && (
+            <section className="py-6">
+              <div className="container px-4 md:px-6">
+                <div className="max-w-5xl mx-auto bg-gradient-to-r from-primary/10 to-accent/10 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-primary font-semibold">
+                      <Sparkles className="h-3.5 w-3.5" /> Reflect
+                    </div>
+                    <h3 className="text-lg font-semibold text-foreground mt-1">
+                      Who did you click with at {reflectionEvent.title}?
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      Tag 1–3 people. Mutual tags unlock DMs and form crews.
+                    </p>
+                  </div>
+                  <Button onClick={() => setReflectionOpen(true)}>Tag attendees</Button>
                 </div>
-                <h3 className="text-lg font-semibold text-foreground mt-1">
-                  Who did you click with at {reflectionEvent.title}?
-                </h3>
-                <p className="text-sm text-muted-foreground mt-0.5">
-                  Tag 1–3 people. Mutual tags unlock DMs and form crews.
-                </p>
               </div>
-              <Button onClick={() => setReflectionOpen(true)}>Tag attendees</Button>
-            </div>
-          </div>
-        </section>
+            </section>
+          )}
+
+          <PersonalizedFeed
+            profile={profile!}
+            onAttend={handleAttend}
+            onParticipantClick={handleParticipantClick}
+            onOpenGroupChat={handleOpenGroupChat}
+          />
+
+          <ActivityFeed />
+
+          <GroupsSection onOpenDM={handleOpenDM} />
+        </>
       )}
 
-      <PersonalizedFeed
-        profile={profile}
-        onAttend={handleAttend}
-        onParticipantClick={handleParticipantClick}
-        onOpenGroupChat={handleOpenGroupChat}
-      />
 
-      <ActivityFeed />
-
-      <GroupsSection onOpenDM={handleOpenDM} />
 
       <section id="events" className="py-12 md:py-16">
         <div className="container px-4 md:px-6">
