@@ -20,7 +20,7 @@ const Profile = () => {
   const wishlist = getWishlistedEvents(allEvents);
 
   const { history } = useActivityHistory();
-  const attendedEvents = history.slice(0, 3);
+  const attendedEvents = isDefault ? [] : history.slice(0, 3);
 
   const interests = ONBOARDING_INTERESTS.filter(i => profile.interests.includes(i.id));
   const age = profile.dateOfBirth ? calculateAge(profile.dateOfBirth) : null;
