@@ -26,14 +26,6 @@ const Index = () => {
   const { history } = useActivityHistory();
   const profile = getUserProfile();
   const isGuest = !profile;
-  const [filters, setFilters] = useState<FilterState>({
-    activityLevel: [],
-    intensity: [],
-    groupSize: [],
-    interests: [],
-    location: [],
-    followFriends: false,
-  });
   const [events, setEvents] = useState<Event[]>(() => getDailyRotatingEvents(mockEvents));
 
 
@@ -132,6 +124,7 @@ const Index = () => {
         </>
       ) : (
         <>
+          {/* 1) Recommended for you */}
           <RecommendedCarousel
             profile={profile!}
             onAttend={handleAttend}
@@ -139,16 +132,14 @@ const Index = () => {
             onOpenGroupChat={handleOpenGroupChat}
           />
 
-          <MomentumPanel />
-
-          <RecommendedForYou
-            events={events}
+          {/* 2) Events your friends love */}
+          <FriendsLoveSection
             onAttend={handleAttend}
             onParticipantClick={handleParticipantClick}
             onOpenGroupChat={handleOpenGroupChat}
           />
 
-          {/* Post-event reflection trigger */}
+          {/* 3) Reflect from last event attended */}
           {reflectionEvent && (
             <section className="py-6">
               <div className="container px-4 md:px-6">
@@ -170,62 +161,19 @@ const Index = () => {
             </section>
           )}
 
-          <PersonalizedFeed
+          {/* 4) Upcoming events with expanded filters */}
+          <UpcomingEventsSection
+            events={events}
             profile={profile!}
             onAttend={handleAttend}
             onParticipantClick={handleParticipantClick}
             onOpenGroupChat={handleOpenGroupChat}
           />
 
+          {/* Bottom: momentum, activity, crews */}
+          <MomentumPanel />
           <ActivityFeed />
-
           <GroupsSection onOpenDM={handleOpenDM} />
-        </>
-      )}
-
-
-
-      {!isGuest && (
-        <>
-          <section id="events" className="py-12 md:py-16">
-            <div className="container px-4 md:px-6">
-              <div className="text-center mb-8">
-                <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
-                  Upcoming Events
-                </h2>
-                <p className="text-muted-foreground">
-                  All upcoming events in your city
-                </p>
-              </div>
-
-              {/* Intake form kept available but collapsed under filters — preferences seed recommendations privately, never shown on profiles. */}
-              <details className="max-w-3xl mx-auto mb-6 group">
-                <summary className="cursor-pointer text-sm text-muted-foreground hover:text-foreground">
-                  Fine-tune what you want to see →
-                </summary>
-                <div className="mt-4">
-                  <IntakeForm
-                    onSubmit={(newFilters, _interestIds) => {
-                      setFilters(prev => ({ ...prev, ...newFilters }));
-                    }}
-                  />
-                </div>
-              </details>
-
-              <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8">
-                <EventGrid
-                  events={events}
-                  filters={filters}
-                  onAttend={handleAttend}
-                  onParticipantClick={handleParticipantClick}
-                  onOpenGroupChat={handleOpenGroupChat}
-                />
-                <aside className="lg:sticky lg:top-24 h-fit">
-                  <EventFilters filters={filters} onFiltersChange={setFilters} />
-                </aside>
-              </div>
-            </div>
-          </section>
 
           <Button
             variant="hero"
