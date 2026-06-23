@@ -1,27 +1,24 @@
 import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
-import IntakeForm from '@/components/IntakeForm';
-import EventFilters from '@/components/EventFilters';
-import EventGrid from '@/components/EventGrid';
 import ParticipantProfileDialog from '@/components/ParticipantProfileDialog';
 import EventGroupChatDialog from '@/components/EventGroupChatDialog';
 import DirectMessagesDialog from '@/components/DirectMessagesDialog';
 import MomentumPanel from '@/components/MomentumPanel';
 import ActivityFeed from '@/components/ActivityFeed';
-import RecommendedForYou from '@/components/RecommendedForYou';
 import GroupsSection from '@/components/GroupsSection';
 import PostEventReflectionDialog from '@/components/PostEventReflectionDialog';
 import GuestLanding from '@/components/GuestLanding';
 import RecommendedCarousel from '@/components/RecommendedCarousel';
+import FriendsLoveSection from '@/components/FriendsLoveSection';
+import UpcomingEventsSection from '@/components/UpcomingEventsSection';
 import { mockEvents } from '@/data/mockData';
 import { getDailyRotatingEvents } from '@/lib/dailyEvents';
-import { FilterState, Event, Participant } from '@/types/event';
+import { Event, Participant } from '@/types/event';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { MessageCircle, Sparkles } from 'lucide-react';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
-import PersonalizedFeed from '@/components/PersonalizedFeed';
 import { getUserProfile } from '@/lib/userProfile';
 
 const Index = () => {
