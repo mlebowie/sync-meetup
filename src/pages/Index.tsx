@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
 import IntakeForm from '@/components/IntakeForm';
@@ -13,6 +12,8 @@ import ActivityFeed from '@/components/ActivityFeed';
 import RecommendedForYou from '@/components/RecommendedForYou';
 import GroupsSection from '@/components/GroupsSection';
 import PostEventReflectionDialog from '@/components/PostEventReflectionDialog';
+import GuestLanding from '@/components/GuestLanding';
+import RecommendedCarousel from '@/components/RecommendedCarousel';
 import { mockEvents } from '@/data/mockData';
 import { getDailyRotatingEvents } from '@/lib/dailyEvents';
 import { FilterState, Event, Participant } from '@/types/event';
@@ -27,7 +28,7 @@ const Index = () => {
   const { toast } = useToast();
   const { history } = useActivityHistory();
   const profile = getUserProfile();
-  if (!profile) return <Navigate to="/onboarding" replace />;
+  const isGuest = !profile;
   const [filters, setFilters] = useState<FilterState>({
     activityLevel: [],
     intensity: [],
@@ -37,6 +38,8 @@ const Index = () => {
     followFriends: false,
   });
   const [events, setEvents] = useState<Event[]>(() => getDailyRotatingEvents(mockEvents));
+
+
 
   const [profileParticipant, setProfileParticipant] = useState<Participant | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -121,99 +124,124 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header onOpenMessages={() => { setDmInitialId(null); setDmOpen(true); }} />
-      <Hero />
 
-      <MomentumPanel />
+      {isGuest ? (
+        <>
+          <Hero />
+          <GuestLanding
+            onAttend={handleAttend}
+            onParticipantClick={handleParticipantClick}
+          />
+        </>
+      ) : (
+        <>
+          <RecommendedCarousel
+            profile={profile!}
+            onAttend={handleAttend}
+            onParticipantClick={handleParticipantClick}
+            onOpenGroupChat={handleOpenGroupChat}
+          />
 
-      <RecommendedForYou
-        events={events}
-        onAttend={handleAttend}
-        onParticipantClick={handleParticipantClick}
-        onOpenGroupChat={handleOpenGroupChat}
-      />
+          <MomentumPanel />
 
-      {/* Post-event reflection trigger */}
-      {reflectionEvent && (
-        <section className="py-6">
-          <div className="container px-4 md:px-6">
-            <div className="max-w-5xl mx-auto bg-gradient-to-r from-primary/10 to-accent/10 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-primary font-semibold">
-                  <Sparkles className="h-3.5 w-3.5" /> Reflect
+          <RecommendedForYou
+            events={events}
+            onAttend={handleAttend}
+            onParticipantClick={handleParticipantClick}
+            onOpenGroupChat={handleOpenGroupChat}
+          />
+
+          {/* Post-event reflection trigger */}
+          {reflectionEvent && (
+            <section className="py-6">
+              <div className="container px-4 md:px-6">
+                <div className="max-w-5xl mx-auto bg-gradient-to-r from-primary/10 to-accent/10 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-primary font-semibold">
+                      <Sparkles className="h-3.5 w-3.5" /> Reflect
+                    </div>
+                    <h3 className="text-lg font-semibold text-foreground mt-1">
+                      Who did you click with at {reflectionEvent.title}?
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      Tag 1–3 people. Mutual tags unlock DMs and form crews.
+                    </p>
+                  </div>
+                  <Button onClick={() => setReflectionOpen(true)}>Tag attendees</Button>
                 </div>
-                <h3 className="text-lg font-semibold text-foreground mt-1">
-                  Who did you click with at {reflectionEvent.title}?
-                </h3>
-                <p className="text-sm text-muted-foreground mt-0.5">
-                  Tag 1–3 people. Mutual tags unlock DMs and form crews.
-                </p>
               </div>
-              <Button onClick={() => setReflectionOpen(true)}>Tag attendees</Button>
-            </div>
-          </div>
-        </section>
+            </section>
+          )}
+
+          <PersonalizedFeed
+            profile={profile!}
+            onAttend={handleAttend}
+            onParticipantClick={handleParticipantClick}
+            onOpenGroupChat={handleOpenGroupChat}
+          />
+
+          <ActivityFeed />
+
+          <GroupsSection onOpenDM={handleOpenDM} />
+        </>
       )}
 
-      <PersonalizedFeed
-        profile={profile}
-        onAttend={handleAttend}
-        onParticipantClick={handleParticipantClick}
-        onOpenGroupChat={handleOpenGroupChat}
-      />
 
-      <ActivityFeed />
 
-      <GroupsSection onOpenDM={handleOpenDM} />
+      {!isGuest && (
+        <>
+          <section id="events" className="py-12 md:py-16">
+            <div className="container px-4 md:px-6">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
+                  Upcoming Events
+                </h2>
+                <p className="text-muted-foreground">
+                  All upcoming events in your city
+                </p>
+              </div>
 
-      <section id="events" className="py-12 md:py-16">
-        <div className="container px-4 md:px-6">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
-              Upcoming Events
-            </h2>
-            <p className="text-muted-foreground">
-              All upcoming events in your city
-            </p>
-          </div>
+              {/* Intake form kept available but collapsed under filters — preferences seed recommendations privately, never shown on profiles. */}
+              <details className="max-w-3xl mx-auto mb-6 group">
+                <summary className="cursor-pointer text-sm text-muted-foreground hover:text-foreground">
+                  Fine-tune what you want to see →
+                </summary>
+                <div className="mt-4">
+                  <IntakeForm
+                    onSubmit={(newFilters, _interestIds) => {
+                      setFilters(prev => ({ ...prev, ...newFilters }));
+                    }}
+                  />
+                </div>
+              </details>
 
-          {/* Intake form kept available but collapsed under filters — preferences seed recommendations privately, never shown on profiles. */}
-          <details className="max-w-3xl mx-auto mb-6 group">
-            <summary className="cursor-pointer text-sm text-muted-foreground hover:text-foreground">
-              Fine-tune what you want to see →
-            </summary>
-            <div className="mt-4">
-              <IntakeForm
-                onSubmit={(newFilters, _interestIds) => {
-                  setFilters(prev => ({ ...prev, ...newFilters }));
-                }}
-              />
+              <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8">
+                <EventGrid
+                  events={events}
+                  filters={filters}
+                  onAttend={handleAttend}
+                  onParticipantClick={handleParticipantClick}
+                  onOpenGroupChat={handleOpenGroupChat}
+                />
+                <aside className="lg:sticky lg:top-24 h-fit">
+                  <EventFilters filters={filters} onFiltersChange={setFilters} />
+                </aside>
+              </div>
             </div>
-          </details>
+          </section>
 
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8">
-            <EventGrid
-              events={events}
-              filters={filters}
-              onAttend={handleAttend}
-              onParticipantClick={handleParticipantClick}
-              onOpenGroupChat={handleOpenGroupChat}
-            />
-            <aside className="lg:sticky lg:top-24 h-fit">
-              <EventFilters filters={filters} onFiltersChange={setFilters} />
-            </aside>
-          </div>
-        </div>
-      </section>
+          <Button
+            variant="hero"
+            size="icon"
+            className="fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-lg z-40"
+            onClick={() => { setDmInitialId(null); setDmOpen(true); }}
+            title="Direct messages"
+          >
+            <MessageCircle className="h-5 w-5" />
+          </Button>
+        </>
+      )}
 
-      <Button
-        variant="hero"
-        size="icon"
-        className="fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-lg z-40"
-        onClick={() => { setDmInitialId(null); setDmOpen(true); }}
-        title="Direct messages"
-      >
-        <MessageCircle className="h-5 w-5" />
-      </Button>
 
       <ParticipantProfileDialog
         participant={profileParticipant}
