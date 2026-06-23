@@ -188,55 +188,60 @@ const Index = () => {
 
 
 
-      <section id="events" className="py-12 md:py-16">
-        <div className="container px-4 md:px-6">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
-              Upcoming Events
-            </h2>
-            <p className="text-muted-foreground">
-              All upcoming events in your city
-            </p>
-          </div>
+      {!isGuest && (
+        <>
+          <section id="events" className="py-12 md:py-16">
+            <div className="container px-4 md:px-6">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
+                  Upcoming Events
+                </h2>
+                <p className="text-muted-foreground">
+                  All upcoming events in your city
+                </p>
+              </div>
 
-          {/* Intake form kept available but collapsed under filters — preferences seed recommendations privately, never shown on profiles. */}
-          <details className="max-w-3xl mx-auto mb-6 group">
-            <summary className="cursor-pointer text-sm text-muted-foreground hover:text-foreground">
-              Fine-tune what you want to see →
-            </summary>
-            <div className="mt-4">
-              <IntakeForm
-                onSubmit={(newFilters, _interestIds) => {
-                  setFilters(prev => ({ ...prev, ...newFilters }));
-                }}
-              />
+              {/* Intake form kept available but collapsed under filters — preferences seed recommendations privately, never shown on profiles. */}
+              <details className="max-w-3xl mx-auto mb-6 group">
+                <summary className="cursor-pointer text-sm text-muted-foreground hover:text-foreground">
+                  Fine-tune what you want to see →
+                </summary>
+                <div className="mt-4">
+                  <IntakeForm
+                    onSubmit={(newFilters, _interestIds) => {
+                      setFilters(prev => ({ ...prev, ...newFilters }));
+                    }}
+                  />
+                </div>
+              </details>
+
+              <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8">
+                <EventGrid
+                  events={events}
+                  filters={filters}
+                  onAttend={handleAttend}
+                  onParticipantClick={handleParticipantClick}
+                  onOpenGroupChat={handleOpenGroupChat}
+                />
+                <aside className="lg:sticky lg:top-24 h-fit">
+                  <EventFilters filters={filters} onFiltersChange={setFilters} />
+                </aside>
+              </div>
             </div>
-          </details>
+          </section>
 
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8">
-            <EventGrid
-              events={events}
-              filters={filters}
-              onAttend={handleAttend}
-              onParticipantClick={handleParticipantClick}
-              onOpenGroupChat={handleOpenGroupChat}
-            />
-            <aside className="lg:sticky lg:top-24 h-fit">
-              <EventFilters filters={filters} onFiltersChange={setFilters} />
-            </aside>
-          </div>
-        </div>
-      </section>
+          <Button
+            variant="hero"
+            size="icon"
+            className="fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-lg z-40"
+            onClick={() => { setDmInitialId(null); setDmOpen(true); }}
+            title="Direct messages"
+          >
+            <MessageCircle className="h-5 w-5" />
+          </Button>
+        </>
+      )}
 
-      <Button
-        variant="hero"
-        size="icon"
-        className="fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-lg z-40"
-        onClick={() => { setDmInitialId(null); setDmOpen(true); }}
-        title="Direct messages"
-      >
-        <MessageCircle className="h-5 w-5" />
-      </Button>
 
       <ParticipantProfileDialog
         participant={profileParticipant}
