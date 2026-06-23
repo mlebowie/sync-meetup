@@ -1,45 +1,28 @@
-## Goal
-Replace the current warm peachy palette with the selected Ocean & Blaze scheme to achieve a gender-neutral, dynamic, and friendship-forward aesthetic.
+## Plan: In-App Event Details Modal
 
-## Selected Palette
-- **Deep Ocean**: `#0c2340` — HSL(212, 69%, 15%) — used for deep backgrounds, hero base
-- **Medium Ocean**: `#1a4a6e` — HSL(207, 61%, 27%) — used for secondary elements, depth
-- **Bright Amber**: `#f7931e` — HSL(33, 93%, 54%) — primary action, energy highlights
-- **Blaze Orange**: `#ff6b35` — HSL(16, 100%, 60%) — accent, CTAs, warm energy
+Add a **"View more"** link beneath each event description that opens an in-app modal with full event details — keeping users inside SYNC.
 
-## Files to Update
+### 1. New component: `src/components/EventDetailsModal.tsx`
+A shadcn `Dialog` modal rendering:
+- **Hero**: event image, title, category/source badges, date · time · location
+- **Full description** (no line-clamp)
+- **Host bio**: organizer avatar, name, rating + review count, events hosted, short bio line
+- **Venue details**: address, neighborhood, a "View on map" link (placeholder)
+- **Testimonials**: 2–3 recent reviews from the organizer (use existing `recentReview` + add 1–2 mocked extras)
+- **Attendee list**: full `ParticipantAvatars` grid (not truncated), with familiar-faces highlight, count vs. capacity
+- **CTAs (sticky footer)**: `Attend` / `Attending ✓`, `Message group` (enabled once attending), `Save to wishlist` (heart toggle)
 
-### 1. `src/index.css`
-- **Light mode (`:root`)**: Replace all warm HSL tokens with Ocean & Blaze equivalents
-  - `--primary`: amber at HSL(33, 93%, 54%)
-  - `--accent`: blaze orange at HSL(16, 100%, 60%)
-  - `--gradient-primary`: deep ocean → medium ocean
-  - `--gradient-accent`: amber → blaze orange
-  - `--gradient-hero`: deep ocean base with amber/blaze highlights
-  - `--ring`, `--activity-*`, `--intensity-*`: map to ocean/amber range
-- **Dark mode (`.dark`)**: Update primary, accent, muted, and gradient tokens to match
-- **Utility classes** (`@layer utilities`): Update `.gradient-hero`, `.sun-orb`, and animation keyframes to use the new palette
-- **Remove the Google Fonts @import** for Space Grotesk / Inter (only if switching fonts; otherwise keep)
+### 2. Update `src/components/EventCard.tsx`
+- Add modal open state
+- Insert a small **"View more →"** text link directly under the description (`<p className="line-clamp-2">`)
+- Wire it to open `EventDetailsModal`
+- Pass through `onAttend`, `onOpenGroupChat`, wishlist toggle so the modal's CTAs share the card's behavior (single source of truth)
 
-### 2. `src/components/Hero.tsx`
-- Replace hardcoded warm HSL values in decorative orbs and background elements:
-  - `hsl(35_95%_70%)` → amber/blaze
-  - `hsl(345_70%_55%)` → blaze orange
-  - `hsl(275_50%_30%)` → deep ocean
-- Ensure the hero still feels energetic and warm while using the new palette
+### 3. Minor data additions in `src/data/mockData.ts`
+Extend `mockOrganizers` entries with an optional `testimonials: Review[]` array (2–3 each) so the modal has content. Add `Review` to `src/types/event.ts` (`author`, `rating`, `text`, `date`). Keep existing `recentReview` for backward compatibility.
 
-### 3. `tailwind.config.ts`
-- Verify all semantic tokens map correctly to the updated CSS variables (no hardcoded values to change here, but confirm the variable bindings remain intact)
+### Guest mode
+If `guest` prop is true, modal hides wishlist + attend (matches current card behavior) and shows a "Sign up to attend" hint instead.
 
-## What Stays the Same
-- Font families (Space Grotesk / Inter)
-- Border radius system
-- Animation keyframes and durations
-- Layout and spacing tokens
-- Dark mode toggle behavior
-
-## Verification
-- Build should pass without errors
-- Hero section should display the new ocean-to-blaze gradient
-- Buttons, badges, and interactive elements should use amber/blaze accents
-- No residual warm peach tones in any visible element
+### Out of scope
+No routing changes, no new pages, no backend — purely presentational additions.
