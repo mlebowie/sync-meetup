@@ -5,6 +5,7 @@ import { Calendar, MapPin, Users, Clock, ArrowRight, Check, MessageSquare, Repea
 import { format } from 'date-fns';
 import ParticipantAvatars from './ParticipantAvatars';
 import OrganizerPopover from './OrganizerPopover';
+import EventDetailsModal from './EventDetailsModal';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { cn } from '@/lib/utils';
@@ -44,6 +45,7 @@ const intensityLabels = {
 const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest = false }: EventCardProps) => {
   const [isAttending, setIsAttending] = useState(event.isAttending || false);
   const [, setIsHovered] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const { seriesCount, crossedPathsWith } = useActivityHistory();
   const { isWishlisted, toggle: toggleWishlist } = useWishlist();
   const wishlisted = isWishlisted(event.id);
@@ -139,9 +141,16 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
           </div>
         )}
 
-        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+        <p className="text-sm text-muted-foreground mb-1 line-clamp-2">
           {event.description}
         </p>
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); setDetailsOpen(true); }}
+          className="text-xs font-medium text-primary hover:underline mb-4 inline-flex items-center gap-1"
+        >
+          View more <ArrowRight className="h-3 w-3" />
+        </button>
 
         {/* Details */}
         <div className="flex flex-col gap-2 mb-4 text-sm text-muted-foreground">
@@ -204,6 +213,17 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
           )}
         </div>
       </div>
+
+      <EventDetailsModal
+        event={event}
+        open={detailsOpen}
+        onOpenChange={setDetailsOpen}
+        isAttending={isAttending}
+        onAttend={handleAttend}
+        onOpenGroupChat={onOpenGroupChat}
+        onParticipantClick={onParticipantClick}
+        guest={guest}
+      />
     </div>
   );
 };
