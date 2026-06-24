@@ -47,6 +47,23 @@ const EventDetailsModal = ({
   const wishlisted = isWishlisted(event.id);
   const org = event.organizer;
   const extraTestimonials = syntheticTestimonials(event);
+  const [orgOpen, setOrgOpen] = useState(false);
+
+  const extendedDescription = `${event.description}
+
+What to expect
+You'll be welcomed at the door, given a quick orientation, and introduced to a few people right away — no awkward solo standing. The host keeps the group moving so there's always something to do or someone new to talk to, and newcomers get gently looped into conversations from minute one. Whether you arrive solo or with a friend, expect a relaxed, inclusive vibe with a healthy mix of regulars and first-timers from across the expat community.
+
+Schedule breakdown
+• First 15 minutes — arrivals, name tags, and a round of low-stakes introductions so everyone clocks a few familiar faces before things kick off.
+• Main session (about 60–90 minutes) — the core activity, structured so people of different experience levels can jump in without feeling lost. The host runs a light rotation or pairing system so you're not stuck with the same person the whole time.
+• Wind-down (final 20–30 minutes) — optional hangout for drinks, snacks, or a casual walk to a nearby spot. This is where most plans for the next meetup actually get made.
+
+About the host
+${org ? `${org.name} has been running events in ${org.location} for a while now, with ${org.eventsHosted} events under their belt and a ${org.rating.toFixed(1)}-star average across ${org.reviewCount} reviews. They're known for being approachable, keeping things on schedule, and making sure no one gets left on the edge of the group.` : 'The host is an experienced organizer who specializes in welcoming, well-paced gatherings that make it easy to leave with a few new contacts.'} Tap their name below to see past events, photos, and reviews from previous attendees.
+
+What to bring
+Just yourself and an open attitude. Anything specific (gear, dress code, food contribution) is called out by the host in the group chat once you RSVP.`;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
