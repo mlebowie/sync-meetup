@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Calendar, MapPin, Clock, Bell, Mail, MessageSquare, X, Check, Eye } from 'lucide-react';
+import { Calendar, MapPin, Clock, Bell, Mail, MessageSquare, X, Check, Eye, Send } from 'lucide-react';
 import { format } from 'date-fns';
 import { Event } from '@/types/event';
 import { Switch } from '@/components/ui/switch';
@@ -9,6 +9,7 @@ import { useAttending, ReminderMethod } from '@/context/AttendingContext';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import EventDetailsModal from '@/components/EventDetailsModal';
+import OrganizerMessageDialog from '@/components/OrganizerMessageDialog';
 
 interface Props {
   allEvents: Event[];
@@ -68,6 +69,7 @@ const ComingUpCard = ({ event, prefs, onUpdate, onRemove }: CardProps) => {
   const [showContact, setShowContact] = useState(prefs.reminder !== 'none');
   const [submitted, setSubmitted] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [msgOpen, setMsgOpen] = useState(false);
   const { toast } = useToast();
 
   const pickReminder = (method: ReminderMethod) => {
@@ -129,14 +131,26 @@ const ComingUpCard = ({ event, prefs, onUpdate, onRemove }: CardProps) => {
                 <span className="truncate">{event.location}</span>
               </div>
             )}
-            <button
-              type="button"
-              onClick={() => setDetailsOpen(true)}
-              className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline mt-1.5"
-            >
-              <Eye className="h-3 w-3" />
-              View more
-            </button>
+            <div className="flex items-center gap-3 mt-1.5">
+              <button
+                type="button"
+                onClick={() => setDetailsOpen(true)}
+                className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+              >
+                <Eye className="h-3 w-3" />
+                View more
+              </button>
+              {event.organizer && (
+                <button
+                  type="button"
+                  onClick={() => setMsgOpen(true)}
+                  className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                >
+                  <Send className="h-3 w-3" />
+                  Message organizer
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -212,6 +226,14 @@ const ComingUpCard = ({ event, prefs, onUpdate, onRemove }: CardProps) => {
         isAttending={true}
         onAttend={onRemove}
       />
+      {event.organizer && (
+        <OrganizerMessageDialog
+          organizer={event.organizer}
+          eventTitle={event.title}
+          open={msgOpen}
+          onOpenChange={setMsgOpen}
+        />
+      )}
     </>
   );
 };
