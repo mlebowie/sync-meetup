@@ -47,6 +47,7 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
   const [isAttending, setIsAttending] = useState(event.isAttending || false);
   const [, setIsHovered] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const { seriesCount, crossedPathsWith } = useActivityHistory();
   const { isWishlisted, toggle: toggleWishlist } = useWishlist();
   const wishlisted = isWishlisted(event.id);
