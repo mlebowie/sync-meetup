@@ -103,9 +103,12 @@ const UpcomingEventsSection = ({ events, profile, onAttend, onParticipantClick, 
         const blob = [e.category, ...e.tags].join(' ').toLowerCase();
         if (!keywords.some(k => blob.includes(k))) return false;
       }
+      if (womenOnly && !e.womenOnly) return false;
+      if (lgbtqFriendly && !e.lgbtqFriendly) return false;
+      if (petFriendly && !e.petFriendly) return false;
       return true;
     });
-  }, [events, timeWindow, neighborhood, activityLevel, intensity, groupSizeIdx, ageRange, maxDistance, interests, recommendMode, profile.interests]);
+  }, [events, timeWindow, neighborhood, activityLevel, intensity, groupSizeIdx, ageRange, maxDistance, interests, recommendMode, profile.interests, womenOnly, lgbtqFriendly, petFriendly]);
 
   const pill = (active: boolean) =>
     `px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
