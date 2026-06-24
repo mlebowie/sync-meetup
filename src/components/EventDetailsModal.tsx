@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Event, Participant } from '@/types/event';
-import { Calendar, Clock, MapPin, Users, Star, Check, MessageSquare, Heart, ArrowRight, Quote, Instagram, Linkedin, Mail } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, Star, Check, MessageSquare, Heart, ArrowRight, Quote, Instagram, Linkedin, Mail, Send, Lock } from 'lucide-react';
 import { format } from 'date-fns';
 import { useWishlist } from '@/context/WishlistContext';
 import { cn } from '@/lib/utils';
 import OrganizerDetailsDialog from './OrganizerDetailsDialog';
+import OrganizerMessageDialog from './OrganizerMessageDialog';
+import { useToast } from '@/hooks/use-toast';
 
 interface EventDetailsModalProps {
   event: Event;
