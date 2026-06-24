@@ -135,6 +135,30 @@ Just yourself and an open attitude. Anything specific (gear, dress code, food co
                         <Mail className="h-4 w-4" />
                       </a>
                     )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!isAttending) {
+                          toast({
+                            title: 'Attend to unlock messaging',
+                            description: 'Private messages with the organizer open once you RSVP.',
+                          });
+                          return;
+                        }
+                        setMsgOpen(true);
+                      }}
+                      aria-label={isAttending ? `Message ${org.name}` : 'Attend to message organizer'}
+                      title={isAttending ? `Message ${org.name} privately` : 'Attend to unlock private messaging'}
+                      className={cn(
+                        'inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] font-medium transition-colors',
+                        isAttending
+                          ? 'border-primary/40 text-primary hover:bg-primary/10'
+                          : 'border-border text-muted-foreground opacity-60 cursor-not-allowed'
+                      )}
+                    >
+                      {isAttending ? <Send className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
+                      Message
+                    </button>
                     <span className="flex items-center gap-1 text-xs text-muted-foreground">
                       <Star className="h-3.5 w-3.5 fill-yellow-500 text-yellow-500" />
                       {org.rating.toFixed(1)} ({org.reviewCount} reviews)
