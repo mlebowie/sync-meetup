@@ -10,6 +10,7 @@ import Profile from "./pages/Profile";
 import { SocialProvider } from "./context/SocialContext";
 import { ActivityHistoryProvider } from "./context/ActivityHistoryContext";
 import { WishlistProvider } from "./context/WishlistContext";
+import { AttendingProvider } from "./context/AttendingContext";
 import { mockEvents } from "./data/mockData";
 
 const queryClient = new QueryClient();
