@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Send, Lock } from 'lucide-react';
 import { Organizer } from '@/types/event';
 import { useToast } from '@/hooks/use-toast';
+import { useSocial } from '@/context/SocialContext';
 
 interface Props {
   organizer: Organizer;
