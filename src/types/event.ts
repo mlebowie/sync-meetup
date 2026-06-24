@@ -115,6 +115,9 @@ export interface FilterState {
   interests: string[];
   location: string[];
   followFriends?: boolean;
+  womenOnly?: boolean;
+  lgbtqFriendly?: boolean;
+  petFriendly?: boolean;
 }
 
 export interface ChatMessage {
