@@ -282,6 +282,7 @@ export const mockEvents: Event[] = [
     tags: ['surf', 'recurring'],
     seriesId: 'surf',
     recurrence: 'weekly',
+    petFriendly: true,
   },
   {
     id: '6',
