@@ -1,9 +1,15 @@
 import { createContext, useContext, useState, ReactNode, useCallback } from 'react';
-import { ChatMessage, Participant } from '@/types/event';
+import { ChatMessage, Participant, Organizer } from '@/types/event';
 import { currentUser } from '@/data/mockData';
 
 interface DMThread {
   withId: string;
+  messages: ChatMessage[];
+}
+
+export interface OrganizerDMThread {
+  organizer: Organizer;
+  eventTitle: string;
   messages: ChatMessage[];
 }
 
@@ -20,10 +26,13 @@ interface SocialContextValue {
   isMutual: (id: string) => boolean;
   dms: Record<string, DMThread>;
   sendDM: (toId: string, content: string) => void;
+  organizerDms: Record<string, OrganizerDMThread>;
+  sendOrganizerMessage: (organizer: Organizer, eventTitle: string, content: string) => void;
   groupChats: Record<string, GroupChat>;
   sendGroupMessage: (eventId: string, content: string, type?: 'text' | 'meme') => void;
   ensureGroupChat: (eventId: string, seedMessages: ChatMessage[]) => void;
 }
+
 
 const SocialContext = createContext<SocialContextValue | null>(null);
 
