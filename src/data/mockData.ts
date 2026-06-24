@@ -303,6 +303,7 @@ export const mockEvents: Event[] = [
     tags: ['tech', 'founders'],
     recurrence: 'monthly',
     seriesId: 'founders-mixer',
+    lgbtqFriendly: true,
   },
   {
     id: '7',
