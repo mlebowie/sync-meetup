@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import ParticipantAvatars from './ParticipantAvatars';
 import OrganizerPopover from './OrganizerPopover';
 import EventDetailsModal from './EventDetailsModal';
+import AttendConfirmationDialog from './AttendConfirmationDialog';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { cn } from '@/lib/utils';
