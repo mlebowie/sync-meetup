@@ -45,7 +45,8 @@ const intensityLabels = {
 };
 
 const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest = false }: EventCardProps) => {
-  const [isAttending, setIsAttending] = useState(event.isAttending || false);
+  const { isAttending: isAttendingFn, toggle: toggleAttending } = useAttending();
+  const isAttending = isAttendingFn(event.id) || !!event.isAttending;
   const [, setIsHovered] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -56,8 +57,8 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
   const familiarCount = guest ? 0 : event.participants.filter(p => crossedPathsWith(p.id) > 0).length;
 
   const handleAttend = () => {
-    const next = !isAttending;
-    setIsAttending(next);
+    if (guest) return;
+    const next = toggleAttending(event.id);
     onAttend?.(event.id);
     if (next) setConfirmOpen(true);
   };
