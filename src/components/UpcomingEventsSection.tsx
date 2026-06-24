@@ -61,6 +61,9 @@ const UpcomingEventsSection = ({ events, profile, onAttend, onParticipantClick, 
   const [maxDistance, setMaxDistance] = useState<number>(15);
   const [interests, setInterests] = useState<string[]>([]);
   const [recommendMode, setRecommendMode] = useState(false);
+  const [womenOnly, setWomenOnly] = useState(false);
+  const [lgbtqFriendly, setLgbtqFriendly] = useState(false);
+  const [petFriendly, setPetFriendly] = useState(false);
 
   const toggle = <T,>(value: T, list: T[], setter: (v: T[]) => void) => {
     setter(list.includes(value) ? list.filter(v => v !== value) : [...list, value]);
