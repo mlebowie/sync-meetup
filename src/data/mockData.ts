@@ -324,6 +324,8 @@ export const mockEvents: Event[] = [
     category: 'Sports',
     tags: ['climbing'],
     recurrence: 'one-off',
+    lgbtqFriendly: true,
+    petFriendly: true,
   },
   {
     id: '8',
