@@ -260,6 +260,7 @@ export const mockEvents: Event[] = [
     tags: ['brunch', 'recurring'],
     seriesId: 'brunch-club',
     recurrence: 'weekly',
+    womenOnly: true,
   },
   {
     id: '5',
