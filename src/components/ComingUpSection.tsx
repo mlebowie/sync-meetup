@@ -69,6 +69,7 @@ const ComingUpCard = ({ event, prefs, onUpdate, onRemove }: CardProps) => {
   const [showContact, setShowContact] = useState(prefs.reminder !== 'none');
   const [submitted, setSubmitted] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [msgOpen, setMsgOpen] = useState(false);
   const { toast } = useToast();
 
   const pickReminder = (method: ReminderMethod) => {
