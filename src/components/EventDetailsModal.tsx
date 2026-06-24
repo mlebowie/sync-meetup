@@ -1,10 +1,12 @@
+import { useState } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Event, Participant } from '@/types/event';
-import { Calendar, Clock, MapPin, Users, Star, Check, MessageSquare, Heart, ArrowRight, Quote } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, Star, Check, MessageSquare, Heart, ArrowRight, Quote, Instagram, Linkedin, Mail } from 'lucide-react';
 import { format } from 'date-fns';
 import { useWishlist } from '@/context/WishlistContext';
 import { cn } from '@/lib/utils';
+import OrganizerDetailsDialog from './OrganizerDetailsDialog';
 
 interface EventDetailsModalProps {
   event: Event;
@@ -45,6 +47,23 @@ const EventDetailsModal = ({
   const wishlisted = isWishlisted(event.id);
   const org = event.organizer;
   const extraTestimonials = syntheticTestimonials(event);
+  const [orgOpen, setOrgOpen] = useState(false);
+
+  const extendedDescription = `${event.description}
+
+What to expect
+You'll be welcomed at the door, given a quick orientation, and introduced to a few people right away — no awkward solo standing. The host keeps the group moving so there's always something to do or someone new to talk to, and newcomers get gently looped into conversations from minute one. Whether you arrive solo or with a friend, expect a relaxed, inclusive vibe with a healthy mix of regulars and first-timers from across the expat community.
+
+Schedule breakdown
+• First 15 minutes — arrivals, name tags, and a round of low-stakes introductions so everyone clocks a few familiar faces before things kick off.
+• Main session (about 60–90 minutes) — the core activity, structured so people of different experience levels can jump in without feeling lost. The host runs a light rotation or pairing system so you're not stuck with the same person the whole time.
+• Wind-down (final 20–30 minutes) — optional hangout for drinks, snacks, or a casual walk to a nearby spot. This is where most plans for the next meetup actually get made.
+
+About the host
+${org ? `${org.name} has been running events in ${org.location} for a while now, with ${org.eventsHosted} events under their belt and a ${org.rating.toFixed(1)}-star average across ${org.reviewCount} reviews. They're known for being approachable, keeping things on schedule, and making sure no one gets left on the edge of the group.` : 'The host is an experienced organizer who specializes in welcoming, well-paced gatherings that make it easy to leave with a few new contacts.'} Tap their name below to see past events, photos, and reviews from previous attendees.
+
+What to bring
+Just yourself and an open attitude. Anything specific (gear, dress code, food contribution) is called out by the host in the group chat once you RSVP.`;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -76,7 +95,7 @@ const EventDetailsModal = ({
           {/* Description */}
           <section>
             <h3 className="text-sm font-semibold text-foreground mb-2">About this event</h3>
-            <p className="text-sm text-muted-foreground whitespace-pre-line">{event.description}</p>
+            <p className="text-sm text-muted-foreground whitespace-pre-line">{extendedDescription}</p>
           </section>
 
           {/* Host bio */}
@@ -85,11 +104,33 @@ const EventDetailsModal = ({
               <h3 className="text-sm font-semibold text-foreground mb-2">Hosted by</h3>
               <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/40">
                 {org.avatar && (
-                  <img src={org.avatar} alt={org.name} className="w-12 h-12 rounded-full object-cover" />
+                  <button onClick={() => setOrgOpen(true)} className="shrink-0">
+                    <img src={org.avatar} alt={org.name} className="w-12 h-12 rounded-full object-cover hover:ring-2 hover:ring-primary transition" />
+                  </button>
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-medium text-foreground">{org.name}</span>
+                    <button
+                      onClick={() => setOrgOpen(true)}
+                      className="font-medium text-foreground hover:text-primary hover:underline underline-offset-2"
+                    >
+                      {org.name}
+                    </button>
+                    {org.social?.instagram && (
+                      <a href={`https://instagram.com/${org.social.instagram}`} target="_blank" rel="noreferrer" aria-label="Instagram" className="text-muted-foreground hover:text-primary">
+                        <Instagram className="h-4 w-4" />
+                      </a>
+                    )}
+                    {org.social?.linkedin && (
+                      <a href={`https://linkedin.com/in/${org.social.linkedin}`} target="_blank" rel="noreferrer" aria-label="LinkedIn" className="text-muted-foreground hover:text-primary">
+                        <Linkedin className="h-4 w-4" />
+                      </a>
+                    )}
+                    {org.social?.email && (
+                      <a href={`mailto:${org.social.email}`} aria-label="Email" className="text-muted-foreground hover:text-primary">
+                        <Mail className="h-4 w-4" />
+                      </a>
+                    )}
                     <span className="flex items-center gap-1 text-xs text-muted-foreground">
                       <Star className="h-3.5 w-3.5 fill-yellow-500 text-yellow-500" />
                       {org.rating.toFixed(1)} ({org.reviewCount} reviews)
@@ -98,6 +139,9 @@ const EventDetailsModal = ({
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {org.eventsHosted} events hosted · {org.location}
                   </p>
+                  <button onClick={() => setOrgOpen(true)} className="text-xs text-primary hover:underline mt-1">
+                    View host profile →
+                  </button>
                 </div>
               </div>
             </section>
@@ -200,6 +244,7 @@ const EventDetailsModal = ({
           )}
         </div>
       </DialogContent>
+      {org && <OrganizerDetailsDialog organizer={org} open={orgOpen} onOpenChange={setOrgOpen} />}
     </Dialog>
   );
 };

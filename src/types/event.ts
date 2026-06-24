@@ -50,6 +50,20 @@ export interface Organizer {
   reviewCount: number;
   location: string;
   eventsHosted: number;
+  bio?: string;
+  photos?: string[];
+  eventTypes?: string[];
+  social?: {
+    instagram?: string;
+    linkedin?: string;
+    email?: string;
+  };
+  testimonials?: {
+    author: string;
+    rating: number;
+    text: string;
+    date: Date;
+  }[];
   recentReview?: {
     author: string;
     rating: number;
