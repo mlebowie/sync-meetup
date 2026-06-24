@@ -226,6 +226,14 @@ const ComingUpCard = ({ event, prefs, onUpdate, onRemove }: CardProps) => {
         isAttending={true}
         onAttend={onRemove}
       />
+      {event.organizer && (
+        <OrganizerMessageDialog
+          organizer={event.organizer}
+          eventTitle={event.title}
+          open={msgOpen}
+          onOpenChange={setMsgOpen}
+        />
+      )}
     </>
   );
 };
