@@ -107,6 +107,26 @@ export const SocialProvider = ({ children }: { children: ReactNode }) => {
     }));
   }, []);
 
+  const sendOrganizerMessage = useCallback((organizer: Organizer, eventTitle: string, content: string) => {
+    const msg: ChatMessage = {
+      id: crypto.randomUUID(),
+      authorId: currentUser.id,
+      authorName: currentUser.name,
+      authorAvatar: currentUser.avatar,
+      content,
+      type: 'text',
+      timestamp: new Date(),
+    };
+    setOrganizerDms(prev => ({
+      ...prev,
+      [organizer.id]: {
+        organizer,
+        eventTitle: prev[organizer.id]?.eventTitle ?? eventTitle,
+        messages: [...(prev[organizer.id]?.messages || []), msg],
+      },
+    }));
+  }, []);
+
   return (
     <SocialContext.Provider
       value={{
@@ -117,6 +137,8 @@ export const SocialProvider = ({ children }: { children: ReactNode }) => {
         isMutual,
         dms,
         sendDM,
+        organizerDms,
+        sendOrganizerMessage,
         groupChats,
         sendGroupMessage,
         ensureGroupChat,
