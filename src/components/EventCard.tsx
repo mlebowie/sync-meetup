@@ -55,8 +55,10 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
   const familiarCount = guest ? 0 : event.participants.filter(p => crossedPathsWith(p.id) > 0).length;
 
   const handleAttend = () => {
-    setIsAttending(!isAttending);
+    const next = !isAttending;
+    setIsAttending(next);
     onAttend?.(event.id);
+    if (next) setConfirmOpen(true);
   };
 
   return (
