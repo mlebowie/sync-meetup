@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TypeaheadSelect } from './TypeaheadSelect';
-import { Clock, MapPin, Users, Activity, Zap, Ruler, Sparkles, CalendarRange } from 'lucide-react';
+import { Clock, MapPin, Users, Activity, Zap, Ruler, Sparkles, CalendarRange, Heart } from 'lucide-react';
 
 interface Props {
   events: Event[];
