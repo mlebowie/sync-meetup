@@ -47,7 +47,9 @@ export const SocialProvider = ({ children }: { children: ReactNode }) => {
   // Simulate that some users already follow "me" so mutual follow can happen
   const [followers] = useState<Set<string>>(new Set(['1', '2', '4', '6']));
   const [dms, setDms] = useState<Record<string, DMThread>>({});
+  const [organizerDms, setOrganizerDms] = useState<Record<string, OrganizerDMThread>>({});
   const [groupChats, setGroupChats] = useState<Record<string, GroupChat>>({});
+
 
   const toggleFollow = useCallback((id: string) => {
     setFollowing(prev => {
