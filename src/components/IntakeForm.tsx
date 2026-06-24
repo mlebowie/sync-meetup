@@ -53,6 +53,9 @@ const IntakeForm = ({ onSubmit }: IntakeFormProps) => {
         groupSize: [groupSizeMap[groupSizeIdx[0]]],
         interests: selectedInterests,
         location: [],
+        womenOnly: false,
+        lgbtqFriendly: false,
+        petFriendly: false,
       },
       selectedInterests
     );

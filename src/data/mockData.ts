@@ -260,6 +260,7 @@ export const mockEvents: Event[] = [
     tags: ['brunch', 'recurring'],
     seriesId: 'brunch-club',
     recurrence: 'weekly',
+    womenOnly: true,
   },
   {
     id: '5',
@@ -281,6 +282,7 @@ export const mockEvents: Event[] = [
     tags: ['surf', 'recurring'],
     seriesId: 'surf',
     recurrence: 'weekly',
+    petFriendly: true,
   },
   {
     id: '6',
@@ -302,6 +304,7 @@ export const mockEvents: Event[] = [
     tags: ['tech', 'founders'],
     recurrence: 'monthly',
     seriesId: 'founders-mixer',
+    lgbtqFriendly: true,
   },
   {
     id: '7',
@@ -322,6 +325,8 @@ export const mockEvents: Event[] = [
     category: 'Sports',
     tags: ['climbing'],
     recurrence: 'one-off',
+    lgbtqFriendly: true,
+    petFriendly: true,
   },
   {
     id: '8',
@@ -342,6 +347,8 @@ export const mockEvents: Event[] = [
     category: 'Social',
     tags: ['walk', 'beer'],
     recurrence: 'one-off',
+    womenOnly: true,
+    lgbtqFriendly: true,
   },
   {
     id: '9',

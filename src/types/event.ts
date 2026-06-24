@@ -96,6 +96,9 @@ export interface Event {
   seriesId?: string;
   /** How often the series repeats. */
   recurrence?: Recurrence;
+  womenOnly?: boolean;
+  lgbtqFriendly?: boolean;
+  petFriendly?: boolean;
 }
 
 export interface Interest {
@@ -112,6 +115,9 @@ export interface FilterState {
   interests: string[];
   location: string[];
   followFriends?: boolean;
+  womenOnly?: boolean;
+  lgbtqFriendly?: boolean;
+  petFriendly?: boolean;
 }
 
 export interface ChatMessage {

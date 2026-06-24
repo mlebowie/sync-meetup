@@ -45,6 +45,11 @@ const EventGrid = ({ events, filters, onAttend, onParticipantClick, onOpenGroupC
         if (!hasFriendAttending) return false;
       }
 
+      // Filter by inclusivity flags
+      if (filters.womenOnly && !event.womenOnly) return false;
+      if (filters.lgbtqFriendly && !event.lgbtqFriendly) return false;
+      if (filters.petFriendly && !event.petFriendly) return false;
+
       // Filter by interests (match any interest/tag)
       if (filters.interests.length > 0) {
         const interestLabels = filters.interests.map(id => {

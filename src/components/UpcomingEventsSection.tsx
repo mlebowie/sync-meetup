@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TypeaheadSelect } from './TypeaheadSelect';
-import { Clock, MapPin, Users, Activity, Zap, Ruler, Sparkles, CalendarRange } from 'lucide-react';
+import { Clock, MapPin, Users, Activity, Zap, Ruler, Sparkles, CalendarRange, Heart } from 'lucide-react';
 
 interface Props {
   events: Event[];
@@ -61,6 +61,9 @@ const UpcomingEventsSection = ({ events, profile, onAttend, onParticipantClick, 
   const [maxDistance, setMaxDistance] = useState<number>(15);
   const [interests, setInterests] = useState<string[]>([]);
   const [recommendMode, setRecommendMode] = useState(false);
+  const [womenOnly, setWomenOnly] = useState(false);
+  const [lgbtqFriendly, setLgbtqFriendly] = useState(false);
+  const [petFriendly, setPetFriendly] = useState(false);
 
   const toggle = <T,>(value: T, list: T[], setter: (v: T[]) => void) => {
     setter(list.includes(value) ? list.filter(v => v !== value) : [...list, value]);
@@ -100,9 +103,12 @@ const UpcomingEventsSection = ({ events, profile, onAttend, onParticipantClick, 
         const blob = [e.category, ...e.tags].join(' ').toLowerCase();
         if (!keywords.some(k => blob.includes(k))) return false;
       }
+      if (womenOnly && !e.womenOnly) return false;
+      if (lgbtqFriendly && !e.lgbtqFriendly) return false;
+      if (petFriendly && !e.petFriendly) return false;
       return true;
     });
-  }, [events, timeWindow, neighborhood, activityLevel, intensity, groupSizeIdx, ageRange, maxDistance, interests, recommendMode, profile.interests]);
+  }, [events, timeWindow, neighborhood, activityLevel, intensity, groupSizeIdx, ageRange, maxDistance, interests, recommendMode, profile.interests, womenOnly, lgbtqFriendly, petFriendly]);
 
   const pill = (active: boolean) =>
     `px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
@@ -256,10 +262,30 @@ const UpcomingEventsSection = ({ events, profile, onAttend, onParticipantClick, 
             </div>
           </div>
 
+          {/* Inclusivity */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <Heart className="h-4 w-4 text-danger" />
+              <span className="text-sm font-semibold">Inclusivity</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button onClick={() => setWomenOnly(v => !v)} className={pill(womenOnly)}>
+                Women only
+              </button>
+              <button onClick={() => setLgbtqFriendly(v => !v)} className={pill(lgbtqFriendly)}>
+                LGBTQ+ friendly
+              </button>
+              <button onClick={() => setPetFriendly(v => !v)} className={pill(petFriendly)}>
+                Pet friendly
+              </button>
+            </div>
+          </div>
+
           <div className="flex flex-wrap items-center justify-end gap-3 pt-2 border-t border-border">
             <Button variant="ghost" onClick={() => {
               setTimeWindow('any'); setNeighborhood(''); setActivityLevel([]); setIntensity([]);
               setGroupSizeIdx(0); setAgeRange([22, 45]); setMaxDistance(15); setInterests([]); setRecommendMode(false);
+              setWomenOnly(false); setLgbtqFriendly(false); setPetFriendly(false);
             }}>
               Reset filters
             </Button>
