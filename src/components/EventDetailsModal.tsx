@@ -95,7 +95,7 @@ Just yourself and an open attitude. Anything specific (gear, dress code, food co
           {/* Description */}
           <section>
             <h3 className="text-sm font-semibold text-foreground mb-2">About this event</h3>
-            <p className="text-sm text-muted-foreground whitespace-pre-line">{event.description}</p>
+            <p className="text-sm text-muted-foreground whitespace-pre-line">{extendedDescription}</p>
           </section>
 
           {/* Host bio */}
@@ -104,11 +104,33 @@ Just yourself and an open attitude. Anything specific (gear, dress code, food co
               <h3 className="text-sm font-semibold text-foreground mb-2">Hosted by</h3>
               <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/40">
                 {org.avatar && (
-                  <img src={org.avatar} alt={org.name} className="w-12 h-12 rounded-full object-cover" />
+                  <button onClick={() => setOrgOpen(true)} className="shrink-0">
+                    <img src={org.avatar} alt={org.name} className="w-12 h-12 rounded-full object-cover hover:ring-2 hover:ring-primary transition" />
+                  </button>
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-medium text-foreground">{org.name}</span>
+                    <button
+                      onClick={() => setOrgOpen(true)}
+                      className="font-medium text-foreground hover:text-primary hover:underline underline-offset-2"
+                    >
+                      {org.name}
+                    </button>
+                    {org.social?.instagram && (
+                      <a href={`https://instagram.com/${org.social.instagram}`} target="_blank" rel="noreferrer" aria-label="Instagram" className="text-muted-foreground hover:text-primary">
+                        <Instagram className="h-4 w-4" />
+                      </a>
+                    )}
+                    {org.social?.linkedin && (
+                      <a href={`https://linkedin.com/in/${org.social.linkedin}`} target="_blank" rel="noreferrer" aria-label="LinkedIn" className="text-muted-foreground hover:text-primary">
+                        <Linkedin className="h-4 w-4" />
+                      </a>
+                    )}
+                    {org.social?.email && (
+                      <a href={`mailto:${org.social.email}`} aria-label="Email" className="text-muted-foreground hover:text-primary">
+                        <Mail className="h-4 w-4" />
+                      </a>
+                    )}
                     <span className="flex items-center gap-1 text-xs text-muted-foreground">
                       <Star className="h-3.5 w-3.5 fill-yellow-500 text-yellow-500" />
                       {org.rating.toFixed(1)} ({org.reviewCount} reviews)
@@ -117,6 +139,9 @@ Just yourself and an open attitude. Anything specific (gear, dress code, food co
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {org.eventsHosted} events hosted · {org.location}
                   </p>
+                  <button onClick={() => setOrgOpen(true)} className="text-xs text-primary hover:underline mt-1">
+                    View host profile →
+                  </button>
                 </div>
               </div>
             </section>
