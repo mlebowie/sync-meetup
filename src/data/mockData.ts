@@ -346,6 +346,8 @@ export const mockEvents: Event[] = [
     category: 'Social',
     tags: ['walk', 'beer'],
     recurrence: 'one-off',
+    womenOnly: true,
+    lgbtqFriendly: true,
   },
   {
     id: '9',
