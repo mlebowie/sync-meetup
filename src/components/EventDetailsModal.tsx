@@ -50,6 +50,8 @@ const EventDetailsModal = ({
   const org = event.organizer;
   const extraTestimonials = syntheticTestimonials(event);
   const [orgOpen, setOrgOpen] = useState(false);
+  const [msgOpen, setMsgOpen] = useState(false);
+  const { toast } = useToast();
 
   const extendedDescription = `${event.description}
 
