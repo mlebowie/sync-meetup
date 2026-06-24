@@ -131,14 +131,26 @@ const ComingUpCard = ({ event, prefs, onUpdate, onRemove }: CardProps) => {
                 <span className="truncate">{event.location}</span>
               </div>
             )}
-            <button
-              type="button"
-              onClick={() => setDetailsOpen(true)}
-              className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline mt-1.5"
-            >
-              <Eye className="h-3 w-3" />
-              View more
-            </button>
+            <div className="flex items-center gap-3 mt-1.5">
+              <button
+                type="button"
+                onClick={() => setDetailsOpen(true)}
+                className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+              >
+                <Eye className="h-3 w-3" />
+                View more
+              </button>
+              {event.organizer && (
+                <button
+                  type="button"
+                  onClick={() => setMsgOpen(true)}
+                  className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                >
+                  <Send className="h-3 w-3" />
+                  Message organizer
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
