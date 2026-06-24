@@ -77,6 +77,9 @@ const Profile = () => {
           </div>
         </section>
 
+        {/* Coming Up */}
+        <ComingUpSection allEvents={allEvents} />
+
         {/* Attended events */}
         <section className="mb-10">
           <div className="flex items-center gap-2 mb-4">
