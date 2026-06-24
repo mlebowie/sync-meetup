@@ -9,6 +9,7 @@ import EventDetailsModal from './EventDetailsModal';
 import AttendConfirmationDialog from './AttendConfirmationDialog';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
 import { useWishlist } from '@/context/WishlistContext';
+import { useAttending } from '@/context/AttendingContext';
 import { cn } from '@/lib/utils';
 
 interface EventCardProps {
