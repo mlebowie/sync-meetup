@@ -244,6 +244,7 @@ Just yourself and an open attitude. Anything specific (gear, dress code, food co
           )}
         </div>
       </DialogContent>
+      {org && <OrganizerDetailsDialog organizer={org} open={orgOpen} onOpenChange={setOrgOpen} />}
     </Dialog>
   );
 };
