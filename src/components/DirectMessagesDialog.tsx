@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useSocial } from '@/context/SocialContext';
 import { mockParticipants } from '@/data/mockData';
-import { Send, MessageCircle } from 'lucide-react';
+import { Send, MessageCircle, Users, Shield } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface Props {
   open: boolean;
@@ -12,30 +13,60 @@ interface Props {
   initialPartnerId?: string | null;
 }
 
+type Category = 'people' | 'organizers';
+
 const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) => {
-  const { following, isMutual, dms, sendDM, currentUser } = useSocial();
+  const { following, isMutual, dms, sendDM, organizerDms, sendOrganizerMessage, currentUser } = useSocial();
   const mutualIds = Array.from(following).filter(id => isMutual(id));
+  const organizerIds = Object.keys(organizerDms);
+
+  const [category, setCategory] = useState<Category>('people');
   const [activeId, setActiveId] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (open) {
-      setActiveId(initialPartnerId || mutualIds[0] || null);
+      if (initialPartnerId) {
+        setCategory('people');
+        setActiveId(initialPartnerId);
+      } else {
+        setActiveId(category === 'people' ? mutualIds[0] || null : organizerIds[0] || null);
+      }
     }
   }, [open, initialPartnerId]); // eslint-disable-line
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
-  }, [activeId, dms]);
+    setActiveId(category === 'people' ? mutualIds[0] || null : organizerIds[0] || null);
+    // eslint-disable-next-line
+  }, [category]);
 
-  const partner = mockParticipants.find(p => p.id === activeId);
-  const thread = activeId ? dms[activeId]?.messages || [] : [];
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+  }, [activeId, dms, organizerDms]);
+
+  const isOrganizerView = category === 'organizers';
+  const partner = !isOrganizerView ? mockParticipants.find(p => p.id === activeId) : null;
+  const orgThread = isOrganizerView && activeId ? organizerDms[activeId] : null;
+
+  const thread = isOrganizerView
+    ? orgThread?.messages || []
+    : activeId ? dms[activeId]?.messages || [] : [];
+
+  const headerName = isOrganizerView ? orgThread?.organizer.name : partner?.name;
+  const headerAvatar = isOrganizerView ? orgThread?.organizer.avatar : partner?.avatar;
+  const headerSub = isOrganizerView
+    ? orgThread ? `Organizer · ${orgThread.eventTitle}` : ''
+    : partner?.neighborhood;
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeId || !draft.trim()) return;
-    sendDM(activeId, draft.trim());
+    if (isOrganizerView && orgThread) {
+      sendOrganizerMessage(orgThread.organizer, orgThread.eventTitle, draft.trim());
+    } else {
+      sendDM(activeId, draft.trim());
+    }
     setDraft('');
   };
 
@@ -44,55 +75,119 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) =
       <DialogContent className="max-w-2xl p-0 gap-0 flex h-[560px]">
         <DialogHeader className="sr-only">
           <DialogTitle>Direct messages</DialogTitle>
-          <DialogDescription>Chat with people who follow you back</DialogDescription>
+          <DialogDescription>Chats with people and event organizers</DialogDescription>
         </DialogHeader>
 
-        <aside className="w-56 border-r flex flex-col">
+        <aside className="w-60 border-r flex flex-col">
           <div className="p-3 border-b">
             <h3 className="font-display text-sm">Messages</h3>
-            <p className="text-xs text-muted-foreground">Mutual follows only</p>
           </div>
+          <div className="grid grid-cols-2 gap-1 p-2 border-b">
+            {([
+              { id: 'people' as const, label: 'People', icon: Users, count: mutualIds.length },
+              { id: 'organizers' as const, label: 'Organizers', icon: Shield, count: organizerIds.length },
+            ]).map(tab => {
+              const Icon = tab.icon;
+              const active = category === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setCategory(tab.id)}
+                  className={cn(
+                    'flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium transition-colors',
+                    active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-secondary/60'
+                  )}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {tab.label}
+                  {tab.count > 0 && (
+                    <span className={cn(
+                      'text-[10px] px-1.5 py-0.5 rounded-full',
+                      active ? 'bg-primary-foreground/20' : 'bg-muted'
+                    )}>
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
           <div className="flex-1 overflow-y-auto">
-            {mutualIds.length === 0 ? (
-              <div className="p-4 text-center">
-                <MessageCircle className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
-                <p className="text-xs text-muted-foreground">
-                  Follow someone who follows you back to start chatting.
-                </p>
-              </div>
-            ) : (
-              mutualIds.map(id => {
-                const p = mockParticipants.find(x => x.id === id);
-                if (!p) return null;
-                return (
-                  <button
-                    key={id}
-                    onClick={() => setActiveId(id)}
-                    className={`w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-secondary/50 transition-colors ${activeId === id ? 'bg-secondary' : ''}`}
-                  >
-                    <img src={p.avatar} alt={p.name} className="w-8 h-8 rounded-full object-cover" />
-                    <span className="text-sm truncate">{p.name}</span>
-                  </button>
-                );
-              })
+            {!isOrganizerView && (
+              mutualIds.length === 0 ? (
+                <div className="p-4 text-center">
+                  <MessageCircle className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-xs text-muted-foreground">
+                    Follow someone who follows you back to start chatting.
+                  </p>
+                </div>
+              ) : (
+                mutualIds.map(id => {
+                  const p = mockParticipants.find(x => x.id === id);
+                  if (!p) return null;
+                  return (
+                    <button
+                      key={id}
+                      onClick={() => setActiveId(id)}
+                      className={`w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-secondary/50 transition-colors ${activeId === id ? 'bg-secondary' : ''}`}
+                    >
+                      <img src={p.avatar} alt={p.name} className="w-8 h-8 rounded-full object-cover" />
+                      <span className="text-sm truncate">{p.name}</span>
+                    </button>
+                  );
+                })
+              )
+            )}
+
+            {isOrganizerView && (
+              organizerIds.length === 0 ? (
+                <div className="p-4 text-center">
+                  <Shield className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-xs text-muted-foreground">
+                    Message an event organizer from any event you're attending to start a private thread.
+                  </p>
+                </div>
+              ) : (
+                organizerIds.map(id => {
+                  const t = organizerDms[id];
+                  return (
+                    <button
+                      key={id}
+                      onClick={() => setActiveId(id)}
+                      className={`w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-secondary/50 transition-colors ${activeId === id ? 'bg-secondary' : ''}`}
+                    >
+                      {t.organizer.avatar && (
+                        <img src={t.organizer.avatar} alt={t.organizer.name} className="w-8 h-8 rounded-full object-cover" />
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm truncate">{t.organizer.name}</p>
+                        <p className="text-[11px] text-muted-foreground truncate">{t.eventTitle}</p>
+                      </div>
+                    </button>
+                  );
+                })
+              )
             )}
           </div>
         </aside>
 
         <section className="flex-1 flex flex-col">
-          {partner ? (
+          {(partner || orgThread) ? (
             <>
               <div className="p-3 border-b flex items-center gap-2">
-                <img src={partner.avatar} alt={partner.name} className="w-8 h-8 rounded-full object-cover" />
-                <div>
-                  <p className="text-sm font-semibold">{partner.name}</p>
-                  <p className="text-xs text-muted-foreground">{partner.neighborhood}</p>
+                {headerAvatar && (
+                  <img src={headerAvatar} alt={headerName} className="w-8 h-8 rounded-full object-cover" />
+                )}
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold truncate">{headerName}</p>
+                  <p className="text-xs text-muted-foreground truncate">{headerSub}</p>
                 </div>
               </div>
               <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-2">
                 {thread.length === 0 && (
                   <p className="text-xs text-center text-muted-foreground mt-8">
-                    Say hi to {partner.name.split(' ')[0]}!
+                    Say hi to {(headerName || '').split(' ')[0]}!
                   </p>
                 )}
                 {thread.map(m => {
@@ -107,7 +202,12 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) =
                 })}
               </div>
               <form onSubmit={handleSend} className="p-3 border-t flex gap-2">
-                <Input value={draft} onChange={e => setDraft(e.target.value)} placeholder={`Message ${partner.name.split(' ')[0]}...`} className="flex-1" />
+                <Input
+                  value={draft}
+                  onChange={e => setDraft(e.target.value)}
+                  placeholder={`Message ${(headerName || '').split(' ')[0]}...`}
+                  className="flex-1"
+                />
                 <Button type="submit" size="icon" disabled={!draft.trim()}>
                   <Send className="h-4 w-4" />
                 </Button>
@@ -115,7 +215,9 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) =
             </>
           ) : (
             <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground p-8 text-center">
-              Tap on a participant avatar in any event card to view their profile and follow them.
+              {isOrganizerView
+                ? 'Message an event organizer from any event you’re attending — your conversation will appear here.'
+                : 'Tap on a participant avatar in any event card to view their profile and follow them.'}
             </div>
           )}
         </section>

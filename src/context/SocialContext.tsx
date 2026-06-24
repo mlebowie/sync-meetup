@@ -1,9 +1,15 @@
 import { createContext, useContext, useState, ReactNode, useCallback } from 'react';
-import { ChatMessage, Participant } from '@/types/event';
+import { ChatMessage, Participant, Organizer } from '@/types/event';
 import { currentUser } from '@/data/mockData';
 
 interface DMThread {
   withId: string;
+  messages: ChatMessage[];
+}
+
+export interface OrganizerDMThread {
+  organizer: Organizer;
+  eventTitle: string;
   messages: ChatMessage[];
 }
 
@@ -20,10 +26,13 @@ interface SocialContextValue {
   isMutual: (id: string) => boolean;
   dms: Record<string, DMThread>;
   sendDM: (toId: string, content: string) => void;
+  organizerDms: Record<string, OrganizerDMThread>;
+  sendOrganizerMessage: (organizer: Organizer, eventTitle: string, content: string) => void;
   groupChats: Record<string, GroupChat>;
   sendGroupMessage: (eventId: string, content: string, type?: 'text' | 'meme') => void;
   ensureGroupChat: (eventId: string, seedMessages: ChatMessage[]) => void;
 }
+
 
 const SocialContext = createContext<SocialContextValue | null>(null);
 
@@ -38,7 +47,9 @@ export const SocialProvider = ({ children }: { children: ReactNode }) => {
   // Simulate that some users already follow "me" so mutual follow can happen
   const [followers] = useState<Set<string>>(new Set(['1', '2', '4', '6']));
   const [dms, setDms] = useState<Record<string, DMThread>>({});
+  const [organizerDms, setOrganizerDms] = useState<Record<string, OrganizerDMThread>>({});
   const [groupChats, setGroupChats] = useState<Record<string, GroupChat>>({});
+
 
   const toggleFollow = useCallback((id: string) => {
     setFollowing(prev => {
@@ -96,6 +107,26 @@ export const SocialProvider = ({ children }: { children: ReactNode }) => {
     }));
   }, []);
 
+  const sendOrganizerMessage = useCallback((organizer: Organizer, eventTitle: string, content: string) => {
+    const msg: ChatMessage = {
+      id: crypto.randomUUID(),
+      authorId: currentUser.id,
+      authorName: currentUser.name,
+      authorAvatar: currentUser.avatar,
+      content,
+      type: 'text',
+      timestamp: new Date(),
+    };
+    setOrganizerDms(prev => ({
+      ...prev,
+      [organizer.id]: {
+        organizer,
+        eventTitle: prev[organizer.id]?.eventTitle ?? eventTitle,
+        messages: [...(prev[organizer.id]?.messages || []), msg],
+      },
+    }));
+  }, []);
+
   return (
     <SocialContext.Provider
       value={{
@@ -106,6 +137,8 @@ export const SocialProvider = ({ children }: { children: ReactNode }) => {
         isMutual,
         dms,
         sendDM,
+        organizerDms,
+        sendOrganizerMessage,
         groupChats,
         sendGroupMessage,
         ensureGroupChat,

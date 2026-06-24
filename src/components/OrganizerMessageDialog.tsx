@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Send, Lock } from 'lucide-react';
 import { Organizer } from '@/types/event';
 import { useToast } from '@/hooks/use-toast';
+import { useSocial } from '@/context/SocialContext';
 
 interface Props {
   organizer: Organizer;
@@ -22,15 +23,17 @@ const QUICK_PROMPTS = [
 const OrganizerMessageDialog = ({ organizer, eventTitle, open, onOpenChange }: Props) => {
   const [message, setMessage] = useState('');
   const { toast } = useToast();
+  const { sendOrganizerMessage } = useSocial();
 
   const handleSend = () => {
     if (!message.trim()) {
       toast({ title: 'Write a message first', variant: 'destructive' });
       return;
     }
+    sendOrganizerMessage(organizer, eventTitle, message.trim());
     toast({
       title: `Message sent to ${organizer.name}`,
-      description: 'They typically reply within a few hours.',
+      description: 'Find this conversation under Messages → Organizers.',
     });
     setMessage('');
     onOpenChange(false);
