@@ -266,6 +266,7 @@ const UpcomingEventsSection = ({ events, profile, onAttend, onParticipantClick, 
             <Button variant="ghost" onClick={() => {
               setTimeWindow('any'); setNeighborhood(''); setActivityLevel([]); setIntensity([]);
               setGroupSizeIdx(0); setAgeRange([22, 45]); setMaxDistance(15); setInterests([]); setRecommendMode(false);
+              setWomenOnly(false); setLgbtqFriendly(false); setPetFriendly(false);
             }}>
               Reset filters
             </Button>
