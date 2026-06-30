@@ -130,6 +130,9 @@ export const VENUE_COORDS: Record<string, { lat: number; lng: number; location: 
   'founders-mixer': { lat: 41.1430, lng: -8.6200, location: 'Miragaia Rooftop, Porto' },
   'climbing': { lat: 41.1700, lng: -8.6000, location: 'Vertigo Climbing, Porto' },
   'sunset-walk': { lat: 41.1400, lng: -8.6120, location: 'Ribeira, Porto' },
+  'tech-week': { lat: 41.1589, lng: -8.6282, location: 'Casa da Música, Porto' },
+  'food-fest': { lat: 41.1465, lng: -8.6150, location: 'Jardim da Cordoaria, Porto' },
+  'art-walk': { lat: 41.1550, lng: -8.6200, location: 'Cedofeita, Porto' },
 };
 
 const venue = (seriesId: keyof typeof VENUE_COORDS) => VENUE_COORDS[seriesId];
