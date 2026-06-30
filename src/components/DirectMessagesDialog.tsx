@@ -1,11 +1,13 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useSocial } from '@/context/SocialContext';
-import { mockParticipants } from '@/data/mockData';
-import { Send, MessageCircle, Users, Shield } from 'lucide-react';
+import { mockParticipants, mockEvents } from '@/data/mockData';
+import { Send, MessageCircle, Users, Shield, UsersRound } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import EventGroupChatDialog from './EventGroupChatDialog';
+import { formatDistanceToNowStrict } from 'date-fns';
 
 interface Props {
   open: boolean;
