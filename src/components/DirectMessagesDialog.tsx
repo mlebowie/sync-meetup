@@ -7,6 +7,7 @@ import { mockParticipants, mockEvents } from '@/data/mockData';
 import { Send, MessageCircle, Users, Shield, UsersRound } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import EventGroupChatDialog from './EventGroupChatDialog';
+import ParticipantProfileDialog from './ParticipantProfileDialog';
 import { formatDistanceToNowStrict } from 'date-fns';
 
 interface Props {
