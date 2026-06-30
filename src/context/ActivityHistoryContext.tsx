@@ -94,5 +94,4 @@ export const ActivityHistoryProvider = ({ children }: { children: ReactNode }) =
   );
 };
 
-// Re-export for components that want display names
-export { mockParticipants };
+
