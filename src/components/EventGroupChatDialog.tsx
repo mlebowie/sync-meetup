@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Event } from '@/types/event';
+import { Event, Participant } from '@/types/event';
 import { seedGroupChat, getIcebreaker } from '@/lib/groupChatSeed';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { useSocial } from '@/context/SocialContext';
 import { Send, Sparkles, Image as ImageIcon, Clock, AlarmClock } from 'lucide-react';
 import { format, differenceInHours, formatDistanceToNowStrict } from 'date-fns';
+import { mockParticipants } from '@/data/mockData';
+import ParticipantProfileDialog from './ParticipantProfileDialog';
 
 const CHAT_LIFETIME_HOURS = 7 * 24;
 const notifiedExpiry = new Set<string>();
@@ -27,6 +29,7 @@ const memes = [
 const EventGroupChatDialog = ({ event, open, onOpenChange }: Props) => {
   const { groupChats, sendGroupMessage, ensureGroupChat, currentUser } = useSocial();
   const [draft, setDraft] = useState('');
+  const [profileParticipant, setProfileParticipant] = useState<Participant | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [now, setNow] = useState(() => new Date());
 
@@ -139,13 +142,29 @@ const EventGroupChatDialog = ({ event, open, onOpenChange }: Props) => {
                   </div>
                 );
               }
+              const openProfile = () => {
+                const p = mockParticipants.find(x => x.id === m.authorId)
+                  ?? event.participants?.find(x => x.id === m.authorId)
+                  ?? null;
+                if (p) setProfileParticipant(p);
+              };
               return (
                 <div key={m.id} className={`flex gap-2 ${isMe ? 'flex-row-reverse' : ''}`}>
                   {!isMe && (
-                    <img src={m.authorAvatar} alt={m.authorName} className="w-7 h-7 rounded-full object-cover shrink-0" />
+                    <button type="button" onClick={openProfile} className="shrink-0 rounded-full focus:outline-none focus:ring-2 focus:ring-primary">
+                      <img src={m.authorAvatar} alt={m.authorName} className="w-7 h-7 rounded-full object-cover" />
+                    </button>
                   )}
                   <div className={`max-w-[75%] ${isMe ? 'items-end' : 'items-start'} flex flex-col`}>
-                    {!isMe && <span className="text-xs text-muted-foreground mb-0.5">{m.authorName}</span>}
+                    {!isMe && (
+                      <button
+                        type="button"
+                        onClick={openProfile}
+                        className="text-xs text-muted-foreground mb-0.5 hover:text-primary hover:underline"
+                      >
+                        {m.authorName}
+                      </button>
+                    )}
                     {m.type === 'meme' ? (
                       <img src={m.content} alt="meme" className="rounded-xl max-w-full" />
                     ) : (
@@ -176,6 +195,11 @@ const EventGroupChatDialog = ({ event, open, onOpenChange }: Props) => {
           </Button>
         </form>
       </DialogContent>
+      <ParticipantProfileDialog
+        participant={profileParticipant}
+        open={!!profileParticipant}
+        onOpenChange={(o) => { if (!o) setProfileParticipant(null); }}
+      />
     </Dialog>
   );
 };
