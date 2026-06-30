@@ -23,8 +23,10 @@ const WhatsAppIcon = ({ className }: { className?: string }) => (
 );
 
 import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
 import { format, formatDistanceToNow } from 'date-fns';
 import AttendedEventsMap from './AttendedEventsMap';
+import UnfollowConfirmDialog from './UnfollowConfirmDialog';
 
 
 interface Props {
