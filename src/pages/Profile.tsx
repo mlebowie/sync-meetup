@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Heart, Bell, Calendar, MapPin, Clock, Compass, Globe, Sparkles } from 'lucide-react';
+import { ArrowLeft, Heart, Bell, Calendar, MapPin, Clock, Compass, Globe, Sparkles, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import Header from '@/components/Header';
 import EventCard from '@/components/EventCard';
@@ -10,7 +10,6 @@ import { getUserProfile, ONBOARDING_INTERESTS, DEFAULT_PROFILE, calculateAge } f
 import { useWishlist } from '@/context/WishlistContext';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
 import { useSocial } from '@/context/SocialContext';
-import { Users } from 'lucide-react';
 import { mockEvents } from '@/data/mockData';
 import { getDailyRotatingEvents } from '@/lib/dailyEvents';
 
