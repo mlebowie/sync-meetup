@@ -140,6 +140,13 @@ const Index = () => {
             onOpenGroupChat={handleOpenGroupChat}
           />
 
+          {/* 2b) Popular & Trending one-time events */}
+          <PopularTrendingSection
+            onAttend={handleAttend}
+            onParticipantClick={handleParticipantClick}
+            onOpenGroupChat={handleOpenGroupChat}
+          />
+
           {/* 3) Reflect from last event attended */}
           {reflectionEvent && (
             <section className="py-6">
