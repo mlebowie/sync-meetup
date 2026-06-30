@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Event, ChatMessage } from '@/types/event';
+import { Event } from '@/types/event';
+import { seedGroupChat, getIcebreaker } from '@/lib/groupChatSeed';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
