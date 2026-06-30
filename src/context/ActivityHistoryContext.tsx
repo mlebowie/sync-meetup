@@ -1,6 +1,6 @@
 import { createContext, useContext, useMemo, useState, ReactNode, useCallback } from 'react';
 import { PastAttendance, TaggedConnection } from '@/types/event';
-import { currentUserHistory, mockParticipants } from '@/data/mockData';
+import { currentUserHistory } from '@/data/mockData';
 
 interface ActivityHistoryValue {
   history: PastAttendance[];
@@ -94,5 +94,4 @@ export const ActivityHistoryProvider = ({ children }: { children: ReactNode }) =
   );
 };
 
-// Re-export for components that want display names
-export { mockParticipants };
+
