@@ -69,6 +69,18 @@ const Profile = () => {
                 </span>
               )}
             </div>
+            <div className="mt-3 flex items-center gap-3">
+              <Link
+                to="/profile/connections"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-semibold hover:bg-primary/20 transition-colors"
+              >
+                <Users className="h-3.5 w-3.5" />
+                {connectionsCount} Connections
+              </Link>
+              <span className="text-xs text-muted-foreground">
+                {followers.size} followers · {following.size} following
+              </span>
+            </div>
             {interests.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mt-3">
                 {interests.map(i => (
