@@ -181,7 +181,6 @@ const Index = () => {
           {/* Bottom: momentum, activity, crews */}
           <MomentumPanel />
           <ActivityFeed />
-          <GroupsSection onOpenDM={handleOpenDM} />
 
           <Button
             variant="hero"
