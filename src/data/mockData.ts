@@ -57,6 +57,27 @@ export const mockOrganizers: Record<string, Organizer> = {
     social: { instagram: 'carlos.douro', email: 'carlos@douro.pt' },
    recentReview: { author: 'David R.', rating: 5, text: 'Carlos knows every cervejaria on the river. Easy crowd, easy night.', date: daysAgoStatic(8) },
   },
+  'tech-week': {
+    id: 'org-9', name: 'Portugal Tech Week', type: 'company',
+    avatar: 'https://images.unsplash.com/photo-1542744173-8e7e53420ebc?w=120&h=120&fit=crop',
+    rating: 4.8, reviewCount: 210, location: 'Casa da Música, Porto', eventsHosted: 12,
+    social: { instagram: 'portugaltechweek', linkedin: 'portugal-tech-week', email: 'info@portugaltechweek.pt' },
+    recentReview: { author: 'Rui S.', rating: 5, text: 'Incredible lineup this year. The after-parties are where the real connections happen.', date: daysAgoStatic(1) },
+  },
+  'food-fest': {
+    id: 'org-10', name: 'Porto Food Fest', type: 'company',
+    avatar: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=120&h=120&fit=crop',
+    rating: 4.7, reviewCount: 156, location: 'Jardim da Cordoaria, Porto', eventsHosted: 8,
+    social: { instagram: 'portofoodfest', email: 'hello@portofoodfest.pt' },
+    recentReview: { author: 'Ana C.', rating: 5, text: 'Best weekend of the year in Porto. Every stall had something new to try.', date: daysAgoStatic(2) },
+  },
+  'art-walk': {
+    id: 'org-11', name: 'Cedofeita Art Collective', type: 'company',
+    avatar: 'https://images.unsplash.com/photo-1460661419205-fd4cecdf8a8b?w=120&h=120&fit=crop',
+    rating: 4.6, reviewCount: 44, location: 'Cedofeita, Porto', eventsHosted: 15,
+    social: { instagram: 'cedofeita.art', email: 'art@cedofeita.pt' },
+    recentReview: { author: 'Lena K.', rating: 5, text: 'Met three artists I now collaborate with. The open studio format is magic.', date: daysAgoStatic(5) },
+  },
 };
 
 function daysAgoStatic(n: number) {
