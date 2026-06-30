@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Event, Participant } from '@/types/event';
-import { Calendar, MapPin, Users, Clock, ArrowRight, Check, MessageSquare, Repeat, Heart, TrendingUp } from 'lucide-react';
+import { Calendar, MapPin, Users, Clock, ArrowRight, Check, MessageSquare, Repeat, Heart, TrendingUp, Hourglass } from 'lucide-react';
 import { format } from 'date-fns';
 import ParticipantAvatars from './ParticipantAvatars';
 import OrganizerPopover from './OrganizerPopover';
 import EventDetailsModal from './EventDetailsModal';
 import AttendConfirmationDialog from './AttendConfirmationDialog';
+import WaitlistDialog from './WaitlistDialog';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useAttending } from '@/context/AttendingContext';
@@ -50,14 +51,20 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
   const [, setIsHovered] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [waitlistOpen, setWaitlistOpen] = useState(false);
   const { seriesCount, crossedPathsWith } = useActivityHistory();
   const { isWishlisted, toggle: toggleWishlist } = useWishlist();
   const wishlisted = isWishlisted(event.id);
   const seriesTimes = guest ? 0 : seriesCount(event.seriesId);
   const familiarCount = guest ? 0 : event.participants.filter(p => crossedPathsWith(p.id) > 0).length;
+  const isFull = event.currentParticipants >= event.maxParticipants;
 
   const handleAttend = () => {
     if (guest) return;
+    if (isFull && !isAttending) {
+      setWaitlistOpen(true);
+      return;
+    }
     const next = toggleAttending(event.id);
     onAttend?.(event.id);
     if (next) setConfirmOpen(true);
@@ -200,6 +207,9 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
           <div className="flex items-center gap-1 text-sm text-muted-foreground">
             <Users className="h-4 w-4" />
             <span>{event.currentParticipants}/{event.maxParticipants}</span>
+            {isFull && (
+              <span className="ml-1 px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide bg-destructive/10 text-destructive">Full</span>
+            )}
           </div>
         </div>
 
@@ -214,6 +224,11 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
               <>
                 <Check className="h-4 w-4 mr-1" />
                 Attending
+              </>
+            ) : isFull ? (
+              <>
+                <Hourglass className="h-4 w-4 mr-1" />
+                Join Waitlist
               </>
             ) : (
               <>
@@ -236,6 +251,7 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
       </div>
 
       <AttendConfirmationDialog event={event} open={confirmOpen} onOpenChange={setConfirmOpen} />
+      <WaitlistDialog event={event} open={waitlistOpen} onOpenChange={setWaitlistOpen} />
 
 
       <EventDetailsModal
