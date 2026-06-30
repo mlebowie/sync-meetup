@@ -23,6 +23,10 @@ const Profile = () => {
   const wishlist = getWishlistedEvents(allEvents);
 
   const { history } = useActivityHistory();
+  const { following, followers } = useSocial();
+  const connectionsCount = new Set([...following, ...followers]).size;
+
+  const { history } = useActivityHistory();
   const attendedEvents = isDefault ? [] : history.slice(0, 3);
 
   const interests = ONBOARDING_INTERESTS.filter(i => profile.interests.includes(i.id));
