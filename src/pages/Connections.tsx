@@ -17,6 +17,7 @@ const Connections = () => {
   const [filter, setFilter] = useState<FilterKey>('all');
   const [query, setQuery] = useState('');
   const [profileId, setProfileId] = useState<string | null>(null);
+  const [unfollowId, setUnfollowId] = useState<string | null>(null);
 
   const enriched = useMemo(() => {
     const ids = new Set<string>([...following, ...followers]);
