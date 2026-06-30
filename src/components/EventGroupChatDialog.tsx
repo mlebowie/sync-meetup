@@ -37,8 +37,38 @@ const EventGroupChatDialog = ({ event, open, onOpenChange }: Props) => {
   const { groupChats, sendGroupMessage, ensureGroupChat, currentUser } = useSocial();
   const [draft, setDraft] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [now, setNow] = useState(() => new Date());
 
   const icebreaker = event ? icebreakersByCategory[event.category] || 'Introduce yourself in one sentence!' : '';
+
+  const expiresAt = useMemo(
+    () => (event ? new Date(event.date.getTime() + CHAT_LIFETIME_HOURS * 60 * 60 * 1000) : null),
+    [event]
+  );
+  const hoursRemaining = expiresAt ? differenceInHours(expiresAt, now) : 0;
+  const eventEnded = event ? now.getTime() >= event.date.getTime() : false;
+  const isExpired = expiresAt ? now.getTime() >= expiresAt.getTime() : false;
+  const inFinal24h = eventEnded && !isExpired && hoursRemaining <= 24;
+
+  useEffect(() => {
+    if (!open) return;
+    const id = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(id);
+  }, [open]);
+
+  // Fire one-time "expires in 24h" notification when entering the final-day window
+  useEffect(() => {
+    if (!event || !inFinal24h) return;
+    if (notifiedExpiry.has(event.id)) return;
+    notifiedExpiry.add(event.id);
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      try {
+        new Notification('Chat expires in 24 hours', {
+          body: `${event.title} — swap socials or start a Crew before it disappears.`,
+        });
+      } catch { /* ignore */ }
+    }
+  }, [event, inFinal24h]);
 
   useEffect(() => {
     if (!event || !open) return;
