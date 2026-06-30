@@ -124,6 +124,21 @@ const EventGroupChatDialog = ({ event, open, onOpenChange }: Props) => {
           </DialogDescription>
         </DialogHeader>
 
+        {eventEnded && !isExpired && !inFinal24h && (
+          <div className="px-4 py-2 border-b flex items-center gap-2 text-xs text-muted-foreground bg-muted/40">
+            <Clock className="h-3.5 w-3.5 shrink-0" />
+            <span>Group chat expires in {formatDistanceToNowStrict(expiresAt!)}</span>
+          </div>
+        )}
+        {inFinal24h && (
+          <div className="px-4 py-2.5 border-b flex items-start gap-2 text-sm bg-accent/10 text-accent-foreground border-accent/30">
+            <AlarmClock className="h-4 w-4 mt-0.5 shrink-0 text-accent" />
+            <p>
+              <span className="font-semibold">Chat expires in 24 hours</span> — swap socials or start a Crew before it disappears.
+            </p>
+          </div>
+        )}
+
         <div className="px-4 py-3 bg-primary/5 border-b flex items-start gap-2">
           <Sparkles className="h-4 w-4 text-primary mt-0.5 shrink-0" />
           <p className="text-sm text-foreground">
@@ -131,50 +146,61 @@ const EventGroupChatDialog = ({ event, open, onOpenChange }: Props) => {
           </p>
         </div>
 
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3">
-          {messages.map(m => {
-            const isMe = m.authorId === currentUser.id;
-            const isBot = m.authorId === 'sync-bot';
-            if (isBot) {
+        {isExpired ? (
+          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center gap-2">
+            <Clock className="h-8 w-8 text-muted-foreground" />
+            <p className="text-sm font-semibold">This chat has ended</p>
+            <p className="text-xs text-muted-foreground max-w-xs">
+              Tagged connections moved to your Crews. Find them on your profile to keep the conversation going.
+            </p>
+          </div>
+        ) : (
+          <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3">
+            {messages.map(m => {
+              const isMe = m.authorId === currentUser.id;
+              const isBot = m.authorId === 'sync-bot';
+              if (isBot) {
+                return (
+                  <div key={m.id} className="text-center">
+                    <span className="text-xs text-muted-foreground bg-secondary px-3 py-1 rounded-full">
+                      {m.content}
+                    </span>
+                  </div>
+                );
+              }
               return (
-                <div key={m.id} className="text-center">
-                  <span className="text-xs text-muted-foreground bg-secondary px-3 py-1 rounded-full">
-                    {m.content}
-                  </span>
+                <div key={m.id} className={`flex gap-2 ${isMe ? 'flex-row-reverse' : ''}`}>
+                  {!isMe && (
+                    <img src={m.authorAvatar} alt={m.authorName} className="w-7 h-7 rounded-full object-cover shrink-0" />
+                  )}
+                  <div className={`max-w-[75%] ${isMe ? 'items-end' : 'items-start'} flex flex-col`}>
+                    {!isMe && <span className="text-xs text-muted-foreground mb-0.5">{m.authorName}</span>}
+                    {m.type === 'meme' ? (
+                      <img src={m.content} alt="meme" className="rounded-xl max-w-full" />
+                    ) : (
+                      <div className={`px-3 py-2 rounded-2xl text-sm ${isMe ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}>
+                        {m.content}
+                      </div>
+                    )}
+                  </div>
                 </div>
               );
-            }
-            return (
-              <div key={m.id} className={`flex gap-2 ${isMe ? 'flex-row-reverse' : ''}`}>
-                {!isMe && (
-                  <img src={m.authorAvatar} alt={m.authorName} className="w-7 h-7 rounded-full object-cover shrink-0" />
-                )}
-                <div className={`max-w-[75%] ${isMe ? 'items-end' : 'items-start'} flex flex-col`}>
-                  {!isMe && <span className="text-xs text-muted-foreground mb-0.5">{m.authorName}</span>}
-                  {m.type === 'meme' ? (
-                    <img src={m.content} alt="meme" className="rounded-xl max-w-full" />
-                  ) : (
-                    <div className={`px-3 py-2 rounded-2xl text-sm ${isMe ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}>
-                      {m.content}
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+            })}
+          </div>
+        )}
 
         <form onSubmit={handleSend} className="p-3 border-t flex gap-2">
-          <Button type="button" variant="outline" size="icon" onClick={sendMeme} title="Send a meme">
+          <Button type="button" variant="outline" size="icon" onClick={sendMeme} title="Send a meme" disabled={isExpired}>
             <ImageIcon className="h-4 w-4" />
           </Button>
           <Input
             value={draft}
             onChange={e => setDraft(e.target.value)}
-            placeholder="Respond to the icebreaker..."
+            placeholder={isExpired ? 'Chat has ended' : 'Respond to the icebreaker...'}
             className="flex-1"
+            disabled={isExpired}
           />
-          <Button type="submit" size="icon" disabled={!draft.trim()}>
+          <Button type="submit" size="icon" disabled={!draft.trim() || isExpired}>
             <Send className="h-4 w-4" />
           </Button>
         </form>
