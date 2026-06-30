@@ -78,6 +78,34 @@ export const mockOrganizers: Record<string, Organizer> = {
     social: { instagram: 'cedofeita.art', email: 'art@cedofeita.pt' },
     recentReview: { author: 'Lena K.', rating: 5, text: 'Met three artists I now collaborate with. The open studio format is magic.', date: daysAgoStatic(5) },
   },
+  'serralves': {
+    id: 'org-12', name: 'Fundação Serralves', type: 'company',
+    avatar: 'https://images.unsplash.com/photo-1554907984-15263bfd63bd?w=120&h=120&fit=crop',
+    rating: 4.9, reviewCount: 312, location: 'Rua D. João de Castro 210, Porto', eventsHosted: 48,
+    social: { instagram: 'serralves', linkedin: 'fundacao-serralves', email: 'info@serralves.pt' },
+    recentReview: { author: 'Pedro G.', rating: 5, text: 'A magical evening. The architecture alone is worth it, but the programming keeps bringing us back.', date: daysAgoStatic(1) },
+  },
+  'matosinhos-tech': {
+    id: 'org-13', name: 'Matosinhos Tech Hub', type: 'company',
+    avatar: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=120&h=120&fit=crop',
+    rating: 4.5, reviewCount: 78, location: 'Matosinhos, Porto', eventsHosted: 24,
+    social: { instagram: 'matosinhos.tech', linkedin: 'matosinhos-tech-hub', email: 'hello@matosinhostech.pt' },
+    recentReview: { author: 'Ana R.', rating: 5, text: 'Great way to meet other developers outside the city center. The pizza is always solid too.', date: daysAgoStatic(3) },
+  },
+  'pronto-breakfast': {
+    id: 'org-14', name: 'Pronto Breakfast Club', type: 'company',
+    avatar: 'https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=120&h=120&fit=crop',
+    rating: 4.8, reviewCount: 94, location: 'Cedofeita, Porto', eventsHosted: 36,
+    social: { instagram: 'prontobreakfast', email: 'hello@prontobreakfast.pt' },
+    recentReview: { author: 'Tomás L.', rating: 5, text: 'Best pancakes in Porto and you always leave with a new friend at the communal table.', date: daysAgoStatic(2) },
+  },
+  'expat-runners': {
+    id: 'org-15', name: 'Porto Expat Runners', type: 'company',
+    avatar: 'https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?w=120&h=120&fit=crop',
+    rating: 4.7, reviewCount: 115, location: 'Parque da Cidade, Porto', eventsHosted: 62,
+    social: { instagram: 'portoexpatrunners', email: 'run@portoexpatrunners.pt' },
+    recentReview: { author: 'Chris M.', rating: 5, text: 'The relay format is brilliant — you are forced to cheer each other on. Felt like a team instantly.', date: daysAgoStatic(4) },
+  },
 };
 
 function daysAgoStatic(n: number) {
@@ -133,6 +161,10 @@ export const VENUE_COORDS: Record<string, { lat: number; lng: number; location: 
   'tech-week': { lat: 41.1589, lng: -8.6282, location: 'Casa da Música, Porto' },
   'food-fest': { lat: 41.1465, lng: -8.6150, location: 'Jardim da Cordoaria, Porto' },
   'art-walk': { lat: 41.1550, lng: -8.6200, location: 'Cedofeita, Porto' },
+  'serralves-open': { lat: 41.1628, lng: -8.6590, location: 'Rua D. João de Castro 210, Porto' },
+  'matosinhos-networking': { lat: 41.1822, lng: -8.6900, location: 'Matosinhos, Porto' },
+  'pronto-popup': { lat: 41.1505, lng: -8.6140, location: 'Cedofeita, Porto' },
+  'expat-relay': { lat: 41.1695, lng: -8.6820, location: 'Parque da Cidade, Porto' },
 };
 
 const venue = (seriesId: keyof typeof VENUE_COORDS) => VENUE_COORDS[seriesId];
