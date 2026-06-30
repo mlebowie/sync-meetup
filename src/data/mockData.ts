@@ -354,7 +354,7 @@ export const mockEvents: Event[] = [
     intensity: 'social',
     groupSize: 'medium',
     maxParticipants: 30,
-    currentParticipants: 21,
+    currentParticipants: 30,
     participants: [mockParticipants[1], mockParticipants[5], mockParticipants[3]],
     category: 'Networking',
     tags: ['tech', 'founders'],
