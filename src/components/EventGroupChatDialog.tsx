@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Event } from '@/types/event';
+import { Event, Participant } from '@/types/event';
 import { seedGroupChat, getIcebreaker } from '@/lib/groupChatSeed';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { useSocial } from '@/context/SocialContext';
 import { Send, Sparkles, Image as ImageIcon, Clock, AlarmClock } from 'lucide-react';
 import { format, differenceInHours, formatDistanceToNowStrict } from 'date-fns';
+import { mockParticipants } from '@/data/mockData';
+import ParticipantProfileDialog from './ParticipantProfileDialog';
 
 const CHAT_LIFETIME_HOURS = 7 * 24;
 const notifiedExpiry = new Set<string>();
