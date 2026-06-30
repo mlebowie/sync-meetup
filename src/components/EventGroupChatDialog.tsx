@@ -29,6 +29,7 @@ const memes = [
 const EventGroupChatDialog = ({ event, open, onOpenChange }: Props) => {
   const { groupChats, sendGroupMessage, ensureGroupChat, currentUser } = useSocial();
   const [draft, setDraft] = useState('');
+  const [profileParticipant, setProfileParticipant] = useState<Participant | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [now, setNow] = useState(() => new Date());
 
