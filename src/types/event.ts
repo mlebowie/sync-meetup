@@ -99,6 +99,7 @@ export interface Event {
   womenOnly?: boolean;
   lgbtqFriendly?: boolean;
   petFriendly?: boolean;
+  trending?: boolean;
 }
 
 export interface Interest {
