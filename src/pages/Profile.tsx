@@ -195,6 +195,11 @@ const Profile = () => {
             </p>
           </div>
         )}
+
+        {/* Your crews - from tagged connections & recurring co-attendance */}
+        <div className="mt-10 -mx-4 md:-mx-6">
+          <GroupsSection />
+        </div>
       </main>
     </div>
   );
