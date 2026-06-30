@@ -159,10 +159,17 @@ const Connections = () => {
                 <Button
                   size="sm"
                   variant={youFollow ? 'outline' : 'default'}
-                  onClick={() => toggleFollow(participant.id)}
+                  onClick={() => {
+                    if (youFollow) setUnfollowId(participant.id);
+                    else toggleFollow(participant.id);
+                  }}
                   className="shrink-0"
                 >
-                  {youFollow ? 'Following' : 'Follow back'}
+                  {youFollow ? (
+                    <><Check className="h-4 w-4 mr-1" /> Following</>
+                  ) : (
+                    <><UserPlus className="h-4 w-4 mr-1" /> Follow back</>
+                  )}
                 </Button>
               </li>
             ))}
@@ -173,6 +180,12 @@ const Connections = () => {
           participant={profileId ? mockParticipants.find(p => p.id === profileId) ?? null : null}
           open={!!profileId}
           onOpenChange={open => !open && setProfileId(null)}
+        />
+        <UnfollowConfirmDialog
+          open={!!unfollowId}
+          name={unfollowId ? mockParticipants.find(p => p.id === unfollowId)?.name ?? '' : ''}
+          onOpenChange={open => !open && setUnfollowId(null)}
+          onConfirm={() => unfollowId && toggleFollow(unfollowId)}
         />
       </main>
     </div>
