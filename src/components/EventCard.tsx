@@ -51,14 +51,20 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
   const [, setIsHovered] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [waitlistOpen, setWaitlistOpen] = useState(false);
   const { seriesCount, crossedPathsWith } = useActivityHistory();
   const { isWishlisted, toggle: toggleWishlist } = useWishlist();
   const wishlisted = isWishlisted(event.id);
   const seriesTimes = guest ? 0 : seriesCount(event.seriesId);
   const familiarCount = guest ? 0 : event.participants.filter(p => crossedPathsWith(p.id) > 0).length;
+  const isFull = event.currentParticipants >= event.maxParticipants;
 
   const handleAttend = () => {
     if (guest) return;
+    if (isFull && !isAttending) {
+      setWaitlistOpen(true);
+      return;
+    }
     const next = toggleAttending(event.id);
     onAttend?.(event.id);
     if (next) setConfirmOpen(true);
