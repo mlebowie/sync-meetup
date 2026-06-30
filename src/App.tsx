@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Onboarding from "./pages/Onboarding";
 import Profile from "./pages/Profile";
+import Connections from "./pages/Connections";
 import { SocialProvider } from "./context/SocialContext";
 import { ActivityHistoryProvider } from "./context/ActivityHistoryContext";
 import { WishlistProvider } from "./context/WishlistContext";
@@ -29,6 +30,7 @@ const App = () => (
                   <Route path="/" element={<Index />} />
                   <Route path="/onboarding" element={<Onboarding />} />
                   <Route path="/profile" element={<Profile />} />
+                  <Route path="/profile/connections" element={<Connections />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>

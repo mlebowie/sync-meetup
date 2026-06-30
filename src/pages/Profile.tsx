@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Heart, Bell, Calendar, MapPin, Clock, Compass, Globe, Sparkles } from 'lucide-react';
+import { ArrowLeft, Heart, Bell, Calendar, MapPin, Clock, Compass, Globe, Sparkles, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import Header from '@/components/Header';
 import EventCard from '@/components/EventCard';
@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { getUserProfile, ONBOARDING_INTERESTS, DEFAULT_PROFILE, calculateAge } from '@/lib/userProfile';
 import { useWishlist } from '@/context/WishlistContext';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
+import { useSocial } from '@/context/SocialContext';
 import { mockEvents } from '@/data/mockData';
 import { getDailyRotatingEvents } from '@/lib/dailyEvents';
 
@@ -22,6 +23,8 @@ const Profile = () => {
   const wishlist = getWishlistedEvents(allEvents);
 
   const { history } = useActivityHistory();
+  const { following, followers } = useSocial();
+  const connectionsCount = new Set([...following, ...followers]).size;
   const attendedEvents = isDefault ? [] : history.slice(0, 3);
 
   const interests = ONBOARDING_INTERESTS.filter(i => profile.interests.includes(i.id));
@@ -65,6 +68,18 @@ const Profile = () => {
                   {profile.nationality}
                 </span>
               )}
+            </div>
+            <div className="mt-3 flex items-center gap-3">
+              <Link
+                to="/profile/connections"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-semibold hover:bg-primary/20 transition-colors"
+              >
+                <Users className="h-3.5 w-3.5" />
+                {connectionsCount} Connections
+              </Link>
+              <span className="text-xs text-muted-foreground">
+                {followers.size} followers · {following.size} following
+              </span>
             </div>
             {interests.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mt-3">
