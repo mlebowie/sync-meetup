@@ -264,6 +264,12 @@ const ParticipantProfileDialog = ({ participant, open, onOpenChange, onOpenDM }:
           </p>
         )}
       </DialogContent>
+      <UnfollowConfirmDialog
+        open={confirmUnfollow}
+        name={participant.name}
+        onOpenChange={setConfirmUnfollow}
+        onConfirm={handleConfirmUnfollow}
+      />
     </Dialog>
   );
 };
