@@ -142,13 +142,29 @@ const EventGroupChatDialog = ({ event, open, onOpenChange }: Props) => {
                   </div>
                 );
               }
+              const openProfile = () => {
+                const p = mockParticipants.find(x => x.id === m.authorId)
+                  ?? event.participants?.find(x => x.id === m.authorId)
+                  ?? null;
+                if (p) setProfileParticipant(p);
+              };
               return (
                 <div key={m.id} className={`flex gap-2 ${isMe ? 'flex-row-reverse' : ''}`}>
                   {!isMe && (
-                    <img src={m.authorAvatar} alt={m.authorName} className="w-7 h-7 rounded-full object-cover shrink-0" />
+                    <button type="button" onClick={openProfile} className="shrink-0 rounded-full focus:outline-none focus:ring-2 focus:ring-primary">
+                      <img src={m.authorAvatar} alt={m.authorName} className="w-7 h-7 rounded-full object-cover" />
+                    </button>
                   )}
                   <div className={`max-w-[75%] ${isMe ? 'items-end' : 'items-start'} flex flex-col`}>
-                    {!isMe && <span className="text-xs text-muted-foreground mb-0.5">{m.authorName}</span>}
+                    {!isMe && (
+                      <button
+                        type="button"
+                        onClick={openProfile}
+                        className="text-xs text-muted-foreground mb-0.5 hover:text-primary hover:underline"
+                      >
+                        {m.authorName}
+                      </button>
+                    )}
                     {m.type === 'meme' ? (
                       <img src={m.content} alt="meme" className="rounded-xl max-w-full" />
                     ) : (
