@@ -15,15 +15,42 @@ interface Props {
   initialPartnerId?: string | null;
 }
 
-type Category = 'people' | 'organizers';
+type Category = 'people' | 'organizers' | 'groups';
+
+const lastTs = (msgs: { timestamp: Date }[]) =>
+  msgs.length ? new Date(msgs[msgs.length - 1].timestamp).getTime() : 0;
 
 const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) => {
-  const { following, isMutual, dms, sendDM, organizerDms, sendOrganizerMessage, currentUser } = useSocial();
-  const mutualIds = Array.from(following).filter(id => isMutual(id));
-  const organizerIds = Object.keys(organizerDms);
+  const { following, isMutual, dms, sendDM, organizerDms, sendOrganizerMessage, groupChats, currentUser } = useSocial();
+
+  // People sorted by most recent DM
+  const mutualIds = useMemo(() => {
+    const ids = Array.from(following).filter(id => isMutual(id));
+    return ids.sort((a, b) => lastTs(dms[b]?.messages || []) - lastTs(dms[a]?.messages || []));
+  }, [following, isMutual, dms]);
+
+  // Organizers sorted by most recent
+  const organizerIds = useMemo(
+    () => Object.keys(organizerDms).sort(
+      (a, b) => lastTs(organizerDms[b].messages) - lastTs(organizerDms[a].messages)
+    ),
+    [organizerDms]
+  );
+
+  // Group chats sorted by most recent message
+  const groupEntries = useMemo(() => {
+    return Object.values(groupChats)
+      .map(gc => {
+        const event = mockEvents.find(e => e.id === gc.eventId);
+        return event ? { event, lastTs: lastTs(gc.messages), count: gc.messages.length } : null;
+      })
+      .filter((x): x is { event: typeof mockEvents[number]; lastTs: number; count: number } => !!x)
+      .sort((a, b) => b.lastTs - a.lastTs);
+  }, [groupChats]);
 
   const [category, setCategory] = useState<Category>('people');
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [groupEvent, setGroupEvent] = useState<typeof mockEvents[number] | null>(null);
   const [draft, setDraft] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -33,12 +60,13 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) =
         setCategory('people');
         setActiveId(initialPartnerId);
       } else {
-        setActiveId(category === 'people' ? mutualIds[0] || null : organizerIds[0] || null);
+        setActiveId(category === 'people' ? mutualIds[0] || null : category === 'organizers' ? organizerIds[0] || null : null);
       }
     }
   }, [open, initialPartnerId]); // eslint-disable-line
 
   useEffect(() => {
+    if (category === 'groups') return;
     setActiveId(category === 'people' ? mutualIds[0] || null : organizerIds[0] || null);
     // eslint-disable-next-line
   }, [category]);
