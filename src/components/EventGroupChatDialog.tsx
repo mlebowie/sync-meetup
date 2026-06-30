@@ -63,28 +63,8 @@ const EventGroupChatDialog = ({ event, open, onOpenChange }: Props) => {
 
   useEffect(() => {
     if (!event || !open) return;
-    const seed: ChatMessage[] = [
-      {
-        id: `seed-${event.id}`,
-        authorId: 'sync-bot',
-        authorName: 'Sync',
-        authorAvatar: '',
-        content: `🧊 Icebreaker for "${event.title}": ${icebreaker}`,
-        type: 'text',
-        timestamp: new Date(event.date.getTime() - 24 * 60 * 60 * 1000),
-      },
-      ...event.participants.slice(0, 2).map((p, i) => ({
-        id: `seed-${event.id}-${p.id}`,
-        authorId: p.id,
-        authorName: p.name,
-        authorAvatar: p.avatar,
-        content: i === 0 ? 'Hey everyone 👋 super excited for this!' : 'Same! First time joining — see you there.',
-        type: 'text' as const,
-        timestamp: new Date(event.date.getTime() - 23 * 60 * 60 * 1000 + i * 60000),
-      })),
-    ];
-    ensureGroupChat(event.id, seed);
-  }, [event, open, icebreaker, ensureGroupChat]);
+    ensureGroupChat(event.id, seedGroupChat(event));
+  }, [event, open, ensureGroupChat]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
