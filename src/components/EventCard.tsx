@@ -49,6 +49,7 @@ const intensityLabels = {
 
 const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest = false }: EventCardProps) => {
   const { isAttending: isAttendingFn, toggle: toggleAttending } = useAttending();
+  const { ensureGroupChat } = useSocial();
   const isAttending = isAttendingFn(event.id) || !!event.isAttending;
   const [, setIsHovered] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
