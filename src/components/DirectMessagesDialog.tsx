@@ -1,11 +1,13 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useSocial } from '@/context/SocialContext';
-import { mockParticipants } from '@/data/mockData';
-import { Send, MessageCircle, Users, Shield } from 'lucide-react';
+import { mockParticipants, mockEvents } from '@/data/mockData';
+import { Send, MessageCircle, Users, Shield, UsersRound } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import EventGroupChatDialog from './EventGroupChatDialog';
+import { formatDistanceToNowStrict } from 'date-fns';
 
 interface Props {
   open: boolean;
@@ -13,15 +15,42 @@ interface Props {
   initialPartnerId?: string | null;
 }
 
-type Category = 'people' | 'organizers';
+type Category = 'people' | 'organizers' | 'groups';
+
+const lastTs = (msgs: { timestamp: Date }[]) =>
+  msgs.length ? new Date(msgs[msgs.length - 1].timestamp).getTime() : 0;
 
 const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) => {
-  const { following, isMutual, dms, sendDM, organizerDms, sendOrganizerMessage, currentUser } = useSocial();
-  const mutualIds = Array.from(following).filter(id => isMutual(id));
-  const organizerIds = Object.keys(organizerDms);
+  const { following, isMutual, dms, sendDM, organizerDms, sendOrganizerMessage, groupChats, currentUser } = useSocial();
+
+  // People sorted by most recent DM
+  const mutualIds = useMemo(() => {
+    const ids = Array.from(following).filter(id => isMutual(id));
+    return ids.sort((a, b) => lastTs(dms[b]?.messages || []) - lastTs(dms[a]?.messages || []));
+  }, [following, isMutual, dms]);
+
+  // Organizers sorted by most recent
+  const organizerIds = useMemo(
+    () => Object.keys(organizerDms).sort(
+      (a, b) => lastTs(organizerDms[b].messages) - lastTs(organizerDms[a].messages)
+    ),
+    [organizerDms]
+  );
+
+  // Group chats sorted by most recent message
+  const groupEntries = useMemo(() => {
+    return Object.values(groupChats)
+      .map(gc => {
+        const event = mockEvents.find(e => e.id === gc.eventId);
+        return event ? { event, lastTs: lastTs(gc.messages), count: gc.messages.length } : null;
+      })
+      .filter((x): x is { event: typeof mockEvents[number]; lastTs: number; count: number } => !!x)
+      .sort((a, b) => b.lastTs - a.lastTs);
+  }, [groupChats]);
 
   const [category, setCategory] = useState<Category>('people');
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [groupEvent, setGroupEvent] = useState<typeof mockEvents[number] | null>(null);
   const [draft, setDraft] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -31,12 +60,13 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) =
         setCategory('people');
         setActiveId(initialPartnerId);
       } else {
-        setActiveId(category === 'people' ? mutualIds[0] || null : organizerIds[0] || null);
+        setActiveId(category === 'people' ? mutualIds[0] || null : category === 'organizers' ? organizerIds[0] || null : null);
       }
     }
   }, [open, initialPartnerId]); // eslint-disable-line
 
   useEffect(() => {
+    if (category === 'groups') return;
     setActiveId(category === 'people' ? mutualIds[0] || null : organizerIds[0] || null);
     // eslint-disable-next-line
   }, [category]);
@@ -82,10 +112,11 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) =
           <div className="p-3 border-b">
             <h3 className="font-display text-sm">Messages</h3>
           </div>
-          <div className="grid grid-cols-2 gap-1 p-2 border-b">
+          <div className="grid grid-cols-3 gap-1 p-2 border-b">
             {([
               { id: 'people' as const, label: 'People', icon: Users, count: mutualIds.length },
-              { id: 'organizers' as const, label: 'Organizers', icon: Shield, count: organizerIds.length },
+              { id: 'groups' as const, label: 'Groups', icon: UsersRound, count: groupEntries.length },
+              { id: 'organizers' as const, label: 'Hosts', icon: Shield, count: organizerIds.length },
             ]).map(tab => {
               const Icon = tab.icon;
               const active = category === tab.id;
@@ -94,7 +125,7 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) =
                   key={tab.id}
                   onClick={() => setCategory(tab.id)}
                   className={cn(
-                    'flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium transition-colors',
+                    'flex items-center justify-center gap-1 px-1.5 py-1.5 rounded-md text-xs font-medium transition-colors',
                     active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-secondary/60'
                   )}
                 >
@@ -113,8 +144,9 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) =
             })}
           </div>
 
+
           <div className="flex-1 overflow-y-auto">
-            {!isOrganizerView && (
+            {category === 'people' && (
               mutualIds.length === 0 ? (
                 <div className="p-4 text-center">
                   <MessageCircle className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
@@ -126,6 +158,7 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) =
                 mutualIds.map(id => {
                   const p = mockParticipants.find(x => x.id === id);
                   if (!p) return null;
+                  const last = dms[id]?.messages?.[dms[id].messages.length - 1];
                   return (
                     <button
                       key={id}
@@ -133,14 +166,49 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) =
                       className={`w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-secondary/50 transition-colors ${activeId === id ? 'bg-secondary' : ''}`}
                     >
                       <img src={p.avatar} alt={p.name} className="w-8 h-8 rounded-full object-cover" />
-                      <span className="text-sm truncate">{p.name}</span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm truncate">{p.name}</p>
+                        {last && (
+                          <p className="text-[11px] text-muted-foreground truncate">
+                            {formatDistanceToNowStrict(new Date(last.timestamp), { addSuffix: true })}
+                          </p>
+                        )}
+                      </div>
                     </button>
                   );
                 })
               )
             )}
 
-            {isOrganizerView && (
+            {category === 'groups' && (
+              groupEntries.length === 0 ? (
+                <div className="p-4 text-center">
+                  <UsersRound className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-xs text-muted-foreground">
+                    Tap “Attend” on any event to start its group chat — it’ll show up here.
+                  </p>
+                </div>
+              ) : (
+                groupEntries.map(({ event, lastTs, count }) => (
+                  <button
+                    key={event.id}
+                    onClick={() => setGroupEvent(event)}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-secondary/50 transition-colors"
+                  >
+                    <img src={event.imageUrl} alt={event.title} className="w-8 h-8 rounded-md object-cover" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm truncate">{event.title}</p>
+                      <p className="text-[11px] text-muted-foreground truncate">
+                        {count} message{count === 1 ? '' : 's'} ·{' '}
+                        {lastTs ? formatDistanceToNowStrict(new Date(lastTs), { addSuffix: true }) : 'no messages yet'}
+                      </p>
+                    </div>
+                  </button>
+                ))
+              )
+            )}
+
+            {category === 'organizers' && (
               organizerIds.length === 0 ? (
                 <div className="p-4 text-center">
                   <Shield className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
@@ -151,6 +219,7 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) =
               ) : (
                 organizerIds.map(id => {
                   const t = organizerDms[id];
+                  const last = t.messages[t.messages.length - 1];
                   return (
                     <button
                       key={id}
@@ -162,7 +231,9 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) =
                       )}
                       <div className="min-w-0 flex-1">
                         <p className="text-sm truncate">{t.organizer.name}</p>
-                        <p className="text-[11px] text-muted-foreground truncate">{t.eventTitle}</p>
+                        <p className="text-[11px] text-muted-foreground truncate">
+                          {last ? formatDistanceToNowStrict(new Date(last.timestamp), { addSuffix: true }) : t.eventTitle}
+                        </p>
                       </div>
                     </button>
                   );
@@ -173,7 +244,11 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) =
         </aside>
 
         <section className="flex-1 flex flex-col">
-          {(partner || orgThread) ? (
+          {category === 'groups' ? (
+            <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground p-8 text-center">
+              Pick a group chat on the left to jump back in.
+            </div>
+          ) : (partner || orgThread) ? (
             <>
               <div className="p-3 border-b flex items-center gap-2">
                 {headerAvatar && (
@@ -222,6 +297,11 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) =
           )}
         </section>
       </DialogContent>
+      <EventGroupChatDialog
+        event={groupEvent}
+        open={!!groupEvent}
+        onOpenChange={(o) => { if (!o) setGroupEvent(null); }}
+      />
     </Dialog>
   );
 };

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Event, ChatMessage } from '@/types/event';
+import { Event } from '@/types/event';
+import { seedGroupChat, getIcebreaker } from '@/lib/groupChatSeed';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,16 +17,6 @@ interface Props {
   onOpenChange: (open: boolean) => void;
 }
 
-const icebreakersByCategory: Record<string, string> = {
-  Sports: 'What’s the last sport that left you sore but smiling?',
-  Wellness: 'Share one tiny ritual that resets your day.',
-  Networking: 'What are you building or curious about right now?',
-  Social: 'What’s your go-to “new in town” conversation starter?',
-  Dance: 'What song instantly gets you moving?',
-  Arts: 'Drop a photo, lyric or quote that defines your week.',
-  'Food & Drinks': 'What’s the best bite you’ve had in Porto so far?',
-  Outdoors: 'Sunrise or sunset — and where’s your favourite spot for it?',
-};
 
 const memes = [
   'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400&h=300&fit=crop',
@@ -39,7 +30,7 @@ const EventGroupChatDialog = ({ event, open, onOpenChange }: Props) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [now, setNow] = useState(() => new Date());
 
-  const icebreaker = event ? icebreakersByCategory[event.category] || 'Introduce yourself in one sentence!' : '';
+  const icebreaker = event ? getIcebreaker(event) : '';
 
   const expiresAt = useMemo(
     () => (event ? new Date(event.date.getTime() + CHAT_LIFETIME_HOURS * 60 * 60 * 1000) : null),
@@ -72,28 +63,8 @@ const EventGroupChatDialog = ({ event, open, onOpenChange }: Props) => {
 
   useEffect(() => {
     if (!event || !open) return;
-    const seed: ChatMessage[] = [
-      {
-        id: `seed-${event.id}`,
-        authorId: 'sync-bot',
-        authorName: 'Sync',
-        authorAvatar: '',
-        content: `🧊 Icebreaker for "${event.title}": ${icebreaker}`,
-        type: 'text',
-        timestamp: new Date(event.date.getTime() - 24 * 60 * 60 * 1000),
-      },
-      ...event.participants.slice(0, 2).map((p, i) => ({
-        id: `seed-${event.id}-${p.id}`,
-        authorId: p.id,
-        authorName: p.name,
-        authorAvatar: p.avatar,
-        content: i === 0 ? 'Hey everyone 👋 super excited for this!' : 'Same! First time joining — see you there.',
-        type: 'text' as const,
-        timestamp: new Date(event.date.getTime() - 23 * 60 * 60 * 1000 + i * 60000),
-      })),
-    ];
-    ensureGroupChat(event.id, seed);
-  }, [event, open, icebreaker, ensureGroupChat]);
+    ensureGroupChat(event.id, seedGroupChat(event));
+  }, [event, open, ensureGroupChat]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });

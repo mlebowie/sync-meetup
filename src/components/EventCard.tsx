@@ -11,6 +11,8 @@ import WaitlistDialog from './WaitlistDialog';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useAttending } from '@/context/AttendingContext';
+import { useSocial } from '@/context/SocialContext';
+import { seedGroupChat } from '@/lib/groupChatSeed';
 import { cn } from '@/lib/utils';
 
 interface EventCardProps {
@@ -47,6 +49,7 @@ const intensityLabels = {
 
 const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest = false }: EventCardProps) => {
   const { isAttending: isAttendingFn, toggle: toggleAttending } = useAttending();
+  const { ensureGroupChat } = useSocial();
   const isAttending = isAttendingFn(event.id) || !!event.isAttending;
   const [, setIsHovered] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -67,7 +70,10 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
     }
     const next = toggleAttending(event.id);
     onAttend?.(event.id);
-    if (next) setConfirmOpen(true);
+    if (next) {
+      ensureGroupChat(event.id, seedGroupChat(event));
+      setConfirmOpen(true);
+    }
   };
 
   return (
