@@ -70,7 +70,10 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
     }
     const next = toggleAttending(event.id);
     onAttend?.(event.id);
-    if (next) setConfirmOpen(true);
+    if (next) {
+      ensureGroupChat(event.id, seedGroupChat(event));
+      setConfirmOpen(true);
+    }
   };
 
   return (
