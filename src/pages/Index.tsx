@@ -12,6 +12,7 @@ import GuestLanding from '@/components/GuestLanding';
 import RecommendedCarousel from '@/components/RecommendedCarousel';
 import FriendsLoveSection from '@/components/FriendsLoveSection';
 import UpcomingEventsSection from '@/components/UpcomingEventsSection';
+import PopularTrendingSection from '@/components/PopularTrendingSection';
 import { mockEvents } from '@/data/mockData';
 import { getDailyRotatingEvents } from '@/lib/dailyEvents';
 import { Event, Participant } from '@/types/event';
@@ -134,6 +135,13 @@ const Index = () => {
 
           {/* 2) Events your friends love */}
           <FriendsLoveSection
+            onAttend={handleAttend}
+            onParticipantClick={handleParticipantClick}
+            onOpenGroupChat={handleOpenGroupChat}
+          />
+
+          {/* 2b) Popular & Trending one-time events */}
+          <PopularTrendingSection
             onAttend={handleAttend}
             onParticipantClick={handleParticipantClick}
             onOpenGroupChat={handleOpenGroupChat}

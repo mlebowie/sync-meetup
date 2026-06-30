@@ -5,6 +5,7 @@ import { mockEvents } from '@/data/mockData';
 import { ONBOARDING_INTERESTS } from '@/lib/userProfile';
 import { Event, Participant } from '@/types/event';
 import EventCard from './EventCard';
+import PopularTrendingSection from './PopularTrendingSection';
 import { Users, Globe2, Sparkles, Clock, ArrowRight } from 'lucide-react';
 
 interface Props {
@@ -57,6 +58,13 @@ const GuestLanding = ({ onAttend, onParticipantClick }: Props) => {
           </div>
         </div>
       </section>
+
+      {/* Popular & Trending — one-time events */}
+      <PopularTrendingSection
+        onAttend={onAttend}
+        onParticipantClick={onParticipantClick}
+        guest
+      />
 
       {/* Public Porto feed */}
       <section className="py-10 md:py-14">
