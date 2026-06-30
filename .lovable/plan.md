@@ -1,50 +1,36 @@
-## Plan: Add "Popular & Trending" Section for One-Time Events
+## Group chat expiry countdown
 
-### Goal
-Add a new homepage section titled **"Popular & Trending"** that highlights one-time, time-bound events (e.g., Portugal Tech Week) positioned directly beneath the recurring-events area (`FriendsLoveSection`). The section will be visible to both guests and logged-in users, and will include sample events in the mock data.
+Add a 7-day post-event expiration window to `EventGroupChatDialog.tsx`, with a persistent countdown banner at the top, an escalated warning on day 6, and a browser push notification 24 hours before expiry.
 
 ### Changes
 
-#### 1. New component: `src/components/PopularTrendingSection.tsx`
-- Section wrapper with teal/coral gradient background matching the app palette.
-- Header with a `TrendingUp` icon, title "Popular & Trending", and subtitle explaining these are one-time events for a limited timeframe.
-- Filters `mockEvents` for events where `recurrence === 'one-off'`.
-- Re-anchors their dates into a realistic upcoming window (e.g., next 1–2 weeks).
-- Renders cards in a 3-column responsive grid using the existing `EventCard` component.
-- Accepts the same props as `FriendsLoveSection` (`onAttend`, `onParticipantClick`, `onOpenGroupChat`) plus an optional `guest` flag.
-- If no one-off events exist, the section gracefully hides itself.
+**1. `src/components/EventGroupChatDialog.tsx`**
+- Compute `expiresAt = event.date + 7 days` and `hoursRemaining` using `useState` + a 1-minute `setInterval` so the banner ticks live while open.
+- Add a banner row directly under `DialogHeader` (above the Icebreaker block):
+  - Before event end: hidden (chat is in pre-event mode).
+  - Days 1–5 after event: muted subtext "Group chat expires in X days" with a clock icon.
+  - Day 6 (≤24h remaining): amber/destructive styled banner "⏰ Chat expires in 24 hours — swap socials or start a Crew before it disappears."
+  - After expiry: replace message list + composer with an empty state "This chat has ended. Tagged connections moved to your Crews."
+- Disable the composer (`Input` + send/meme buttons) once expired.
 
-#### 2. Mock data expansion: `src/data/mockData.ts`
-- Add 3–4 one-time events to the `mockEvents` array, each with:
-  - `recurrence: 'one-off'`
-  - Unique `id`, `title`, `description`, `category`, `tags`
-  - Existing or new organizers from `mockOrganizers`
-  - Dates in the near future (spread across ~10–14 days)
-  - Example events:
-    1. **Portugal Tech Week** – a multi-day tech conference / meetup crawl
-    2. **Porto Street Food Festival** – a weekend food market
-    3. **Open Studio Art Walk** – a single-day gallery hop
-  - Each will have `currentParticipants` close to `maxParticipants` so they read as "trending / popular".
+**2. `src/context/SocialContext.tsx` (minimal)**
+- Add a `notifiedExpiry: Set<string>` ref-style check inside the provider; when any consumer mounts and an event chat hits the 24h-remaining mark, fire a one-time `new Notification("Chat expires in 24 hours", { body: event.title })` if `Notification.permission === 'granted'`. Piggyback on existing notification permission flow used by `WishlistContext`.
+- No schema/storage changes — expiration is derived from `event.date`, not persisted.
 
-#### 3. Wiring into logged-in homepage: `src/pages/Index.tsx`
-- Import `PopularTrendingSection`.
-- Insert it immediately after `FriendsLoveSection` in the logged-in layout.
-- Pass `handleAttend`, `handleParticipantClick`, and `handleOpenGroupChat` down as props.
+### Visual spec
 
-#### 4. Wiring into guest homepage: `src/components/GuestLanding.tsx`
-- Import `PopularTrendingSection`.
-- Insert it after the stats dashboard and before the existing "Happening in Porto" grid (so guests see trending one-offs before the generic feed).
-- Pass `onAttend` and `onParticipantClick` with `guest={true}`.
+```text
+┌─────────────────────────────────────────┐
+│ Event Title                             │
+│ Group chat · 12 attendees · Mar 14      │
+├─────────────────────────────────────────┤
+│ 🕐 Chat expires in 3 days               │  ← days 1–5 (muted)
+│ ⏰ Chat expires in 24 hours — …         │  ← day 6 (amber banner)
+├─────────────────────────────────────────┤
+│ ✨ Icebreaker: …                        │
+└─────────────────────────────────────────┘
+```
 
-### Technical details
-- Reuses `EventCard` exactly — no card UI changes.
-- Uses the same container max-width and padding as adjacent sections (`container px-4 md:px-6`, `max-w-6xl mx-auto`).
-- No new dependencies. No backend changes. No state changes outside local filtering.
-- The section is self-contained: it reads from the global `mockEvents` array and computes its own date offsets, so it stays fresh regardless of how `Index.tsx` manages its event list.
-
-### Acceptance criteria
-- [ ] A "Popular & Trending" section appears on the homepage for guests and logged-in users.
-- [ ] It displays one-time events only (`recurrence: 'one-off'`).
-- [ ] It sits directly below the recurring-events / friends-love area.
-- [ ] Each event card is fully interactive (Attend, View more, participants, etc.).
-- [ ] Example events like Portugal Tech Week are visible and correctly styled.
+### Notes
+- Pure frontend/presentation change; reuses existing `event.date`, `useSocial`, and browser Notifications API already wired in `WishlistContext`.
+- No new dependencies. Uses `date-fns` (already imported) for `differenceInHours` / `formatDistanceToNowStrict`.
