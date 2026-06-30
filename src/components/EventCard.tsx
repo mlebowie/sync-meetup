@@ -248,6 +248,7 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
       </div>
 
       <AttendConfirmationDialog event={event} open={confirmOpen} onOpenChange={setConfirmOpen} />
+      <WaitlistDialog event={event} open={waitlistOpen} onOpenChange={setWaitlistOpen} />
 
 
       <EventDetailsModal
