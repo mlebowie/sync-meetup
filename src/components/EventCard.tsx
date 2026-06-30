@@ -106,6 +106,12 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
           {event.petFriendly && (
             <span className="px-2 py-1 rounded-md text-xs font-medium bg-emerald-500/90 text-white">Pet friendly</span>
           )}
+          {event.trending && (
+            <span className="px-2 py-1 rounded-md text-xs font-medium bg-accent text-white flex items-center gap-1">
+              <TrendingUp className="h-3 w-3" />
+              Trending
+            </span>
+          )}
         </div>
 
         {/* Wishlist heart */}
