@@ -461,7 +461,7 @@ export const mockEvents: Event[] = [
     intensity: 'social',
     groupSize: 'large',
     maxParticipants: 40,
-    currentParticipants: 28,
+    currentParticipants: 40,
     participants: [mockParticipants[2], mockParticipants[4]],
     category: 'Social',
     tags: ['languages', 'culture', 'cultural'],
