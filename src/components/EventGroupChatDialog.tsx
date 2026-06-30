@@ -30,7 +30,7 @@ const EventGroupChatDialog = ({ event, open, onOpenChange }: Props) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [now, setNow] = useState(() => new Date());
 
-  const icebreaker = event ? icebreakersByCategory[event.category] || 'Introduce yourself in one sentence!' : '';
+  const icebreaker = event ? getIcebreaker(event) : '';
 
   const expiresAt = useMemo(
     () => (event ? new Date(event.date.getTime() + CHAT_LIFETIME_HOURS * 60 * 60 * 1000) : null),
