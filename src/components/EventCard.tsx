@@ -222,6 +222,11 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
                 <Check className="h-4 w-4 mr-1" />
                 Attending
               </>
+            ) : isFull ? (
+              <>
+                <Hourglass className="h-4 w-4 mr-1" />
+                Join Waitlist
+              </>
             ) : (
               <>
                 Attend
