@@ -195,6 +195,11 @@ const EventGroupChatDialog = ({ event, open, onOpenChange }: Props) => {
           </Button>
         </form>
       </DialogContent>
+      <ParticipantProfileDialog
+        participant={profileParticipant}
+        open={!!profileParticipant}
+        onOpenChange={(o) => { if (!o) setProfileParticipant(null); }}
+      />
     </Dialog>
   );
 };
