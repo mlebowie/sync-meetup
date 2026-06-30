@@ -6,7 +6,7 @@ import EventGroupChatDialog from '@/components/EventGroupChatDialog';
 import DirectMessagesDialog from '@/components/DirectMessagesDialog';
 import MomentumPanel from '@/components/MomentumPanel';
 import ActivityFeed from '@/components/ActivityFeed';
-import GroupsSection from '@/components/GroupsSection';
+
 import PostEventReflectionDialog from '@/components/PostEventReflectionDialog';
 import GuestLanding from '@/components/GuestLanding';
 import RecommendedCarousel from '@/components/RecommendedCarousel';
@@ -181,7 +181,6 @@ const Index = () => {
           {/* Bottom: momentum, activity, crews */}
           <MomentumPanel />
           <ActivityFeed />
-          <GroupsSection onOpenDM={handleOpenDM} />
 
           <Button
             variant="hero"

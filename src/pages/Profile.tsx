@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import Header from '@/components/Header';
 import EventCard from '@/components/EventCard';
 import ComingUpSection from '@/components/ComingUpSection';
+import GroupsSection from '@/components/GroupsSection';
 import { Button } from '@/components/ui/button';
 import { getUserProfile, ONBOARDING_INTERESTS, DEFAULT_PROFILE, calculateAge } from '@/lib/userProfile';
 import { useWishlist } from '@/context/WishlistContext';
@@ -195,6 +196,11 @@ const Profile = () => {
             </p>
           </div>
         )}
+
+        {/* Your crews - from tagged connections & recurring co-attendance */}
+        <div className="mt-10 -mx-4 md:-mx-6">
+          <GroupsSection />
+        </div>
       </main>
     </div>
   );
