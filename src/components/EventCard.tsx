@@ -11,6 +11,8 @@ import WaitlistDialog from './WaitlistDialog';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useAttending } from '@/context/AttendingContext';
+import { useSocial } from '@/context/SocialContext';
+import { seedGroupChat } from '@/lib/groupChatSeed';
 import { cn } from '@/lib/utils';
 
 interface EventCardProps {
