@@ -254,10 +254,25 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) =
             <>
               <div className="p-3 border-b flex items-center gap-2">
                 {headerAvatar && (
-                  <img src={headerAvatar} alt={headerName} className="w-8 h-8 rounded-full object-cover" />
+                  partner ? (
+                    <button onClick={() => setProfileId(partner.id)} className="shrink-0">
+                      <img src={headerAvatar} alt={headerName} className="w-8 h-8 rounded-full object-cover ring-0 hover:ring-2 hover:ring-primary transition" />
+                    </button>
+                  ) : (
+                    <img src={headerAvatar} alt={headerName} className="w-8 h-8 rounded-full object-cover" />
+                  )
                 )}
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold truncate">{headerName}</p>
+                  {partner ? (
+                    <button
+                      onClick={() => setProfileId(partner.id)}
+                      className="text-sm font-semibold truncate hover:underline text-left"
+                    >
+                      {headerName}
+                    </button>
+                  ) : (
+                    <p className="text-sm font-semibold truncate">{headerName}</p>
+                  )}
                   <p className="text-xs text-muted-foreground truncate">{headerSub}</p>
                 </div>
               </div>
