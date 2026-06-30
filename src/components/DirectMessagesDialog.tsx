@@ -319,6 +319,11 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) =
         open={!!groupEvent}
         onOpenChange={(o) => { if (!o) setGroupEvent(null); }}
       />
+      <ParticipantProfileDialog
+        participant={profileId ? mockParticipants.find(p => p.id === profileId) || null : null}
+        open={!!profileId}
+        onOpenChange={(o) => { if (!o) setProfileId(null); }}
+      />
     </Dialog>
   );
 };
