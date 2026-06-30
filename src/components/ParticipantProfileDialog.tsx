@@ -23,8 +23,10 @@ const WhatsAppIcon = ({ className }: { className?: string }) => (
 );
 
 import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
 import { format, formatDistanceToNow } from 'date-fns';
 import AttendedEventsMap from './AttendedEventsMap';
+import UnfollowConfirmDialog from './UnfollowConfirmDialog';
 
 
 interface Props {
@@ -38,6 +40,7 @@ const ParticipantProfileDialog = ({ participant, open, onOpenChange, onOpenDM }:
   const { following, isMutual, toggleFollow, currentUser } = useSocial();
   const { crossedPathsWith, isConnected, hasTaggedMe } = useActivityHistory();
   const { toast } = useToast();
+  const [confirmUnfollow, setConfirmUnfollow] = useState(false);
 
   if (!participant) return null;
   const isMe = participant.id === currentUser.id;
@@ -46,16 +49,23 @@ const ParticipantProfileDialog = ({ participant, open, onOpenChange, onOpenDM }:
   const crossed = crossedPathsWith(participant.id);
 
   const handleFollow = () => {
-    toggleFollow(participant.id);
-    if (!isFollowing) {
-      const wouldBeMutual = isMutual(participant.id) || hasTaggedMe(participant.id);
-      toast({
-        title: wouldBeMutual ? `Connected with ${participant.name} 🎉` : `Following ${participant.name}`,
-        description: wouldBeMutual
-          ? 'DMs are unlocked — you can message each other now.'
-          : 'They\'ll see you next time you cross paths at an event.',
-      });
+    if (isFollowing) {
+      setConfirmUnfollow(true);
+      return;
     }
+    toggleFollow(participant.id);
+    const wouldBeMutual = isMutual(participant.id) || hasTaggedMe(participant.id);
+    toast({
+      title: wouldBeMutual ? `Connected with ${participant.name} 🎉` : `Following ${participant.name}`,
+      description: wouldBeMutual
+        ? 'DMs are unlocked — you can message each other now.'
+        : 'They\'ll see you next time you cross paths at an event.',
+    });
+  };
+
+  const handleConfirmUnfollow = () => {
+    toggleFollow(participant.id);
+    toast({ title: `Unfollowed ${participant.name}` });
   };
 
   return (
@@ -254,6 +264,12 @@ const ParticipantProfileDialog = ({ participant, open, onOpenChange, onOpenDM }:
           </p>
         )}
       </DialogContent>
+      <UnfollowConfirmDialog
+        open={confirmUnfollow}
+        name={participant.name}
+        onOpenChange={setConfirmUnfollow}
+        onConfirm={handleConfirmUnfollow}
+      />
     </Dialog>
   );
 };

@@ -1,12 +1,13 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Search, Users, MapPin } from 'lucide-react';
+import { ArrowLeft, Search, Users, MapPin, Check, UserPlus } from 'lucide-react';
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useSocial } from '@/context/SocialContext';
 import { mockParticipants } from '@/data/mockData';
 import ParticipantProfileDialog from '@/components/ParticipantProfileDialog';
+import UnfollowConfirmDialog from '@/components/UnfollowConfirmDialog';
 import { Participant } from '@/types/event';
 
 type FilterKey = 'all' | 'mutual' | 'followers' | 'following';
@@ -16,6 +17,7 @@ const Connections = () => {
   const [filter, setFilter] = useState<FilterKey>('all');
   const [query, setQuery] = useState('');
   const [profileId, setProfileId] = useState<string | null>(null);
+  const [unfollowId, setUnfollowId] = useState<string | null>(null);
 
   const enriched = useMemo(() => {
     const ids = new Set<string>([...following, ...followers]);
@@ -157,10 +159,17 @@ const Connections = () => {
                 <Button
                   size="sm"
                   variant={youFollow ? 'outline' : 'default'}
-                  onClick={() => toggleFollow(participant.id)}
+                  onClick={() => {
+                    if (youFollow) setUnfollowId(participant.id);
+                    else toggleFollow(participant.id);
+                  }}
                   className="shrink-0"
                 >
-                  {youFollow ? 'Following' : 'Follow back'}
+                  {youFollow ? (
+                    <><Check className="h-4 w-4 mr-1" /> Following</>
+                  ) : (
+                    <><UserPlus className="h-4 w-4 mr-1" /> Follow back</>
+                  )}
                 </Button>
               </li>
             ))}
@@ -171,6 +180,12 @@ const Connections = () => {
           participant={profileId ? mockParticipants.find(p => p.id === profileId) ?? null : null}
           open={!!profileId}
           onOpenChange={open => !open && setProfileId(null)}
+        />
+        <UnfollowConfirmDialog
+          open={!!unfollowId}
+          name={unfollowId ? mockParticipants.find(p => p.id === unfollowId)?.name ?? '' : ''}
+          onOpenChange={open => !open && setUnfollowId(null)}
+          onConfirm={() => unfollowId && toggleFollow(unfollowId)}
         />
       </main>
     </div>
