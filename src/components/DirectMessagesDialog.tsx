@@ -53,6 +53,7 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) =
   const [activeId, setActiveId] = useState<string | null>(null);
   const [groupEvent, setGroupEvent] = useState<typeof mockEvents[number] | null>(null);
   const [draft, setDraft] = useState('');
+  const [profileId, setProfileId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
