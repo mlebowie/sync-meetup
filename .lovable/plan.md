@@ -1,36 +1,44 @@
-## Group chat expiry countdown
+# Plan: Unified "Connections" Screen (Approach B)
 
-Add a 7-day post-event expiration window to `EventGroupChatDialog.tsx`, with a persistent countdown banner at the top, an escalated warning on day 6, and a browser push notification 24 hours before expiry.
+## What gets built
 
-### Changes
+A single Connections screen accessible from the Profile header, showing every person you follow or who follows you, with filter pills and search.
 
-**1. `src/components/EventGroupChatDialog.tsx`**
-- Compute `expiresAt = event.date + 7 days` and `hoursRemaining` using `useState` + a 1-minute `setInterval` so the banner ticks live while open.
-- Add a banner row directly under `DialogHeader` (above the Icebreaker block):
-  - Before event end: hidden (chat is in pre-event mode).
-  - Days 1–5 after event: muted subtext "Group chat expires in X days" with a clock icon.
-  - Day 6 (≤24h remaining): amber/destructive styled banner "⏰ Chat expires in 24 hours — swap socials or start a Crew before it disappears."
-  - After expiry: replace message list + composer with an empty state "This chat has ended. Tagged connections moved to your Crews."
-- Disable the composer (`Input` + send/meme buttons) once expired.
+## Files
 
-**2. `src/context/SocialContext.tsx` (minimal)**
-- Add a `notifiedExpiry: Set<string>` ref-style check inside the provider; when any consumer mounts and an event chat hits the 24h-remaining mark, fire a one-time `new Notification("Chat expires in 24 hours", { body: event.title })` if `Notification.permission === 'granted'`. Piggyback on existing notification permission flow used by `WishlistContext`.
-- No schema/storage changes — expiration is derived from `event.date`, not persisted.
+**New**
+- `src/pages/Connections.tsx` — route `/profile/connections`. Header with back link, search input, pill filters (All / Mutual / Follows you / You follow), and a unified list of rows.
 
-### Visual spec
+**Modified**
+- `src/App.tsx` — register `/profile/connections` route.
+- `src/pages/Profile.tsx` — replace nothing; add a single tappable "X Connections" link under the name (with `12 followers · 4 following` subtext) that navigates to `/profile/connections`.
+- `src/context/SocialContext.tsx` — seed the default `following` set with `['1', '2', '3', '5']` so the demo has content and produces 2 mutuals against the existing `followers` set `['1','2','4','6']`.
+
+## Connections screen behavior
+
+- Source: union of `following` and `followers` from `SocialContext`, mapped to `mockParticipants`.
+- Each row: avatar, name, neighborhood, relationship label (Mutual / Follows you / You follow), and an action button:
+  - Mutual → "Following" (click to unfollow)
+  - Follows you (not following back) → "Follow back"
+  - You follow (no mutual) → "Following" (click to unfollow)
+- Pill filters at top: **All** · **Mutual** · **Follows you** · **You follow**. Counts shown on each pill.
+- Search box filters by name or neighborhood (case-insensitive).
+- Sort: mutuals first, then alphabetical.
+- Clicking a row's avatar/name opens the existing `ParticipantProfileDialog`.
+- Empty state when filter yields zero rows.
+
+## Profile header change
 
 ```text
-┌─────────────────────────────────────────┐
-│ Event Title                             │
-│ Group chat · 12 attendees · Mar 14      │
-├─────────────────────────────────────────┤
-│ 🕐 Chat expires in 3 days               │  ← days 1–5 (muted)
-│ ⏰ Chat expires in 24 hours — …         │  ← day 6 (amber banner)
-├─────────────────────────────────────────┤
-│ ✨ Icebreaker: …                        │
-└─────────────────────────────────────────┘
+[avatar]  Thandiwe Nkosi
+          Cedofeita, Porto · 30 · South African
+          [6 Connections]   ← tappable, navigates to /profile/connections
+          (4 followers · 4 following)
 ```
 
-### Notes
-- Pure frontend/presentation change; reuses existing `event.date`, `useSocial`, and browser Notifications API already wired in `WishlistContext`.
-- No new dependencies. Uses `date-fns` (already imported) for `differenceInHours` / `formatDistanceToNowStrict`.
+No other Profile sections change.
+
+## Out of scope
+- Persisting follows to backend (still client-side state).
+- Follow timestamps / chronological sort.
+- Notifications on new follower.

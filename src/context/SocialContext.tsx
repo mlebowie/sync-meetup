@@ -43,7 +43,9 @@ export const useSocial = () => {
 };
 
 export const SocialProvider = ({ children }: { children: ReactNode }) => {
-  const [following, setFollowing] = useState<Set<string>>(new Set());
+  // Seed some following so the Connections screen has demo content.
+  // Overlap with followers ('1', '2') produces mutuals.
+  const [following, setFollowing] = useState<Set<string>>(new Set(['1', '2', '3', '5']));
   // Simulate that some users already follow "me" so mutual follow can happen
   const [followers] = useState<Set<string>>(new Set(['1', '2', '4', '6']));
   const [dms, setDms] = useState<Record<string, DMThread>>({});
