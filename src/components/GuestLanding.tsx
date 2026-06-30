@@ -59,6 +59,13 @@ const GuestLanding = ({ onAttend, onParticipantClick }: Props) => {
         </div>
       </section>
 
+      {/* Popular & Trending — one-time events */}
+      <PopularTrendingSection
+        onAttend={onAttend}
+        onParticipantClick={onParticipantClick}
+        guest
+      />
+
       {/* Public Porto feed */}
       <section className="py-10 md:py-14">
         <div className="container px-4 md:px-6">
