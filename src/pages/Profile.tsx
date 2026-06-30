@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button';
 import { getUserProfile, ONBOARDING_INTERESTS, DEFAULT_PROFILE, calculateAge } from '@/lib/userProfile';
 import { useWishlist } from '@/context/WishlistContext';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
+import { useSocial } from '@/context/SocialContext';
+import { Users } from 'lucide-react';
 import { mockEvents } from '@/data/mockData';
 import { getDailyRotatingEvents } from '@/lib/dailyEvents';
 
