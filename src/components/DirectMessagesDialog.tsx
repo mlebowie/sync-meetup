@@ -112,10 +112,11 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) =
           <div className="p-3 border-b">
             <h3 className="font-display text-sm">Messages</h3>
           </div>
-          <div className="grid grid-cols-2 gap-1 p-2 border-b">
+          <div className="grid grid-cols-3 gap-1 p-2 border-b">
             {([
               { id: 'people' as const, label: 'People', icon: Users, count: mutualIds.length },
-              { id: 'organizers' as const, label: 'Organizers', icon: Shield, count: organizerIds.length },
+              { id: 'groups' as const, label: 'Groups', icon: UsersRound, count: groupEntries.length },
+              { id: 'organizers' as const, label: 'Hosts', icon: Shield, count: organizerIds.length },
             ]).map(tab => {
               const Icon = tab.icon;
               const active = category === tab.id;
@@ -124,7 +125,7 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) =
                   key={tab.id}
                   onClick={() => setCategory(tab.id)}
                   className={cn(
-                    'flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium transition-colors',
+                    'flex items-center justify-center gap-1 px-1.5 py-1.5 rounded-md text-xs font-medium transition-colors',
                     active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-secondary/60'
                   )}
                 >
@@ -142,6 +143,7 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) =
               );
             })}
           </div>
+
 
           <div className="flex-1 overflow-y-auto">
             {!isOrganizerView && (
