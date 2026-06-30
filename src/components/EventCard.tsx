@@ -207,6 +207,9 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
           <div className="flex items-center gap-1 text-sm text-muted-foreground">
             <Users className="h-4 w-4" />
             <span>{event.currentParticipants}/{event.maxParticipants}</span>
+            {isFull && (
+              <span className="ml-1 px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide bg-destructive/10 text-destructive">Full</span>
+            )}
           </div>
         </div>
 
