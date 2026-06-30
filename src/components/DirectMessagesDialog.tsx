@@ -7,6 +7,7 @@ import { mockParticipants, mockEvents } from '@/data/mockData';
 import { Send, MessageCircle, Users, Shield, UsersRound } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import EventGroupChatDialog from './EventGroupChatDialog';
+import ParticipantProfileDialog from './ParticipantProfileDialog';
 import { formatDistanceToNowStrict } from 'date-fns';
 
 interface Props {
@@ -52,6 +53,7 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) =
   const [activeId, setActiveId] = useState<string | null>(null);
   const [groupEvent, setGroupEvent] = useState<typeof mockEvents[number] | null>(null);
   const [draft, setDraft] = useState('');
+  const [profileId, setProfileId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -252,10 +254,25 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) =
             <>
               <div className="p-3 border-b flex items-center gap-2">
                 {headerAvatar && (
-                  <img src={headerAvatar} alt={headerName} className="w-8 h-8 rounded-full object-cover" />
+                  partner ? (
+                    <button onClick={() => setProfileId(partner.id)} className="shrink-0">
+                      <img src={headerAvatar} alt={headerName} className="w-8 h-8 rounded-full object-cover ring-0 hover:ring-2 hover:ring-primary transition" />
+                    </button>
+                  ) : (
+                    <img src={headerAvatar} alt={headerName} className="w-8 h-8 rounded-full object-cover" />
+                  )
                 )}
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold truncate">{headerName}</p>
+                  {partner ? (
+                    <button
+                      onClick={() => setProfileId(partner.id)}
+                      className="text-sm font-semibold truncate hover:underline text-left"
+                    >
+                      {headerName}
+                    </button>
+                  ) : (
+                    <p className="text-sm font-semibold truncate">{headerName}</p>
+                  )}
                   <p className="text-xs text-muted-foreground truncate">{headerSub}</p>
                 </div>
               </div>
@@ -301,6 +318,11 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) =
         event={groupEvent}
         open={!!groupEvent}
         onOpenChange={(o) => { if (!o) setGroupEvent(null); }}
+      />
+      <ParticipantProfileDialog
+        participant={profileId ? mockParticipants.find(p => p.id === profileId) || null : null}
+        open={!!profileId}
+        onOpenChange={(o) => { if (!o) setProfileId(null); }}
       />
     </Dialog>
   );
