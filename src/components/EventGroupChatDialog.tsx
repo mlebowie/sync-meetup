@@ -17,16 +17,6 @@ interface Props {
   onOpenChange: (open: boolean) => void;
 }
 
-const icebreakersByCategory: Record<string, string> = {
-  Sports: 'What’s the last sport that left you sore but smiling?',
-  Wellness: 'Share one tiny ritual that resets your day.',
-  Networking: 'What are you building or curious about right now?',
-  Social: 'What’s your go-to “new in town” conversation starter?',
-  Dance: 'What song instantly gets you moving?',
-  Arts: 'Drop a photo, lyric or quote that defines your week.',
-  'Food & Drinks': 'What’s the best bite you’ve had in Porto so far?',
-  Outdoors: 'Sunrise or sunset — and where’s your favourite spot for it?',
-};
 
 const memes = [
   'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400&h=300&fit=crop',
