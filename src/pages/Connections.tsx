@@ -224,6 +224,17 @@ const Connections = () => {
                         </span>
                       )}
                     </div>
+                    {filter === 'tagged' && tagged && (() => {
+                      const t = tags.find(x => x.participantId === participant.id);
+                      if (!t) return null;
+                      return (
+                        <p className="text-xs text-muted-foreground mt-1 truncate">
+                          Tagged at <span className="font-medium text-foreground">{t.eventTitle}</span>
+                          {' · '}
+                          {new Date(t.taggedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </p>
+                      );
+                    })()}
                   </div>
                 </button>
                 <Button
