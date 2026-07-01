@@ -38,12 +38,7 @@ const Header = ({ onOpenMessages }: HeaderProps) => {
           <Button variant="ghost" size="icon" onClick={onOpenMessages} title="Messages">
             <MessageCircle className="h-5 w-5" />
           </Button>
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-accent text-[10px] font-bold flex items-center justify-center text-accent-foreground">
-              3
-            </span>
-          </Button>
+          <NotificationsPopover open={notifOpen} onOpenChange={setNotifOpen} />
           <Button variant="ghost" size="icon" asChild title="Profile">
             <Link to="/profile">
               <User className="h-5 w-5" />
