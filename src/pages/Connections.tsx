@@ -63,7 +63,6 @@ const Connections = () => {
           relationship,
           coAttended: crossedPathsWith(p.id) > 0,
           tagged: tags.some(t => t.participantId === p.id),
-          taggedMe: hasTaggedMe(p.id),
           inCrew: crews.some(g => g.memberIds.includes(p.id)),
         };
       });
