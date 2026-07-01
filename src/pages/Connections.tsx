@@ -73,7 +73,6 @@ const Connections = () => {
       all: enriched.length,
       weMet: enriched.filter(e => e.coAttended).length,
       tagged: enriched.filter(e => e.tagged).length,
-      taggedMe: enriched.filter(e => e.taggedMe).length,
       crew: enriched.filter(e => e.inCrew).length,
       mutual: enriched.filter(e => e.mutual).length,
       followers: enriched.filter(e => e.relationship === 'followers').length,
@@ -95,7 +94,6 @@ const Connections = () => {
           }
           return true;
         }
-        if (filter === 'taggedMe') return e.taggedMe;
         if (filter === 'crew') return e.inCrew;
         if (filter === 'mutual') return e.mutual;
         if (filter === 'followers') return e.relationship === 'followers';
@@ -133,7 +131,6 @@ const Connections = () => {
     { key: 'all', label: 'All' },
     { key: 'weMet', label: 'We Met' },
     { key: 'tagged', label: 'Tagged' },
-    { key: 'taggedMe', label: 'Tagged Me' },
     { key: 'crew', label: 'Crew' },
     { key: 'mutual', label: 'Mutual' },
     { key: 'followers', label: 'Follows you' },
