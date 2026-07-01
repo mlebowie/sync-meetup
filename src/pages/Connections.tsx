@@ -90,7 +90,13 @@ const Connections = () => {
       .filter(e => {
         if (filter === 'all') return true;
         if (filter === 'weMet') return e.coAttended;
-        if (filter === 'tagged') return e.tagged;
+        if (filter === 'tagged') {
+          if (!e.tagged) return false;
+          if (taggedEventId) {
+            return tags.some(t => t.participantId === e.participant.id && t.eventId === taggedEventId);
+          }
+          return true;
+        }
         if (filter === 'taggedMe') return e.taggedMe;
         if (filter === 'crew') return e.inCrew;
         if (filter === 'mutual') return e.mutual;
