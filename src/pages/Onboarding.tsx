@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Camera, Sparkles } from 'lucide-react';
-import { ONBOARDING_INTERESTS, saveUserProfile, UserProfile } from '@/lib/userProfile';
+import { ONBOARDING_INTERESTS, saveUserProfile, clearUserProfile, UserProfile } from '@/lib/userProfile';
 import { useToast } from '@/hooks/use-toast';
 import { TypeaheadSelect } from '@/components/TypeaheadSelect';
 import { CITIES, CITY_NEIGHBORHOODS, NATIONALITIES } from '@/lib/onboardingData';
@@ -68,11 +68,26 @@ const Onboarding = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="container max-w-2xl px-4 md:px-6 py-10">
-        <div className="flex items-center gap-2 mb-6">
-          <div className="h-9 w-9 rounded-lg gradient-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-lg">S</span>
-          </div>
-          <span className="text-xl font-bold text-foreground">Sync</span>
+        <div className="flex items-center justify-between mb-6">
+          <button
+            type="button"
+            onClick={() => { clearUserProfile(); navigate('/', { replace: true }); }}
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+            aria-label="Back to guest homepage"
+          >
+            <div className="h-9 w-9 rounded-lg gradient-primary flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-lg">S</span>
+            </div>
+            <span className="text-xl font-bold text-foreground">Sync</span>
+          </button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => { clearUserProfile(); navigate('/', { replace: true }); }}
+          >
+            ← Back to guest view
+          </Button>
         </div>
 
         <h1 className="text-3xl md:text-4xl font-display font-light text-foreground mb-2">
