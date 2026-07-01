@@ -172,7 +172,7 @@ const Connections = () => {
             return (
               <button
                 key={pill.key}
-                onClick={() => setFilter(pill.key)}
+                onClick={() => { setFilter(pill.key); if (pill.key !== 'tagged') setTaggedEventId(null); }}
                 className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
                   active
                     ? 'bg-primary text-primary-foreground border-primary'
