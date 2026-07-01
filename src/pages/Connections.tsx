@@ -30,6 +30,7 @@ const Connections = () => {
   const { following, followers, toggleFollow } = useSocial();
   const { history, tags, hasTaggedMe, crossedPathsWith } = useActivityHistory();
   const [filter, setFilter] = useState<FilterKey>('all');
+  const [taggedEventId, setTaggedEventId] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [profileId, setProfileId] = useState<string | null>(null);
   const [unfollowId, setUnfollowId] = useState<string | null>(null);
@@ -89,7 +90,13 @@ const Connections = () => {
       .filter(e => {
         if (filter === 'all') return true;
         if (filter === 'weMet') return e.coAttended;
-        if (filter === 'tagged') return e.tagged;
+        if (filter === 'tagged') {
+          if (!e.tagged) return false;
+          if (taggedEventId) {
+            return tags.some(t => t.participantId === e.participant.id && t.eventId === taggedEventId);
+          }
+          return true;
+        }
         if (filter === 'taggedMe') return e.taggedMe;
         if (filter === 'crew') return e.inCrew;
         if (filter === 'mutual') return e.mutual;
@@ -108,7 +115,21 @@ const Connections = () => {
         if (a.mutual !== b.mutual) return a.mutual ? -1 : 1;
         return a.participant.name.localeCompare(b.participant.name);
       });
-  }, [enriched, filter, query]);
+  }, [enriched, filter, query, taggedEventId, tags]);
+
+  const taggedEvents = useMemo(() => {
+    const map = new Map<string, { eventId: string; eventTitle: string; taggedAt: Date; count: number }>();
+    tags.forEach(t => {
+      const existing = map.get(t.eventId);
+      if (existing) {
+        existing.count += 1;
+        if (t.taggedAt > existing.taggedAt) existing.taggedAt = t.taggedAt;
+      } else {
+        map.set(t.eventId, { eventId: t.eventId, eventTitle: t.eventTitle, taggedAt: t.taggedAt, count: 1 });
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => +b.taggedAt - +a.taggedAt);
+  }, [tags]);
 
   const pills: { key: FilterKey; label: string }[] = [
     { key: 'all', label: 'All' },
@@ -151,7 +172,7 @@ const Connections = () => {
             return (
               <button
                 key={pill.key}
-                onClick={() => setFilter(pill.key)}
+                onClick={() => { setFilter(pill.key); if (pill.key !== 'tagged') setTaggedEventId(null); }}
                 className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
                   active
                     ? 'bg-primary text-primary-foreground border-primary'
@@ -166,6 +187,44 @@ const Connections = () => {
             );
           })}
         </div>
+
+        {filter === 'tagged' && taggedEvents.length > 0 && (
+          <div className="mb-6 -mt-2">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Filter by event</p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setTaggedEventId(null)}
+                className={`px-3 py-1 text-xs rounded-full border transition-colors ${
+                  !taggedEventId
+                    ? 'bg-accent text-accent-foreground border-accent'
+                    : 'bg-card hover:bg-muted border-border'
+                }`}
+              >
+                All events
+              </button>
+              {taggedEvents.map(ev => {
+                const active = taggedEventId === ev.eventId;
+                return (
+                  <button
+                    key={ev.eventId}
+                    onClick={() => setTaggedEventId(active ? null : ev.eventId)}
+                    className={`px-3 py-1 text-xs rounded-full border transition-colors ${
+                      active
+                        ? 'bg-accent text-accent-foreground border-accent'
+                        : 'bg-card hover:bg-muted border-border'
+                    }`}
+                  >
+                    {ev.eventTitle}
+                    <span className="ml-1.5 opacity-70">
+                      · {new Date(ev.taggedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
 
         {filtered.length === 0 ? (
           <div className="text-center py-16 border border-dashed rounded-2xl">
