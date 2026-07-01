@@ -12,7 +12,7 @@ import ParticipantProfileDialog from '@/components/ParticipantProfileDialog';
 import UnfollowConfirmDialog from '@/components/UnfollowConfirmDialog';
 import { Participant } from '@/types/event';
 
-type FilterKey = 'all' | 'weMet' | 'tagged' | 'taggedMe' | 'crew' | 'mutual' | 'followers' | 'following';
+type FilterKey = 'all' | 'weMet' | 'tagged' | 'crew' | 'mutual' | 'followers' | 'following';
 
 interface EnrichedParticipant {
   participant: Participant;
@@ -22,7 +22,6 @@ interface EnrichedParticipant {
   relationship: 'mutual' | 'followers' | 'following';
   coAttended: boolean;
   tagged: boolean;
-  taggedMe: boolean;
   inCrew: boolean;
 }
 
@@ -64,7 +63,6 @@ const Connections = () => {
           relationship,
           coAttended: crossedPathsWith(p.id) > 0,
           tagged: tags.some(t => t.participantId === p.id),
-          taggedMe: hasTaggedMe(p.id),
           inCrew: crews.some(g => g.memberIds.includes(p.id)),
         };
       });
@@ -75,7 +73,6 @@ const Connections = () => {
       all: enriched.length,
       weMet: enriched.filter(e => e.coAttended).length,
       tagged: enriched.filter(e => e.tagged).length,
-      taggedMe: enriched.filter(e => e.taggedMe).length,
       crew: enriched.filter(e => e.inCrew).length,
       mutual: enriched.filter(e => e.mutual).length,
       followers: enriched.filter(e => e.relationship === 'followers').length,
@@ -97,7 +94,6 @@ const Connections = () => {
           }
           return true;
         }
-        if (filter === 'taggedMe') return e.taggedMe;
         if (filter === 'crew') return e.inCrew;
         if (filter === 'mutual') return e.mutual;
         if (filter === 'followers') return e.relationship === 'followers';
@@ -135,7 +131,6 @@ const Connections = () => {
     { key: 'all', label: 'All' },
     { key: 'weMet', label: 'We Met' },
     { key: 'tagged', label: 'Tagged' },
-    { key: 'taggedMe', label: 'Tagged Me' },
     { key: 'crew', label: 'Crew' },
     { key: 'mutual', label: 'Mutual' },
     { key: 'followers', label: 'Follows you' },
@@ -236,7 +231,7 @@ const Connections = () => {
           </div>
         ) : (
           <ul className="space-y-2">
-            {filtered.map(({ participant, mutual, relationship, youFollow, coAttended, tagged, taggedMe, inCrew }) => (
+            {filtered.map(({ participant, mutual, relationship, youFollow, coAttended, tagged, inCrew }) => (
               <li
                 key={participant.id}
                 className="flex items-center gap-3 p-3 rounded-xl border bg-card hover:shadow-card-hover transition-shadow"
@@ -270,11 +265,6 @@ const Connections = () => {
                       {tagged && (
                         <span className="px-1.5 py-0.5 rounded-full bg-accent/40 text-accent-foreground text-[10px] font-medium uppercase tracking-wide">
                           Tagged
-                        </span>
-                      )}
-                      {taggedMe && (
-                        <span className="px-1.5 py-0.5 rounded-full bg-secondary text-secondary-foreground text-[10px] font-medium uppercase tracking-wide">
-                          Tagged Me
                         </span>
                       )}
                       {inCrew && (
