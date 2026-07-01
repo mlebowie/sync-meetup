@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Bell, User, MessageCircle } from 'lucide-react';
+import { User, MessageCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import NotificationsPopover from './NotificationsPopover';
 
 interface HeaderProps {
   onOpenMessages?: () => void;
