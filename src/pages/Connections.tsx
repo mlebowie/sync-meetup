@@ -1,6 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Search, Users, MapPin, Check, UserPlus } from 'lucide-react';
+import { ArrowLeft, Search, Users, MapPin, Check, UserPlus, StickyNote } from 'lucide-react';
+
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
