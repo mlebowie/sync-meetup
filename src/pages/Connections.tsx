@@ -115,7 +115,21 @@ const Connections = () => {
         if (a.mutual !== b.mutual) return a.mutual ? -1 : 1;
         return a.participant.name.localeCompare(b.participant.name);
       });
-  }, [enriched, filter, query]);
+  }, [enriched, filter, query, taggedEventId, tags]);
+
+  const taggedEvents = useMemo(() => {
+    const map = new Map<string, { eventId: string; eventTitle: string; taggedAt: Date; count: number }>();
+    tags.forEach(t => {
+      const existing = map.get(t.eventId);
+      if (existing) {
+        existing.count += 1;
+        if (t.taggedAt > existing.taggedAt) existing.taggedAt = t.taggedAt;
+      } else {
+        map.set(t.eventId, { eventId: t.eventId, eventTitle: t.eventTitle, taggedAt: t.taggedAt, count: 1 });
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => +b.taggedAt - +a.taggedAt);
+  }, [tags]);
 
   const pills: { key: FilterKey; label: string }[] = [
     { key: 'all', label: 'All' },
