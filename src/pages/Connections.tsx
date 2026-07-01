@@ -294,16 +294,40 @@ const Connections = () => {
                       )}
                     </div>
                     {filter === 'tagged' && tagged && (() => {
-                      const t = tags.find(x => x.participantId === participant.id);
-                      if (!t) return null;
+                      const relevantTags = tags.filter(x =>
+                        x.participantId === participant.id &&
+                        (!taggedEventId || x.eventId === taggedEventId),
+                      );
+                      if (relevantTags.length === 0) return null;
                       return (
-                        <p className="text-xs text-muted-foreground mt-1 truncate">
-                          Tagged at <span className="font-medium text-foreground">{t.eventTitle}</span>
-                          {' · '}
-                          {new Date(t.taggedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                        </p>
+                        <div className="mt-2 space-y-2">
+                          {relevantTags.map(t => {
+                            const key = noteKey(participant.id, t.eventId);
+                            return (
+                              <div key={key} className="rounded-lg border bg-muted/30 p-2">
+                                <p className="text-xs text-muted-foreground truncate">
+                                  Tagged at <span className="font-medium text-foreground">{t.eventTitle}</span>
+                                  {' · '}
+                                  {new Date(t.taggedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                </p>
+                                <div className="mt-1.5 flex items-start gap-1.5">
+                                  <StickyNote className="h-3.5 w-3.5 text-muted-foreground mt-1.5 shrink-0" />
+                                  <Input
+                                    value={notes[key] ?? ''}
+                                    onChange={e => setNotes(prev => ({ ...prev, [key]: e.target.value }))}
+                                    onClick={e => e.stopPropagation()}
+                                    placeholder="Add keywords (last convo, interests, vibe...)"
+                                    maxLength={140}
+                                    className="h-8 text-xs"
+                                  />
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
                       );
                     })()}
+
                   </div>
                 </button>
                 <Button
