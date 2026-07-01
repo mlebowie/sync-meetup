@@ -231,7 +231,7 @@ const Connections = () => {
           </div>
         ) : (
           <ul className="space-y-2">
-            {filtered.map(({ participant, mutual, relationship, youFollow, coAttended, tagged, taggedMe, inCrew }) => (
+            {filtered.map(({ participant, mutual, relationship, youFollow, coAttended, tagged, inCrew }) => (
               <li
                 key={participant.id}
                 className="flex items-center gap-3 p-3 rounded-xl border bg-card hover:shadow-card-hover transition-shadow"
