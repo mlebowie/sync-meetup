@@ -16,7 +16,7 @@ const Hero = () => {
         <div className="max-w-3xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6 animate-fade-in">
             <Users className="h-4 w-4" />
-            <span>Built for guys who moved abroad and need a crew</span>
+            <span>Built for expats who moved abroad and looking to find their tribe</span>
           </div>
 
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-light tracking-tight text-foreground mb-6 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
