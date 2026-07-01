@@ -5,21 +5,43 @@ import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useSocial } from '@/context/SocialContext';
+import { useActivityHistory } from '@/context/ActivityHistoryContext';
+import { suggestGroups } from '@/lib/groupFormation';
 import { mockParticipants } from '@/data/mockData';
 import ParticipantProfileDialog from '@/components/ParticipantProfileDialog';
 import UnfollowConfirmDialog from '@/components/UnfollowConfirmDialog';
 import { Participant } from '@/types/event';
 
-type FilterKey = 'all' | 'mutual' | 'followers' | 'following';
+type FilterKey = 'all' | 'weMet' | 'tagged' | 'taggedMe' | 'crew' | 'mutual' | 'followers' | 'following';
+
+interface EnrichedParticipant {
+  participant: Participant;
+  youFollow: boolean;
+  followsYou: boolean;
+  mutual: boolean;
+  relationship: 'mutual' | 'followers' | 'following';
+  coAttended: boolean;
+  tagged: boolean;
+  taggedMe: boolean;
+  inCrew: boolean;
+}
 
 const Connections = () => {
   const { following, followers, toggleFollow } = useSocial();
+  const { history, tags, hasTaggedMe, crossedPathsWith } = useActivityHistory();
   const [filter, setFilter] = useState<FilterKey>('all');
   const [query, setQuery] = useState('');
   const [profileId, setProfileId] = useState<string | null>(null);
   const [unfollowId, setUnfollowId] = useState<string | null>(null);
 
-  const enriched = useMemo(() => {
+  const crews = useMemo(() => {
+    const mutualSet = new Set<string>();
+    followers.forEach(id => { if (following.has(id)) mutualSet.add(id); });
+    tags.forEach(t => { if (hasTaggedMe(t.participantId)) mutualSet.add(t.participantId); });
+    return suggestGroups(history, tags, mutualSet);
+  }, [history, tags, followers, following, hasTaggedMe]);
+
+  const enriched = useMemo<EnrichedParticipant[]>(() => {
     const ids = new Set<string>([...following, ...followers]);
     return Array.from(ids)
       .map(id => mockParticipants.find(p => p.id === id))
@@ -33,13 +55,27 @@ const Connections = () => {
           : followsYou
             ? 'followers'
             : 'following';
-        return { participant: p, youFollow, followsYou, mutual, relationship };
+        return {
+          participant: p,
+          youFollow,
+          followsYou,
+          mutual,
+          relationship,
+          coAttended: crossedPathsWith(p.id) > 0,
+          tagged: tags.some(t => t.participantId === p.id),
+          taggedMe: hasTaggedMe(p.id),
+          inCrew: crews.some(g => g.memberIds.includes(p.id)),
+        };
       });
-  }, [following, followers]);
+  }, [following, followers, crossedPathsWith, tags, hasTaggedMe, crews]);
 
   const counts = useMemo(
     () => ({
       all: enriched.length,
+      weMet: enriched.filter(e => e.coAttended).length,
+      tagged: enriched.filter(e => e.tagged).length,
+      taggedMe: enriched.filter(e => e.taggedMe).length,
+      crew: enriched.filter(e => e.inCrew).length,
       mutual: enriched.filter(e => e.mutual).length,
       followers: enriched.filter(e => e.relationship === 'followers').length,
       following: enriched.filter(e => e.relationship === 'following').length,
@@ -50,7 +86,17 @@ const Connections = () => {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return enriched
-      .filter(e => (filter === 'all' ? true : e.relationship === filter))
+      .filter(e => {
+        if (filter === 'all') return true;
+        if (filter === 'weMet') return e.coAttended;
+        if (filter === 'tagged') return e.tagged;
+        if (filter === 'taggedMe') return e.taggedMe;
+        if (filter === 'crew') return e.inCrew;
+        if (filter === 'mutual') return e.mutual;
+        if (filter === 'followers') return e.relationship === 'followers';
+        if (filter === 'following') return e.relationship === 'following';
+        return true;
+      })
       .filter(e => {
         if (!q) return true;
         return (
@@ -66,6 +112,10 @@ const Connections = () => {
 
   const pills: { key: FilterKey; label: string }[] = [
     { key: 'all', label: 'All' },
+    { key: 'weMet', label: 'We Met' },
+    { key: 'tagged', label: 'Tagged' },
+    { key: 'taggedMe', label: 'Tagged Me' },
+    { key: 'crew', label: 'Crew' },
     { key: 'mutual', label: 'Mutual' },
     { key: 'followers', label: 'Follows you' },
     { key: 'following', label: 'You follow' },
@@ -127,7 +177,7 @@ const Connections = () => {
           </div>
         ) : (
           <ul className="space-y-2">
-            {filtered.map(({ participant, mutual, relationship, youFollow }) => (
+            {filtered.map(({ participant, mutual, relationship, youFollow, coAttended, tagged, taggedMe, inCrew }) => (
               <li
                 key={participant.id}
                 className="flex items-center gap-3 p-3 rounded-xl border bg-card hover:shadow-card-hover transition-shadow"
@@ -143,7 +193,7 @@ const Connections = () => {
                   />
                   <div className="min-w-0 flex-1">
                     <p className="font-medium truncate">{participant.name}</p>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-0.5">
                       {participant.neighborhood && (
                         <span className="flex items-center gap-1 truncate">
                           <MapPin className="h-3 w-3 shrink-0" />
@@ -153,6 +203,26 @@ const Connections = () => {
                       <span className="px-1.5 py-0.5 rounded-full bg-muted text-[10px] font-medium uppercase tracking-wide">
                         {mutual ? 'Mutual' : relationship === 'followers' ? 'Follows you' : 'You follow'}
                       </span>
+                      {coAttended && (
+                        <span className="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium uppercase tracking-wide">
+                          We Met
+                        </span>
+                      )}
+                      {tagged && (
+                        <span className="px-1.5 py-0.5 rounded-full bg-accent/40 text-accent-foreground text-[10px] font-medium uppercase tracking-wide">
+                          Tagged
+                        </span>
+                      )}
+                      {taggedMe && (
+                        <span className="px-1.5 py-0.5 rounded-full bg-secondary text-secondary-foreground text-[10px] font-medium uppercase tracking-wide">
+                          Tagged Me
+                        </span>
+                      )}
+                      {inCrew && (
+                        <span className="px-1.5 py-0.5 rounded-full bg-destructive/10 text-destructive text-[10px] font-medium uppercase tracking-wide">
+                          Crew
+                        </span>
+                      )}
                     </div>
                   </div>
                 </button>
