@@ -125,29 +125,7 @@ const Index = () => {
         </>
       ) : (
         <>
-          {/* 1) Recommended for you */}
-          <RecommendedCarousel
-            profile={profile!}
-            onAttend={handleAttend}
-            onParticipantClick={handleParticipantClick}
-            onOpenGroupChat={handleOpenGroupChat}
-          />
-
-          {/* 2) Events your friends love */}
-          <FriendsLoveSection
-            onAttend={handleAttend}
-            onParticipantClick={handleParticipantClick}
-            onOpenGroupChat={handleOpenGroupChat}
-          />
-
-          {/* 2b) Popular & Trending one-time events */}
-          <PopularTrendingSection
-            onAttend={handleAttend}
-            onParticipantClick={handleParticipantClick}
-            onOpenGroupChat={handleOpenGroupChat}
-          />
-
-          {/* 3) Reflect from last event attended */}
+          {/* 1) Reflect from last event attended */}
           {reflectionEvent && (
             <section className="py-6">
               <div className="container px-4 md:px-6">
@@ -168,6 +146,28 @@ const Index = () => {
               </div>
             </section>
           )}
+
+          {/* 2) Recommended for you */}
+          <RecommendedCarousel
+            profile={profile!}
+            onAttend={handleAttend}
+            onParticipantClick={handleParticipantClick}
+            onOpenGroupChat={handleOpenGroupChat}
+          />
+
+          {/* 3) Events your friends love */}
+          <FriendsLoveSection
+            onAttend={handleAttend}
+            onParticipantClick={handleParticipantClick}
+            onOpenGroupChat={handleOpenGroupChat}
+          />
+
+          {/* 3b) Popular & Trending one-time events */}
+          <PopularTrendingSection
+            onAttend={handleAttend}
+            onParticipantClick={handleParticipantClick}
+            onOpenGroupChat={handleOpenGroupChat}
+          />
 
           {/* 4) Upcoming events with expanded filters */}
           <UpcomingEventsSection
