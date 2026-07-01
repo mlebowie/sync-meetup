@@ -34,6 +34,25 @@ const Connections = () => {
   const [query, setQuery] = useState('');
   const [profileId, setProfileId] = useState<string | null>(null);
   const [unfollowId, setUnfollowId] = useState<string | null>(null);
+  const [notes, setNotes] = useState<Record<string, string>>(() => {
+    try {
+      const raw = localStorage.getItem('sync:tag-notes');
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('sync:tag-notes', JSON.stringify(notes));
+    } catch {
+      // ignore
+    }
+  }, [notes]);
+
+  const noteKey = (participantId: string, eventId: string) => `${participantId}::${eventId}`;
+
 
   const crews = useMemo(() => {
     const mutualSet = new Set<string>();
