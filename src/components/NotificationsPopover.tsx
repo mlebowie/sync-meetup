@@ -64,7 +64,8 @@ const NotificationsPopover = ({ open, onOpenChange }: Props) => {
     }));
 
     // 2. Post-event reflect (tag) + 3. Rate — use most recent past attending / mock event
-    const pastEvent = attending.find(e => new Date(e.date).getTime() < now) ?? mockEvents[6];
+    const attendedPast = mockEvents.find(e => attending.has(e.id) && new Date(e.date).getTime() < now);
+    const pastEvent = attendedPast ?? mockEvents[6];
     if (pastEvent) {
       list.push({
         id: `reflect-${pastEvent.id}`,
