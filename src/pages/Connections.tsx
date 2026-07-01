@@ -188,6 +188,44 @@ const Connections = () => {
           })}
         </div>
 
+        {filter === 'tagged' && taggedEvents.length > 0 && (
+          <div className="mb-6 -mt-2">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Filter by event</p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setTaggedEventId(null)}
+                className={`px-3 py-1 text-xs rounded-full border transition-colors ${
+                  !taggedEventId
+                    ? 'bg-accent text-accent-foreground border-accent'
+                    : 'bg-card hover:bg-muted border-border'
+                }`}
+              >
+                All events
+              </button>
+              {taggedEvents.map(ev => {
+                const active = taggedEventId === ev.eventId;
+                return (
+                  <button
+                    key={ev.eventId}
+                    onClick={() => setTaggedEventId(active ? null : ev.eventId)}
+                    className={`px-3 py-1 text-xs rounded-full border transition-colors ${
+                      active
+                        ? 'bg-accent text-accent-foreground border-accent'
+                        : 'bg-card hover:bg-muted border-border'
+                    }`}
+                  >
+                    {ev.eventTitle}
+                    <span className="ml-1.5 opacity-70">
+                      · {new Date(ev.taggedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+
         {filtered.length === 0 ? (
           <div className="text-center py-16 border border-dashed rounded-2xl">
             <Users className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
