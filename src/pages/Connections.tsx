@@ -12,7 +12,7 @@ import ParticipantProfileDialog from '@/components/ParticipantProfileDialog';
 import UnfollowConfirmDialog from '@/components/UnfollowConfirmDialog';
 import { Participant } from '@/types/event';
 
-type FilterKey = 'all' | 'weMet' | 'tagged' | 'taggedMe' | 'crew' | 'mutual' | 'followers' | 'following';
+type FilterKey = 'all' | 'weMet' | 'tagged' | 'crew' | 'mutual' | 'followers' | 'following';
 
 interface EnrichedParticipant {
   participant: Participant;
