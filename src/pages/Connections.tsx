@@ -22,7 +22,6 @@ interface EnrichedParticipant {
   relationship: 'mutual' | 'followers' | 'following';
   coAttended: boolean;
   tagged: boolean;
-  taggedMe: boolean;
   inCrew: boolean;
 }
 
