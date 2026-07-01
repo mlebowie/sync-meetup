@@ -1,44 +1,41 @@
-# Plan: Unified "Connections" Screen (Approach B)
+## Plan: Meetball-style relationship filters on Connections screen
 
-## What gets built
+### Goal
+Replace the current "All / Mutual / Follows you / You follow" pills on `/profile/connections` with richer, activity-based relationship filters that reflect how people actually met in the app.
 
-A single Connections screen accessible from the Profile header, showing every person you follow or who follows you, with filter pills and search.
+### Draft filter titles
+| Pill | Meaning | Data source |
+|---|---|---|
+| **All** | Everyone in your network | Union of followers + following |
+| **We Met** | Co-attended at least one event | `crossedPathsWith > 0` in ActivityHistory |
+| **Tagged** | You tagged them in a post-event reflection | `tags` in ActivityHistory |
+| **Tagged Me** | They tagged you back | `hasTaggedMe()` in ActivityHistory |
+| **Crew** | Part of an auto-suggested crew | `suggestGroups()` output |
+| **Mutual** | You follow each other | `isMutual()` in SocialContext |
+| **Follows You** | They follow you, you don't follow back | `followers` minus `following` |
 
-## Files
+A user can appear under multiple pills (e.g., someone can be both "We Met" and "Mutual").
 
-**New**
-- `src/pages/Connections.tsx` — route `/profile/connections`. Header with back link, search input, pill filters (All / Mutual / Follows you / You follow), and a unified list of rows.
+### Files to change
 
-**Modified**
-- `src/App.tsx` — register `/profile/connections` route.
-- `src/pages/Profile.tsx` — replace nothing; add a single tappable "X Connections" link under the name (with `12 followers · 4 following` subtext) that navigates to `/profile/connections`.
-- `src/context/SocialContext.tsx` — seed the default `following` set with `['1', '2', '3', '5']` so the demo has content and produces 2 mutuals against the existing `followers` set `['1','2','4','6']`.
+**`src/pages/Connections.tsx`**
+- Import `useActivityHistory` and `suggestGroups`.
+- Build a `relationships` map for every participant:
+  - `coAttended: boolean` — `crossedPathsWith(participant.id) > 0`
+  - `tagged: boolean` — user has a `TaggedConnection` for this participant
+  - `taggedMe: boolean` — `hasTaggedMe(participant.id)`
+  - `inCrew: boolean` — participant id exists in any `Group` from `suggestGroups`
+  - `mutual`, `followsYou`, `youFollow` — existing from SocialContext
+- Replace the current `FilterKey` union and `pills` array with the 7 pills above.
+- Each pill shows a count of how many participants match that category.
+- Filtering logic: participant must match the selected category AND the search query.
+- Sort order: mutuals first, then alphabetical (unchanged).
+- Row labels: keep the existing badge text (Mutual / Follows you / You follow) and add badges for the new categories when relevant, e.g. a row can show both "Mutual" and "We Met" badges.
 
-## Connections screen behavior
+### Out of scope
+- No backend changes (still client-side mock data).
+- No changes to the Profile header link.
+- No changes to row click behavior or the unfollow confirm flow.
 
-- Source: union of `following` and `followers` from `SocialContext`, mapped to `mockParticipants`.
-- Each row: avatar, name, neighborhood, relationship label (Mutual / Follows you / You follow), and an action button:
-  - Mutual → "Following" (click to unfollow)
-  - Follows you (not following back) → "Follow back"
-  - You follow (no mutual) → "Following" (click to unfollow)
-- Pill filters at top: **All** · **Mutual** · **Follows you** · **You follow**. Counts shown on each pill.
-- Search box filters by name or neighborhood (case-insensitive).
-- Sort: mutuals first, then alphabetical.
-- Clicking a row's avatar/name opens the existing `ParticipantProfileDialog`.
-- Empty state when filter yields zero rows.
-
-## Profile header change
-
-```text
-[avatar]  Thandiwe Nkosi
-          Cedofeita, Porto · 30 · South African
-          [6 Connections]   ← tappable, navigates to /profile/connections
-          (4 followers · 4 following)
-```
-
-No other Profile sections change.
-
-## Out of scope
-- Persisting follows to backend (still client-side state).
-- Follow timestamps / chronological sort.
-- Notifications on new follower.
+### Open question before I start
+Do you want to keep the existing "Mutual / Follows you / You follow" labels inside each row's badge, or should the row badge reflect the *strongest* relationship signal (e.g., "Crew" or "We Met" takes priority over "You follow")?
