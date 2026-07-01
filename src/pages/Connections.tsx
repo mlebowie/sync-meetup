@@ -267,11 +267,6 @@ const Connections = () => {
                           Tagged
                         </span>
                       )}
-                      {taggedMe && (
-                        <span className="px-1.5 py-0.5 rounded-full bg-secondary text-secondary-foreground text-[10px] font-medium uppercase tracking-wide">
-                          Tagged Me
-                        </span>
-                      )}
                       {inCrew && (
                         <span className="px-1.5 py-0.5 rounded-full bg-destructive/10 text-destructive text-[10px] font-medium uppercase tracking-wide">
                           Crew
