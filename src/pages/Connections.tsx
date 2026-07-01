@@ -1,6 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Search, Users, MapPin, Check, UserPlus } from 'lucide-react';
+import { ArrowLeft, Search, Users, MapPin, Check, UserPlus, StickyNote } from 'lucide-react';
+
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,6 +34,25 @@ const Connections = () => {
   const [query, setQuery] = useState('');
   const [profileId, setProfileId] = useState<string | null>(null);
   const [unfollowId, setUnfollowId] = useState<string | null>(null);
+  const [notes, setNotes] = useState<Record<string, string>>(() => {
+    try {
+      const raw = localStorage.getItem('sync:tag-notes');
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('sync:tag-notes', JSON.stringify(notes));
+    } catch {
+      // ignore
+    }
+  }, [notes]);
+
+  const noteKey = (participantId: string, eventId: string) => `${participantId}::${eventId}`;
+
 
   const crews = useMemo(() => {
     const mutualSet = new Set<string>();
@@ -234,74 +254,99 @@ const Connections = () => {
             {filtered.map(({ participant, mutual, relationship, youFollow, coAttended, tagged, inCrew }) => (
               <li
                 key={participant.id}
-                className="flex items-center gap-3 p-3 rounded-xl border bg-card hover:shadow-card-hover transition-shadow"
+                className="p-3 rounded-xl border bg-card hover:shadow-card-hover transition-shadow"
               >
-                <button
-                  onClick={() => setProfileId(participant.id)}
-                  className="flex items-center gap-3 flex-1 min-w-0 text-left"
-                >
-                  <img
-                    src={participant.avatar}
-                    alt={participant.name}
-                    className="h-12 w-12 rounded-full object-cover shrink-0"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium truncate">{participant.name}</p>
-                    <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                      {participant.neighborhood && (
-                        <span className="flex items-center gap-1 truncate">
-                          <MapPin className="h-3 w-3 shrink-0" />
-                          <span className="truncate">{participant.neighborhood}</span>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setProfileId(participant.id)}
+                    className="flex items-center gap-3 flex-1 min-w-0 text-left"
+                  >
+                    <img
+                      src={participant.avatar}
+                      alt={participant.name}
+                      className="h-12 w-12 rounded-full object-cover shrink-0"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium truncate">{participant.name}</p>
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                        {participant.neighborhood && (
+                          <span className="flex items-center gap-1 truncate">
+                            <MapPin className="h-3 w-3 shrink-0" />
+                            <span className="truncate">{participant.neighborhood}</span>
+                          </span>
+                        )}
+                        <span className="px-1.5 py-0.5 rounded-full bg-muted text-[10px] font-medium uppercase tracking-wide">
+                          {mutual ? 'Mutual' : relationship === 'followers' ? 'Follows you' : 'You follow'}
                         </span>
-                      )}
-                      <span className="px-1.5 py-0.5 rounded-full bg-muted text-[10px] font-medium uppercase tracking-wide">
-                        {mutual ? 'Mutual' : relationship === 'followers' ? 'Follows you' : 'You follow'}
-                      </span>
-                      {coAttended && (
-                        <span className="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium uppercase tracking-wide">
-                          We Met
-                        </span>
-                      )}
-                      {tagged && (
-                        <span className="px-1.5 py-0.5 rounded-full bg-accent/40 text-accent-foreground text-[10px] font-medium uppercase tracking-wide">
-                          Tagged
-                        </span>
-                      )}
-                      {inCrew && (
-                        <span className="px-1.5 py-0.5 rounded-full bg-destructive/10 text-destructive text-[10px] font-medium uppercase tracking-wide">
-                          Crew
-                        </span>
-                      )}
+                        {coAttended && (
+                          <span className="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium uppercase tracking-wide">
+                            We Met
+                          </span>
+                        )}
+                        {tagged && (
+                          <span className="px-1.5 py-0.5 rounded-full bg-accent/40 text-accent-foreground text-[10px] font-medium uppercase tracking-wide">
+                            Tagged
+                          </span>
+                        )}
+                        {inCrew && (
+                          <span className="px-1.5 py-0.5 rounded-full bg-destructive/10 text-destructive text-[10px] font-medium uppercase tracking-wide">
+                            Crew
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    {filter === 'tagged' && tagged && (() => {
-                      const t = tags.find(x => x.participantId === participant.id);
-                      if (!t) return null;
-                      return (
-                        <p className="text-xs text-muted-foreground mt-1 truncate">
-                          Tagged at <span className="font-medium text-foreground">{t.eventTitle}</span>
-                          {' · '}
-                          {new Date(t.taggedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                        </p>
-                      );
-                    })()}
-                  </div>
-                </button>
-                <Button
-                  size="sm"
-                  variant={youFollow ? 'outline' : 'default'}
-                  onClick={() => {
-                    if (youFollow) setUnfollowId(participant.id);
-                    else toggleFollow(participant.id);
-                  }}
-                  className="shrink-0"
-                >
-                  {youFollow ? (
-                    <><Check className="h-4 w-4 mr-1" /> Following</>
-                  ) : (
-                    <><UserPlus className="h-4 w-4 mr-1" /> Follow back</>
-                  )}
-                </Button>
+                  </button>
+                  <Button
+                    size="sm"
+                    variant={youFollow ? 'outline' : 'default'}
+                    onClick={() => {
+                      if (youFollow) setUnfollowId(participant.id);
+                      else toggleFollow(participant.id);
+                    }}
+                    className="shrink-0"
+                  >
+                    {youFollow ? (
+                      <><Check className="h-4 w-4 mr-1" /> Following</>
+                    ) : (
+                      <><UserPlus className="h-4 w-4 mr-1" /> Follow back</>
+                    )}
+                  </Button>
+                </div>
+                {filter === 'tagged' && tagged && (() => {
+                  const relevantTags = tags.filter(x =>
+                    x.participantId === participant.id &&
+                    (!taggedEventId || x.eventId === taggedEventId),
+                  );
+                  if (relevantTags.length === 0) return null;
+                  return (
+                    <div className="mt-3 pl-15 space-y-2">
+                      {relevantTags.map(t => {
+                        const key = noteKey(participant.id, t.eventId);
+                        return (
+                          <div key={key} className="rounded-lg border bg-muted/30 p-2">
+                            <p className="text-xs text-muted-foreground">
+                              Tagged at <span className="font-medium text-foreground">{t.eventTitle}</span>
+                              {' · '}
+                              {new Date(t.taggedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </p>
+                            <div className="mt-1.5 flex items-center gap-1.5">
+                              <StickyNote className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                              <Input
+                                value={notes[key] ?? ''}
+                                onChange={e => setNotes(prev => ({ ...prev, [key]: e.target.value }))}
+                                placeholder="Add keywords (last convo, interests, vibe...)"
+                                maxLength={140}
+                                className="h-8 text-xs"
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
               </li>
+
             ))}
           </ul>
         )}
