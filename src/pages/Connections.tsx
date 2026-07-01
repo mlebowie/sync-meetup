@@ -30,6 +30,7 @@ const Connections = () => {
   const { following, followers, toggleFollow } = useSocial();
   const { history, tags, hasTaggedMe, crossedPathsWith } = useActivityHistory();
   const [filter, setFilter] = useState<FilterKey>('all');
+  const [taggedEventId, setTaggedEventId] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [profileId, setProfileId] = useState<string | null>(null);
   const [unfollowId, setUnfollowId] = useState<string | null>(null);
