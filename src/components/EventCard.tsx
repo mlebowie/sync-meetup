@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Event, Participant } from '@/types/event';
 import { Calendar, MapPin, Users, Clock, ArrowRight, Check, MessageSquare, Repeat, Heart, TrendingUp, Hourglass } from 'lucide-react';
@@ -48,6 +49,7 @@ const intensityLabels = {
 };
 
 const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest = false }: EventCardProps) => {
+  const navigate = useNavigate();
   const { isAttending: isAttendingFn, toggle: toggleAttending } = useAttending();
   const { ensureGroupChat } = useSocial();
   const isAttending = isAttendingFn(event.id) || !!event.isAttending;
@@ -63,7 +65,10 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
   const isFull = event.currentParticipants >= event.maxParticipants;
 
   const handleAttend = () => {
-    if (guest) return;
+    if (guest) {
+      navigate('/onboarding');
+      return;
+    }
     if (isFull && !isAttending) {
       setWaitlistOpen(true);
       return;

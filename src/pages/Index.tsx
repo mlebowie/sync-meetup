@@ -66,6 +66,7 @@ const Index = () => {
 
   // One-time nudge to reflect on the most recent past event.
   useEffect(() => {
+    if (isGuest) return;
     if (!latestPast) return;
     const key = `reflected-${latestPast.eventId}`;
     if (typeof window !== 'undefined' && !window.sessionStorage.getItem(key)) {
@@ -78,7 +79,7 @@ const Index = () => {
       }, 1200);
       return () => clearTimeout(t);
     }
-  }, [latestPast, toast]);
+  }, [latestPast, toast, isGuest]);
 
   const handleAttend = (eventId: string) => {
     setEvents(prev => prev.map(event =>
