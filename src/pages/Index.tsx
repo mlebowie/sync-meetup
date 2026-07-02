@@ -79,7 +79,7 @@ const Index = () => {
       }, 1200);
       return () => clearTimeout(t);
     }
-  }, [latestPast, toast]);
+  }, [latestPast, toast, isGuest]);
 
   const handleAttend = (eventId: string) => {
     setEvents(prev => prev.map(event =>
