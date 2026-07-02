@@ -66,6 +66,7 @@ const Index = () => {
 
   // One-time nudge to reflect on the most recent past event.
   useEffect(() => {
+    if (isGuest) return;
     if (!latestPast) return;
     const key = `reflected-${latestPast.eventId}`;
     if (typeof window !== 'undefined' && !window.sessionStorage.getItem(key)) {
