@@ -65,7 +65,10 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
   const isFull = event.currentParticipants >= event.maxParticipants;
 
   const handleAttend = () => {
-    if (guest) return;
+    if (guest) {
+      navigate('/onboarding');
+      return;
+    }
     if (isFull && !isAttending) {
       setWaitlistOpen(true);
       return;
