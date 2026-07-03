@@ -24,7 +24,7 @@ import { getUserProfile } from '@/lib/userProfile';
 
 const Index = () => {
   const { toast } = useToast();
-  const { history } = useActivityHistory();
+  const { history, tags } = useActivityHistory();
   const profile = getUserProfile();
   const isGuest = !profile;
   const [events, setEvents] = useState<Event[]>(() => getDailyRotatingEvents(mockEvents));
