@@ -70,6 +70,7 @@ const Index = () => {
   useEffect(() => {
     if (isGuest) return;
     if (!latestPast) return;
+    if (alreadyTagged) return;
     const key = `reflected-${latestPast.eventId}`;
     if (typeof window !== 'undefined' && !window.sessionStorage.getItem(key)) {
       window.sessionStorage.setItem(key, '1');
@@ -81,7 +82,7 @@ const Index = () => {
       }, 1200);
       return () => clearTimeout(t);
     }
-  }, [latestPast, toast, isGuest]);
+  }, [latestPast, toast, isGuest, alreadyTagged]);
 
   const handleAttend = (eventId: string) => {
     setEvents(prev => prev.map(event =>
