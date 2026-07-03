@@ -130,7 +130,7 @@ const Index = () => {
       ) : (
         <>
           {/* 1) Reflect from last event attended */}
-          {reflectionEvent && (
+          {reflectionEvent && !alreadyTagged && (
             <section className="py-6">
               <div className="container px-4 md:px-6">
                 <div className="max-w-5xl mx-auto bg-gradient-to-r from-primary/10 to-accent/10 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
