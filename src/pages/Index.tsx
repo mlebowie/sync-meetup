@@ -64,6 +64,8 @@ const Index = () => {
       }
     : null;
 
+  const alreadyTagged = latestPast ? tags.some(t => t.eventId === latestPast.eventId) : false;
+
   // One-time nudge to reflect on the most recent past event.
   useEffect(() => {
     if (isGuest) return;
