@@ -24,7 +24,7 @@ import { getUserProfile } from '@/lib/userProfile';
 
 const Index = () => {
   const { toast } = useToast();
-  const { history } = useActivityHistory();
+  const { history, tags } = useActivityHistory();
   const profile = getUserProfile();
   const isGuest = !profile;
   const [events, setEvents] = useState<Event[]>(() => getDailyRotatingEvents(mockEvents));
@@ -64,10 +64,13 @@ const Index = () => {
       }
     : null;
 
+  const alreadyTagged = latestPast ? tags.some(t => t.eventId === latestPast.eventId) : false;
+
   // One-time nudge to reflect on the most recent past event.
   useEffect(() => {
     if (isGuest) return;
     if (!latestPast) return;
+    if (alreadyTagged) return;
     const key = `reflected-${latestPast.eventId}`;
     if (typeof window !== 'undefined' && !window.sessionStorage.getItem(key)) {
       window.sessionStorage.setItem(key, '1');
@@ -79,7 +82,7 @@ const Index = () => {
       }, 1200);
       return () => clearTimeout(t);
     }
-  }, [latestPast, toast, isGuest]);
+  }, [latestPast, toast, isGuest, alreadyTagged]);
 
   const handleAttend = (eventId: string) => {
     setEvents(prev => prev.map(event =>
@@ -127,7 +130,7 @@ const Index = () => {
       ) : (
         <>
           {/* 1) Reflect from last event attended */}
-          {reflectionEvent && (
+          {reflectionEvent && !alreadyTagged && (
             <section className="py-6">
               <div className="container px-4 md:px-6">
                 <div className="max-w-5xl mx-auto bg-gradient-to-r from-primary/10 to-accent/10 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
