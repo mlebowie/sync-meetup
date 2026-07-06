@@ -26,9 +26,13 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) =
 
   // People sorted by most recent DM
   const mutualIds = useMemo(() => {
-    const ids = Array.from(following).filter(id => isMutual(id));
-    return ids.sort((a, b) => lastTs(dms[b]?.messages || []) - lastTs(dms[a]?.messages || []));
-  }, [following, isMutual, dms]);
+    const ids = new Set<string>(Array.from(following).filter(id => isMutual(id)));
+    // Also surface anyone you already have a DM thread with (e.g. unlocked via mutual tags).
+    Object.keys(dms).forEach(id => ids.add(id));
+    // And the person the dialog was opened with, so a fresh chat shows up immediately.
+    if (initialPartnerId) ids.add(initialPartnerId);
+    return Array.from(ids).sort((a, b) => lastTs(dms[b]?.messages || []) - lastTs(dms[a]?.messages || []));
+  }, [following, isMutual, dms, initialPartnerId]);
 
   // Organizers sorted by most recent
   const organizerIds = useMemo(
