@@ -219,6 +219,7 @@ const Index = () => {
         event={reflectionEvent}
         open={reflectionOpen}
         onOpenChange={setReflectionOpen}
+        onOpenDM={handleOpenDM}
       />
 
       <footer className="bg-secondary/50 py-8 mt-12">
