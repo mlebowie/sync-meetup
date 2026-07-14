@@ -1,12 +1,14 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Heart, Bell, Calendar, MapPin, Clock, Compass, Globe, Sparkles, Users } from 'lucide-react';
+import { ArrowLeft, Heart, Bell, Calendar, MapPin, Clock, Compass, Globe, Sparkles, Users, Pencil } from 'lucide-react';
 import { format } from 'date-fns';
 import Header from '@/components/Header';
 import EventCard from '@/components/EventCard';
 import ComingUpSection from '@/components/ComingUpSection';
 import GroupsSection from '@/components/GroupsSection';
+import EditProfileDialog from '@/components/EditProfileDialog';
 import { Button } from '@/components/ui/button';
-import { getUserProfile, ONBOARDING_INTERESTS, DEFAULT_PROFILE, calculateAge } from '@/lib/userProfile';
+import { getUserProfile, ONBOARDING_INTERESTS, DEFAULT_PROFILE, calculateAge, UserProfile } from '@/lib/userProfile';
 import { useWishlist } from '@/context/WishlistContext';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
 import { useSocial } from '@/context/SocialContext';
@@ -14,9 +16,9 @@ import { mockEvents } from '@/data/mockData';
 import { getDailyRotatingEvents } from '@/lib/dailyEvents';
 
 const Profile = () => {
-  const realProfile = getUserProfile();
-  const profile = realProfile ?? DEFAULT_PROFILE;
-  const isDefault = !realProfile;
+  const [profile, setProfile] = useState<UserProfile>(() => getUserProfile() ?? DEFAULT_PROFILE);
+  const [isDefault, setIsDefault] = useState<boolean>(() => !getUserProfile());
+  const [editOpen, setEditOpen] = useState(false);
 
   const { getWishlistedEvents } = useWishlist();
   const allEvents = getDailyRotatingEvents(mockEvents);
@@ -50,7 +52,13 @@ const Profile = () => {
             )}
           </div>
           <div className="flex-1">
-            <h1 className="text-2xl font-bold">{profile.firstName} {profile.lastName}</h1>
+            <div className="flex items-start justify-between gap-3">
+              <h1 className="text-2xl font-bold">{profile.firstName} {profile.lastName}</h1>
+              <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="shrink-0">
+                <Pencil className="h-3.5 w-3.5 mr-1.5" />
+                Edit profile
+              </Button>
+            </div>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground mt-1.5">
               <span className="flex items-center gap-1">
                 <MapPin className="h-3.5 w-3.5" />
@@ -217,6 +225,12 @@ const Profile = () => {
           <GroupsSection />
         </div>
       </main>
+      <EditProfileDialog
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        profile={profile}
+        onSaved={(p) => { setProfile(p); setIsDefault(false); }}
+      />
     </div>
   );
 };
