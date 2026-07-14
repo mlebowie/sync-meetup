@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { User, MessageCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import NotificationsPopover from './NotificationsPopover';
+import { getUserProfile } from '@/lib/userProfile';
 
 interface HeaderProps {
   onOpenMessages?: () => void;
@@ -10,6 +11,10 @@ interface HeaderProps {
 
 const Header = ({ onOpenMessages }: HeaderProps) => {
   const [notifOpen, setNotifOpen] = useState(false);
+  const [isGuest, setIsGuest] = useState(false);
+  useEffect(() => {
+    setIsGuest(!getUserProfile());
+  }, []);
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-lg">
       <div className="container flex h-16 items-center justify-between px-4 md:px-6">
@@ -44,6 +49,11 @@ const Header = ({ onOpenMessages }: HeaderProps) => {
               <User className="h-5 w-5" />
             </Link>
           </Button>
+          {isGuest && (
+            <Button variant="hero" size="sm" asChild>
+              <Link to="/onboarding">Register</Link>
+            </Button>
+          )}
         </div>
       </div>
     </header>
