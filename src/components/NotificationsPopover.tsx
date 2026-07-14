@@ -48,9 +48,12 @@ interface Props {
 }
 
 const NotificationsPopover = ({ open, onOpenChange }: Props) => {
-  const { attending } = useAttending();
+  const { attending, setAttending } = useAttending();
+  const { toast } = useToast();
   const [reflectEvent, setReflectEvent] = useState<Event | null>(null);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+  const [waitlistStep, setWaitlistStep] = useState<0 | 1 | 2>(0);
+  const [waitlistEvent, setWaitlistEvent] = useState<Event | null>(null);
 
   const notifications = useMemo<Notif[]>(() => {
     const now = Date.now();
