@@ -16,9 +16,9 @@ import { mockEvents } from '@/data/mockData';
 import { getDailyRotatingEvents } from '@/lib/dailyEvents';
 
 const Profile = () => {
-  const realProfile = getUserProfile();
-  const profile = realProfile ?? DEFAULT_PROFILE;
-  const isDefault = !realProfile;
+  const [profile, setProfile] = useState<UserProfile>(() => getUserProfile() ?? DEFAULT_PROFILE);
+  const [isDefault, setIsDefault] = useState<boolean>(() => !getUserProfile());
+  const [editOpen, setEditOpen] = useState(false);
 
   const { getWishlistedEvents } = useWishlist();
   const allEvents = getDailyRotatingEvents(mockEvents);
