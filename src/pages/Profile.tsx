@@ -52,7 +52,13 @@ const Profile = () => {
             )}
           </div>
           <div className="flex-1">
-            <h1 className="text-2xl font-bold">{profile.firstName} {profile.lastName}</h1>
+            <div className="flex items-start justify-between gap-3">
+              <h1 className="text-2xl font-bold">{profile.firstName} {profile.lastName}</h1>
+              <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="shrink-0">
+                <Pencil className="h-3.5 w-3.5 mr-1.5" />
+                Edit profile
+              </Button>
+            </div>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground mt-1.5">
               <span className="flex items-center gap-1">
                 <MapPin className="h-3.5 w-3.5" />
