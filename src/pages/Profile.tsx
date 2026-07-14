@@ -225,6 +225,12 @@ const Profile = () => {
           <GroupsSection />
         </div>
       </main>
+      <EditProfileDialog
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        profile={profile}
+        onSaved={(p) => { setProfile(p); setIsDefault(false); }}
+      />
     </div>
   );
 };
