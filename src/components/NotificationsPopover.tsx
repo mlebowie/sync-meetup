@@ -206,6 +206,38 @@ const NotificationsPopover = ({ open, onOpenChange }: Props) => {
         open={!!reflectEvent}
         onOpenChange={(o) => !o && setReflectEvent(null)}
       />
+
+      {/* Step 1: intent check */}
+      <AlertDialog open={waitlistStep === 1} onOpenChange={(o) => !o && setWaitlistStep(0)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Claim your spot?</AlertDialogTitle>
+            <AlertDialogDescription>
+              A spot just opened for <span className="font-medium text-foreground">{waitlistEvent?.title}</span>. Do you want to register?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Not now</AlertDialogCancel>
+            <AlertDialogAction onClick={() => setWaitlistStep(2)}>Yes, continue</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Step 2: final confirmation */}
+      <AlertDialog open={waitlistStep === 2} onOpenChange={(o) => !o && setWaitlistStep(0)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm registration</AlertDialogTitle>
+            <AlertDialogDescription>
+              You're committing to show up for <span className="font-medium text-foreground">{waitlistEvent?.title}</span>. The group is counting on you — cancellations affect your reliability score.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setWaitlistStep(1)}>Back</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmWaitlist}>Confirm & register</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
