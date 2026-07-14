@@ -1,9 +1,14 @@
 import { useMemo, useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
+import {
+  AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction,
+} from '@/components/ui/alert-dialog';
 import { Bell, UserPlus, Tag, Star, Ticket } from 'lucide-react';
-import { mockParticipants, mockEvents } from '@/data/mockData';
 import { useAttending } from '@/context/AttendingContext';
+import { useToast } from '@/hooks/use-toast';
+import { mockParticipants, mockEvents } from '@/data/mockData';
 import PostEventReflectionDialog from './PostEventReflectionDialog';
 import { Event } from '@/types/event';
 import { formatDistanceToNow } from 'date-fns';
@@ -43,9 +48,12 @@ interface Props {
 }
 
 const NotificationsPopover = ({ open, onOpenChange }: Props) => {
-  const { attending } = useAttending();
+  const { attending, setAttending } = useAttending();
+  const { toast } = useToast();
   const [reflectEvent, setReflectEvent] = useState<Event | null>(null);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+  const [waitlistStep, setWaitlistStep] = useState<0 | 1 | 2>(0);
+  const [waitlistEvent, setWaitlistEvent] = useState<Event | null>(null);
 
   const notifications = useMemo<Notif[]>(() => {
     const now = Date.now();
@@ -109,9 +117,33 @@ const NotificationsPopover = ({ open, onOpenChange }: Props) => {
     if (n.type === 'reflect') {
       const ev = mockEvents.find(e => e.id === n.eventId);
       if (ev) setReflectEvent(ev);
+      setDismissed(prev => new Set(prev).add(n.id));
+      return;
+    }
+    if (n.type === 'waitlist') {
+      const ev = mockEvents.find(e => e.id === n.eventId);
+      if (ev) {
+        setWaitlistEvent(ev);
+        setWaitlistStep(1);
+        onOpenChange(false);
+      }
+      return;
     }
     setDismissed(prev => new Set(prev).add(n.id));
   };
+
+  const confirmWaitlist = () => {
+    if (!waitlistEvent) return;
+    setAttending(waitlistEvent.id, true);
+    setDismissed(prev => new Set(prev).add(`waitlist-${waitlistEvent.id}`));
+    toast({
+      title: "You're in. See you there.",
+      description: `Locked in for "${waitlistEvent.title}".`,
+    });
+    setWaitlistStep(0);
+    setWaitlistEvent(null);
+  };
+
 
   return (
     <>
@@ -174,6 +206,38 @@ const NotificationsPopover = ({ open, onOpenChange }: Props) => {
         open={!!reflectEvent}
         onOpenChange={(o) => !o && setReflectEvent(null)}
       />
+
+      {/* Step 1: intent check */}
+      <AlertDialog open={waitlistStep === 1} onOpenChange={(o) => !o && setWaitlistStep(0)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Claim your spot?</AlertDialogTitle>
+            <AlertDialogDescription>
+              A spot just opened for <span className="font-medium text-foreground">{waitlistEvent?.title}</span>. Do you want to register?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Not now</AlertDialogCancel>
+            <AlertDialogAction onClick={() => setWaitlistStep(2)}>Yes, continue</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Step 2: final confirmation */}
+      <AlertDialog open={waitlistStep === 2} onOpenChange={(o) => !o && setWaitlistStep(0)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm registration</AlertDialogTitle>
+            <AlertDialogDescription>
+              You're committing to show up for <span className="font-medium text-foreground">{waitlistEvent?.title}</span>. The group is counting on you — cancellations affect your reliability score.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setWaitlistStep(1)}>Back</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmWaitlist}>Confirm & register</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
