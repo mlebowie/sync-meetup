@@ -9,7 +9,6 @@ import { Bell, UserPlus, Tag, Star, Ticket } from 'lucide-react';
 import { useAttending } from '@/context/AttendingContext';
 import { useToast } from '@/hooks/use-toast';
 import { mockParticipants, mockEvents } from '@/data/mockData';
-import { useAttending } from '@/context/AttendingContext';
 import PostEventReflectionDialog from './PostEventReflectionDialog';
 import { Event } from '@/types/event';
 import { formatDistanceToNow } from 'date-fns';
