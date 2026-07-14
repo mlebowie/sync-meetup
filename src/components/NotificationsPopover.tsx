@@ -1,7 +1,13 @@
 import { useMemo, useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
+import {
+  AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction,
+} from '@/components/ui/alert-dialog';
 import { Bell, UserPlus, Tag, Star, Ticket } from 'lucide-react';
+import { useAttending } from '@/context/AttendingContext';
+import { useToast } from '@/hooks/use-toast';
 import { mockParticipants, mockEvents } from '@/data/mockData';
 import { useAttending } from '@/context/AttendingContext';
 import PostEventReflectionDialog from './PostEventReflectionDialog';
