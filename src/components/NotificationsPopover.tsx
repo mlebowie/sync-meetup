@@ -117,9 +117,33 @@ const NotificationsPopover = ({ open, onOpenChange }: Props) => {
     if (n.type === 'reflect') {
       const ev = mockEvents.find(e => e.id === n.eventId);
       if (ev) setReflectEvent(ev);
+      setDismissed(prev => new Set(prev).add(n.id));
+      return;
+    }
+    if (n.type === 'waitlist') {
+      const ev = mockEvents.find(e => e.id === n.eventId);
+      if (ev) {
+        setWaitlistEvent(ev);
+        setWaitlistStep(1);
+        onOpenChange(false);
+      }
+      return;
     }
     setDismissed(prev => new Set(prev).add(n.id));
   };
+
+  const confirmWaitlist = () => {
+    if (!waitlistEvent) return;
+    setAttending(waitlistEvent.id, true);
+    setDismissed(prev => new Set(prev).add(`waitlist-${waitlistEvent.id}`));
+    toast({
+      title: "You're in. See you there.",
+      description: `Locked in for "${waitlistEvent.title}".`,
+    });
+    setWaitlistStep(0);
+    setWaitlistEvent(null);
+  };
+
 
   return (
     <>
