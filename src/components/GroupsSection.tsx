@@ -60,11 +60,9 @@ const GroupsSection = ({ onOpenDM: _onOpenDM }: Props) => {
                   </div>
                   <div className="flex items-center justify-between mt-4">
                     <span className="text-xs text-muted-foreground">{members.length} regulars</span>
-                    {members[0] && (
-                      <Button variant="outline" size="sm" onClick={() => onOpenDM?.(members[0]!.id)}>
-                        <MessageSquare className="h-3.5 w-3.5 mr-1" /> Message crew
-                      </Button>
-                    )}
+                    <Button variant="outline" size="sm" onClick={() => { ensureCrewChat(g); setActiveCrew(g); }}>
+                      <MessageSquare className="h-3.5 w-3.5 mr-1" /> Message crew
+                    </Button>
                   </div>
                 </div>
               );
@@ -72,6 +70,11 @@ const GroupsSection = ({ onOpenDM: _onOpenDM }: Props) => {
           </div>
         </div>
       </div>
+      <CrewChatDialog
+        crew={activeCrew}
+        open={!!activeCrew}
+        onOpenChange={(o) => { if (!o) setActiveCrew(null); }}
+      />
     </section>
   );
 };
