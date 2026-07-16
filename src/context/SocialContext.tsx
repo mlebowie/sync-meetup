@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, ReactNode, useCallback } from 'react';
-import { ChatMessage, Participant, Organizer } from '@/types/event';
+import { ChatMessage, Participant, Organizer, Group } from '@/types/event';
 import { currentUser } from '@/data/mockData';
 
 interface DMThread {
@@ -15,6 +15,11 @@ export interface OrganizerDMThread {
 
 interface GroupChat {
   eventId: string;
+  messages: ChatMessage[];
+}
+
+export interface CrewChat {
+  crew: Group;
   messages: ChatMessage[];
 }
 
