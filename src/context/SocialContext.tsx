@@ -36,6 +36,9 @@ interface SocialContextValue {
   groupChats: Record<string, GroupChat>;
   sendGroupMessage: (eventId: string, content: string, type?: 'text' | 'meme') => void;
   ensureGroupChat: (eventId: string, seedMessages: ChatMessage[]) => void;
+  crewChats: Record<string, CrewChat>;
+  ensureCrewChat: (crew: Group) => void;
+  sendCrewMessage: (crewId: string, content: string) => void;
 }
 
 
