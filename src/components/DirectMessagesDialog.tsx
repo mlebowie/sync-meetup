@@ -24,7 +24,7 @@ const lastTs = (msgs: { timestamp: Date }[]) =>
   msgs.length ? new Date(msgs[msgs.length - 1].timestamp).getTime() : 0;
 
 const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) => {
-  const { following, isMutual, dms, sendDM, organizerDms, sendOrganizerMessage, groupChats, currentUser } = useSocial();
+  const { following, isMutual, dms, sendDM, organizerDms, sendOrganizerMessage, groupChats, crewChats, currentUser } = useSocial();
 
   // People sorted by most recent DM
   const mutualIds = useMemo(() => {
