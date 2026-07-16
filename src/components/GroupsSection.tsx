@@ -4,15 +4,18 @@ import { mockParticipants } from '@/data/mockData';
 import { useSocial } from '@/context/SocialContext';
 import { Users2, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
+import { Group } from '@/types/event';
+import CrewChatDialog from './CrewChatDialog';
 
 interface Props {
   onOpenDM?: (id: string) => void;
 }
 
-const GroupsSection = ({ onOpenDM }: Props) => {
+const GroupsSection = ({ onOpenDM: _onOpenDM }: Props) => {
   const { history, tags, hasTaggedMe } = useActivityHistory();
-  const { followers, following } = useSocial();
+  const { followers, following, ensureCrewChat } = useSocial();
+  const [activeCrew, setActiveCrew] = useState<Group | null>(null);
 
   const mutualSet = useMemo(() => {
     const s = new Set<string>();
