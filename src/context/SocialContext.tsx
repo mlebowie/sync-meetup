@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, ReactNode, useCallback } from 'react';
-import { ChatMessage, Participant, Organizer } from '@/types/event';
+import { ChatMessage, Participant, Organizer, Group } from '@/types/event';
 import { currentUser } from '@/data/mockData';
 
 interface DMThread {
@@ -18,6 +18,11 @@ interface GroupChat {
   messages: ChatMessage[];
 }
 
+export interface CrewChat {
+  crew: Group;
+  messages: ChatMessage[];
+}
+
 interface SocialContextValue {
   currentUser: Participant;
   following: Set<string>;
@@ -31,6 +36,9 @@ interface SocialContextValue {
   groupChats: Record<string, GroupChat>;
   sendGroupMessage: (eventId: string, content: string, type?: 'text' | 'meme') => void;
   ensureGroupChat: (eventId: string, seedMessages: ChatMessage[]) => void;
+  crewChats: Record<string, CrewChat>;
+  ensureCrewChat: (crew: Group) => void;
+  sendCrewMessage: (crewId: string, content: string) => void;
 }
 
 
@@ -51,6 +59,7 @@ export const SocialProvider = ({ children }: { children: ReactNode }) => {
   const [dms, setDms] = useState<Record<string, DMThread>>({});
   const [organizerDms, setOrganizerDms] = useState<Record<string, OrganizerDMThread>>({});
   const [groupChats, setGroupChats] = useState<Record<string, GroupChat>>({});
+  const [crewChats, setCrewChats] = useState<Record<string, CrewChat>>({});
 
 
   const toggleFollow = useCallback((id: string) => {
@@ -129,6 +138,39 @@ export const SocialProvider = ({ children }: { children: ReactNode }) => {
     }));
   }, []);
 
+  const ensureCrewChat = useCallback((crew: Group) => {
+    setCrewChats(prev => {
+      if (prev[crew.id]) return prev;
+      const seed: ChatMessage = {
+        id: `crew-seed-${crew.id}`,
+        authorId: 'sync-bot',
+        authorName: 'Sync',
+        authorAvatar: '',
+        content: `👋 Welcome to ${crew.name}. ${crew.reason}.`,
+        type: 'text',
+        timestamp: new Date(),
+      };
+      return { ...prev, [crew.id]: { crew, messages: [seed] } };
+    });
+  }, []);
+
+  const sendCrewMessage = useCallback((crewId: string, content: string) => {
+    const msg: ChatMessage = {
+      id: crypto.randomUUID(),
+      authorId: currentUser.id,
+      authorName: currentUser.name,
+      authorAvatar: currentUser.avatar,
+      content,
+      type: 'text',
+      timestamp: new Date(),
+    };
+    setCrewChats(prev => {
+      const existing = prev[crewId];
+      if (!existing) return prev;
+      return { ...prev, [crewId]: { ...existing, messages: [...existing.messages, msg] } };
+    });
+  }, []);
+
   return (
     <SocialContext.Provider
       value={{
@@ -144,8 +186,12 @@ export const SocialProvider = ({ children }: { children: ReactNode }) => {
         groupChats,
         sendGroupMessage,
         ensureGroupChat,
+        crewChats,
+        ensureCrewChat,
+        sendCrewMessage,
       }}
     >
+
       {children}
     </SocialContext.Provider>
   );

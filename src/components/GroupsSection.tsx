@@ -4,15 +4,18 @@ import { mockParticipants } from '@/data/mockData';
 import { useSocial } from '@/context/SocialContext';
 import { Users2, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import { Group } from '@/types/event';
+import CrewChatDialog from './CrewChatDialog';
 
 interface Props {
   onOpenDM?: (id: string) => void;
 }
 
-const GroupsSection = ({ onOpenDM }: Props) => {
+const GroupsSection = ({ onOpenDM: _onOpenDM }: Props) => {
   const { history, tags, hasTaggedMe } = useActivityHistory();
-  const { followers, following } = useSocial();
+  const { followers, following, ensureCrewChat } = useSocial();
+  const [activeCrew, setActiveCrew] = useState<Group | null>(null);
 
   const mutualSet = useMemo(() => {
     const s = new Set<string>();
@@ -57,11 +60,9 @@ const GroupsSection = ({ onOpenDM }: Props) => {
                   </div>
                   <div className="flex items-center justify-between mt-4">
                     <span className="text-xs text-muted-foreground">{members.length} regulars</span>
-                    {members[0] && (
-                      <Button variant="outline" size="sm" onClick={() => onOpenDM?.(members[0]!.id)}>
-                        <MessageSquare className="h-3.5 w-3.5 mr-1" /> Message crew
-                      </Button>
-                    )}
+                    <Button variant="outline" size="sm" onClick={() => { ensureCrewChat(g); setActiveCrew(g); }}>
+                      <MessageSquare className="h-3.5 w-3.5 mr-1" /> Message crew
+                    </Button>
                   </div>
                 </div>
               );
@@ -69,6 +70,11 @@ const GroupsSection = ({ onOpenDM }: Props) => {
           </div>
         </div>
       </div>
+      <CrewChatDialog
+        crew={activeCrew}
+        open={!!activeCrew}
+        onOpenChange={(o) => { if (!o) setActiveCrew(null); }}
+      />
     </section>
   );
 };

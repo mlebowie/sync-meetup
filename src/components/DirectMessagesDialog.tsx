@@ -7,6 +7,8 @@ import { mockParticipants, mockEvents } from '@/data/mockData';
 import { Send, MessageCircle, Users, Shield, UsersRound } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import EventGroupChatDialog from './EventGroupChatDialog';
+import CrewChatDialog from './CrewChatDialog';
+import { Group } from '@/types/event';
 import ParticipantProfileDialog from './ParticipantProfileDialog';
 import { formatDistanceToNowStrict } from 'date-fns';
 
@@ -22,7 +24,7 @@ const lastTs = (msgs: { timestamp: Date }[]) =>
   msgs.length ? new Date(msgs[msgs.length - 1].timestamp).getTime() : 0;
 
 const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) => {
-  const { following, isMutual, dms, sendDM, organizerDms, sendOrganizerMessage, groupChats, currentUser } = useSocial();
+  const { following, isMutual, dms, sendDM, organizerDms, sendOrganizerMessage, groupChats, crewChats, currentUser } = useSocial();
 
   // People sorted by most recent DM
   const mutualIds = useMemo(() => {
@@ -53,9 +55,16 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) =
       .sort((a, b) => b.lastTs - a.lastTs);
   }, [groupChats]);
 
+  const crewEntries = useMemo(() => {
+    return Object.values(crewChats)
+      .map(cc => ({ crew: cc.crew, lastTs: lastTs(cc.messages), count: cc.messages.length }))
+      .sort((a, b) => b.lastTs - a.lastTs);
+  }, [crewChats]);
+
   const [category, setCategory] = useState<Category>('people');
   const [activeId, setActiveId] = useState<string | null>(null);
   const [groupEvent, setGroupEvent] = useState<typeof mockEvents[number] | null>(null);
+  const [activeCrew, setActiveCrew] = useState<Group | null>(null);
   const [draft, setDraft] = useState('');
   const [profileId, setProfileId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -121,7 +130,7 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) =
           <div className="grid grid-cols-3 gap-1 p-2 border-b">
             {([
               { id: 'people' as const, label: 'People', icon: Users, count: mutualIds.length },
-              { id: 'groups' as const, label: 'Groups', icon: UsersRound, count: groupEntries.length },
+              { id: 'groups' as const, label: 'Groups', icon: UsersRound, count: groupEntries.length + crewEntries.length },
               { id: 'organizers' as const, label: 'Hosts', icon: Shield, count: organizerIds.length },
             ]).map(tab => {
               const Icon = tab.icon;
@@ -187,30 +196,50 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) =
             )}
 
             {category === 'groups' && (
-              groupEntries.length === 0 ? (
+              groupEntries.length === 0 && crewEntries.length === 0 ? (
                 <div className="p-4 text-center">
                   <UsersRound className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
                   <p className="text-xs text-muted-foreground">
-                    Tap “Attend” on any event to start its group chat — it’ll show up here.
+                    Tap "Attend" on any event or "Message crew" on a crew to start a group chat — it'll show up here.
                   </p>
                 </div>
               ) : (
-                groupEntries.map(({ event, lastTs, count }) => (
-                  <button
-                    key={event.id}
-                    onClick={() => setGroupEvent(event)}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-secondary/50 transition-colors"
-                  >
-                    <img src={event.imageUrl} alt={event.title} className="w-8 h-8 rounded-md object-cover" />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm truncate">{event.title}</p>
-                      <p className="text-[11px] text-muted-foreground truncate">
-                        {count} message{count === 1 ? '' : 's'} ·{' '}
-                        {lastTs ? formatDistanceToNowStrict(new Date(lastTs), { addSuffix: true }) : 'no messages yet'}
-                      </p>
-                    </div>
-                  </button>
-                ))
+                <>
+                  {crewEntries.map(({ crew, lastTs, count }) => (
+                    <button
+                      key={crew.id}
+                      onClick={() => setActiveCrew(crew)}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-secondary/50 transition-colors"
+                    >
+                      <div className="w-8 h-8 rounded-md bg-accent/20 flex items-center justify-center shrink-0">
+                        <UsersRound className="h-4 w-4 text-accent" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm truncate">{crew.name}</p>
+                        <p className="text-[11px] text-muted-foreground truncate">
+                          Crew · {count} message{count === 1 ? '' : 's'} ·{' '}
+                          {lastTs ? formatDistanceToNowStrict(new Date(lastTs), { addSuffix: true }) : 'no messages yet'}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                  {groupEntries.map(({ event, lastTs, count }) => (
+                    <button
+                      key={event.id}
+                      onClick={() => setGroupEvent(event)}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-secondary/50 transition-colors"
+                    >
+                      <img src={event.imageUrl} alt={event.title} className="w-8 h-8 rounded-md object-cover" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm truncate">{event.title}</p>
+                        <p className="text-[11px] text-muted-foreground truncate">
+                          {count} message{count === 1 ? '' : 's'} ·{' '}
+                          {lastTs ? formatDistanceToNowStrict(new Date(lastTs), { addSuffix: true }) : 'no messages yet'}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                </>
               )
             )}
 
@@ -322,6 +351,11 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) =
         event={groupEvent}
         open={!!groupEvent}
         onOpenChange={(o) => { if (!o) setGroupEvent(null); }}
+      />
+      <CrewChatDialog
+        crew={activeCrew}
+        open={!!activeCrew}
+        onOpenChange={(o) => { if (!o) setActiveCrew(null); }}
       />
       <ParticipantProfileDialog
         participant={profileId ? mockParticipants.find(p => p.id === profileId) || null : null}
