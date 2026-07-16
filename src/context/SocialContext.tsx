@@ -59,6 +59,7 @@ export const SocialProvider = ({ children }: { children: ReactNode }) => {
   const [dms, setDms] = useState<Record<string, DMThread>>({});
   const [organizerDms, setOrganizerDms] = useState<Record<string, OrganizerDMThread>>({});
   const [groupChats, setGroupChats] = useState<Record<string, GroupChat>>({});
+  const [crewChats, setCrewChats] = useState<Record<string, CrewChat>>({});
 
 
   const toggleFollow = useCallback((id: string) => {
