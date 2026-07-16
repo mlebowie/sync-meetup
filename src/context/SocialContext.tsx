@@ -138,6 +138,39 @@ export const SocialProvider = ({ children }: { children: ReactNode }) => {
     }));
   }, []);
 
+  const ensureCrewChat = useCallback((crew: Group) => {
+    setCrewChats(prev => {
+      if (prev[crew.id]) return prev;
+      const seed: ChatMessage = {
+        id: `crew-seed-${crew.id}`,
+        authorId: 'sync-bot',
+        authorName: 'Sync',
+        authorAvatar: '',
+        content: `👋 Welcome to ${crew.name}. ${crew.reason}.`,
+        type: 'text',
+        timestamp: new Date(),
+      };
+      return { ...prev, [crew.id]: { crew, messages: [seed] } };
+    });
+  }, []);
+
+  const sendCrewMessage = useCallback((crewId: string, content: string) => {
+    const msg: ChatMessage = {
+      id: crypto.randomUUID(),
+      authorId: currentUser.id,
+      authorName: currentUser.name,
+      authorAvatar: currentUser.avatar,
+      content,
+      type: 'text',
+      timestamp: new Date(),
+    };
+    setCrewChats(prev => {
+      const existing = prev[crewId];
+      if (!existing) return prev;
+      return { ...prev, [crewId]: { ...existing, messages: [...existing.messages, msg] } };
+    });
+  }, []);
+
   return (
     <SocialContext.Provider
       value={{
@@ -153,8 +186,12 @@ export const SocialProvider = ({ children }: { children: ReactNode }) => {
         groupChats,
         sendGroupMessage,
         ensureGroupChat,
+        crewChats,
+        ensureCrewChat,
+        sendCrewMessage,
       }}
     >
+
       {children}
     </SocialContext.Provider>
   );
