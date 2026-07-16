@@ -55,9 +55,16 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) =
       .sort((a, b) => b.lastTs - a.lastTs);
   }, [groupChats]);
 
+  const crewEntries = useMemo(() => {
+    return Object.values(crewChats)
+      .map(cc => ({ crew: cc.crew, lastTs: lastTs(cc.messages), count: cc.messages.length }))
+      .sort((a, b) => b.lastTs - a.lastTs);
+  }, [crewChats]);
+
   const [category, setCategory] = useState<Category>('people');
   const [activeId, setActiveId] = useState<string | null>(null);
   const [groupEvent, setGroupEvent] = useState<typeof mockEvents[number] | null>(null);
+  const [activeCrew, setActiveCrew] = useState<Group | null>(null);
   const [draft, setDraft] = useState('');
   const [profileId, setProfileId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
