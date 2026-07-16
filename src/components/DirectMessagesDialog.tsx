@@ -196,30 +196,50 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) =
             )}
 
             {category === 'groups' && (
-              groupEntries.length === 0 ? (
+              groupEntries.length === 0 && crewEntries.length === 0 ? (
                 <div className="p-4 text-center">
                   <UsersRound className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
                   <p className="text-xs text-muted-foreground">
-                    Tap “Attend” on any event to start its group chat — it’ll show up here.
+                    Tap "Attend" on any event or "Message crew" on a crew to start a group chat — it'll show up here.
                   </p>
                 </div>
               ) : (
-                groupEntries.map(({ event, lastTs, count }) => (
-                  <button
-                    key={event.id}
-                    onClick={() => setGroupEvent(event)}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-secondary/50 transition-colors"
-                  >
-                    <img src={event.imageUrl} alt={event.title} className="w-8 h-8 rounded-md object-cover" />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm truncate">{event.title}</p>
-                      <p className="text-[11px] text-muted-foreground truncate">
-                        {count} message{count === 1 ? '' : 's'} ·{' '}
-                        {lastTs ? formatDistanceToNowStrict(new Date(lastTs), { addSuffix: true }) : 'no messages yet'}
-                      </p>
-                    </div>
-                  </button>
-                ))
+                <>
+                  {crewEntries.map(({ crew, lastTs, count }) => (
+                    <button
+                      key={crew.id}
+                      onClick={() => setActiveCrew(crew)}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-secondary/50 transition-colors"
+                    >
+                      <div className="w-8 h-8 rounded-md bg-accent/20 flex items-center justify-center shrink-0">
+                        <UsersRound className="h-4 w-4 text-accent" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm truncate">{crew.name}</p>
+                        <p className="text-[11px] text-muted-foreground truncate">
+                          Crew · {count} message{count === 1 ? '' : 's'} ·{' '}
+                          {lastTs ? formatDistanceToNowStrict(new Date(lastTs), { addSuffix: true }) : 'no messages yet'}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                  {groupEntries.map(({ event, lastTs, count }) => (
+                    <button
+                      key={event.id}
+                      onClick={() => setGroupEvent(event)}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-secondary/50 transition-colors"
+                    >
+                      <img src={event.imageUrl} alt={event.title} className="w-8 h-8 rounded-md object-cover" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm truncate">{event.title}</p>
+                        <p className="text-[11px] text-muted-foreground truncate">
+                          {count} message{count === 1 ? '' : 's'} ·{' '}
+                          {lastTs ? formatDistanceToNowStrict(new Date(lastTs), { addSuffix: true }) : 'no messages yet'}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                </>
               )
             )}
 
