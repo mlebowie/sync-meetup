@@ -4,7 +4,7 @@ import { mockParticipants } from '@/data/mockData';
 import { useSocial } from '@/context/SocialContext';
 import { Users2, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 import { Group } from '@/types/event';
 import CrewChatDialog from './CrewChatDialog';
 
