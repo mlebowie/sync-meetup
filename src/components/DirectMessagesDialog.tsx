@@ -130,7 +130,7 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) =
           <div className="grid grid-cols-3 gap-1 p-2 border-b">
             {([
               { id: 'people' as const, label: 'People', icon: Users, count: mutualIds.length },
-              { id: 'groups' as const, label: 'Groups', icon: UsersRound, count: groupEntries.length },
+              { id: 'groups' as const, label: 'Groups', icon: UsersRound, count: groupEntries.length + crewEntries.length },
               { id: 'organizers' as const, label: 'Hosts', icon: Shield, count: organizerIds.length },
             ]).map(tab => {
               const Icon = tab.icon;
