@@ -21,8 +21,10 @@ const Profile = () => {
   const [editOpen, setEditOpen] = useState(false);
 
   const { getWishlistedEvents } = useWishlist();
-  const allEvents = getDailyRotatingEvents(mockEvents);
-  const wishlist = getWishlistedEvents(allEvents);
+  const rotatingEvents = getDailyRotatingEvents(mockEvents);
+  // Use full event catalog so any attended event (e.g. claimed from a waitlist notification) appears in Coming Up.
+  const allEvents = mockEvents;
+  const wishlist = getWishlistedEvents(rotatingEvents);
 
   const { history } = useActivityHistory();
   const { following, followers } = useSocial();
