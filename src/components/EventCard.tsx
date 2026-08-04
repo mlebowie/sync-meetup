@@ -242,6 +242,15 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
               </>
             )}
           </Button>
+          <Button
+            variant="outline"
+            className="flex-1 bg-transparent"
+            onClick={(e) => { e.stopPropagation(); setDetailsOpen(true); }}
+          >
+            View more
+            <ArrowRight className="h-4 w-4 ml-1" />
+          </Button>
+
           {isAttending && onOpenGroupChat && (
             <Button
               variant="outline"
