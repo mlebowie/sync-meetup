@@ -6,7 +6,7 @@ import { useSocial } from '@/context/SocialContext';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
 
 import { mockParticipants, mockEvents } from '@/data/mockData';
-import { Send, MessageCircle, Users, Shield, UsersRound } from 'lucide-react';
+import { Send, MessageCircle, Users, Shield, UsersRound, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import EventGroupChatDialog from './EventGroupChatDialog';
 import CrewChatDialog from './CrewChatDialog';
