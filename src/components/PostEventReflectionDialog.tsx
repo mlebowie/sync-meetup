@@ -1,17 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Event, Participant } from '@/types/event';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Check, MessageCircle, Lock } from 'lucide-react';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
 import { useToast } from '@/hooks/use-toast';
+import { mockParticipants } from '@/data/mockData';
 
 interface Props {
   event: Event | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onOpenDM?: (participantId: string) => void;
+  onOpenDM?: (participantId: string, metAtEventTitle?: string) => void;
 }
+
 
 const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Props) => {
   const { tagAttendee, hasTaggedMe } = useActivityHistory();
