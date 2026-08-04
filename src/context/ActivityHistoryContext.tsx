@@ -31,7 +31,7 @@ export const useActivityHistory = () => {
 };
 
 // Simulate: these mock users have already tagged "me" after past events.
-const SEEDED_TAGS_OF_ME = new Set(['1', '4', '6']);
+const SEEDED_TAGS_OF_ME = new Set(['1', '4', '6', '7', '9', '12', '13']);
 
 export const ActivityHistoryProvider = ({ children }: { children: ReactNode }) => {
   const [history, setHistory] = useState<PastAttendance[]>(currentUserHistory);

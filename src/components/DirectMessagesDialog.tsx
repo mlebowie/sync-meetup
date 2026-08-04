@@ -3,8 +3,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useSocial } from '@/context/SocialContext';
+import { useActivityHistory } from '@/context/ActivityHistoryContext';
+
 import { mockParticipants, mockEvents } from '@/data/mockData';
-import { Send, MessageCircle, Users, Shield, UsersRound } from 'lucide-react';
+import { Send, MessageCircle, Users, Shield, UsersRound, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import EventGroupChatDialog from './EventGroupChatDialog';
 import CrewChatDialog from './CrewChatDialog';
@@ -16,6 +18,9 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   initialPartnerId?: string | null;
+  /** When opened from a post-event tag, filter People to co-attendees of this event. */
+  metAtEventTitle?: string | null;
+
 }
 
 type Category = 'people' | 'organizers' | 'groups';
@@ -23,8 +28,23 @@ type Category = 'people' | 'organizers' | 'groups';
 const lastTs = (msgs: { timestamp: Date }[]) =>
   msgs.length ? new Date(msgs[msgs.length - 1].timestamp).getTime() : 0;
 
-const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) => {
+const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEventTitle }: Props) => {
   const { following, isMutual, dms, sendDM, organizerDms, sendOrganizerMessage, groupChats, crewChats, currentUser } = useSocial();
+  const { history, tags } = useActivityHistory();
+  const [metFilterOn, setMetFilterOn] = useState(true);
+
+  useEffect(() => {
+    if (open) setMetFilterOn(!!metAtEventTitle);
+  }, [open, metAtEventTitle]);
+
+  // Ids of people who attended the same event as the user (used by the "Met at ..." filter)
+  const metIds = useMemo(() => {
+    if (!metAtEventTitle) return null;
+    const ids = new Set<string>();
+    history.filter(h => h.title === metAtEventTitle).forEach(h => h.coAttendeeIds.forEach(id => ids.add(id)));
+    tags.filter(t => t.eventTitle === metAtEventTitle).forEach(t => ids.add(t.participantId));
+    return ids;
+  }, [metAtEventTitle, history, tags]);
 
   // People sorted by most recent DM
   const mutualIds = useMemo(() => {
@@ -33,8 +53,11 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) =
     Object.keys(dms).forEach(id => ids.add(id));
     // And the person the dialog was opened with, so a fresh chat shows up immediately.
     if (initialPartnerId) ids.add(initialPartnerId);
-    return Array.from(ids).sort((a, b) => lastTs(dms[b]?.messages || []) - lastTs(dms[a]?.messages || []));
-  }, [following, isMutual, dms, initialPartnerId]);
+    let list = Array.from(ids);
+    if (metFilterOn && metIds) list = list.filter(id => metIds.has(id) || id === initialPartnerId);
+    return list.sort((a, b) => lastTs(dms[b]?.messages || []) - lastTs(dms[a]?.messages || []));
+  }, [following, isMutual, dms, initialPartnerId, metFilterOn, metIds]);
+
 
   // Organizers sorted by most recent
   const organizerIds = useMemo(
@@ -161,7 +184,26 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) =
 
 
           <div className="flex-1 overflow-y-auto">
+            {category === 'people' && metAtEventTitle && (
+              <div className="p-2 border-b">
+                <button
+                  type="button"
+                  onClick={() => setMetFilterOn(v => !v)}
+                  className={cn(
+                    'w-full flex items-center gap-1.5 px-2 py-1.5 rounded-full text-[11px] font-medium border transition-colors',
+                    metFilterOn
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'border-border text-muted-foreground hover:bg-secondary/60'
+                  )}
+                >
+                  {metFilterOn && <Check className="h-3 w-3 shrink-0" />}
+                  <span className="truncate">Met at {metAtEventTitle}</span>
+                </button>
+              </div>
+            )}
+
             {category === 'people' && (
+
               mutualIds.length === 0 ? (
                 <div className="p-4 text-center">
                   <MessageCircle className="h-6 w-6 text-muted-foreground mx-auto mb-2" />

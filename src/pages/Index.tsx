@@ -37,6 +37,7 @@ const Index = () => {
   const [groupChatOpen, setGroupChatOpen] = useState(false);
   const [dmOpen, setDmOpen] = useState(false);
   const [dmInitialId, setDmInitialId] = useState<string | null>(null);
+  const [dmMetAt, setDmMetAt] = useState<string | null>(null);
   const [reflectionOpen, setReflectionOpen] = useState(false);
 
   // The most recent past event becomes the post-event reflection prompt.
@@ -110,14 +111,15 @@ const Index = () => {
     setGroupChatOpen(true);
   };
 
-  const handleOpenDM = (participantId: string) => {
+  const handleOpenDM = (participantId: string, metAtEventTitle?: string) => {
     setDmInitialId(participantId);
+    setDmMetAt(metAtEventTitle ?? null);
     setDmOpen(true);
   };
 
   return (
     <div className="min-h-screen bg-background">
-      <Header onOpenMessages={() => { setDmInitialId(null); setDmOpen(true); }} />
+      <Header onOpenMessages={() => { setDmInitialId(null); setDmMetAt(null); setDmOpen(true); }} />
 
       {isGuest ? (
         <>
@@ -190,7 +192,7 @@ const Index = () => {
             variant="hero"
             size="icon"
             className="fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-lg z-40"
-            onClick={() => { setDmInitialId(null); setDmOpen(true); }}
+            onClick={() => { setDmInitialId(null); setDmMetAt(null); setDmOpen(true); }}
             title="Direct messages"
           >
             <MessageCircle className="h-5 w-5" />
@@ -214,6 +216,7 @@ const Index = () => {
         open={dmOpen}
         onOpenChange={setDmOpen}
         initialPartnerId={dmInitialId}
+        metAtEventTitle={dmMetAt}
       />
       <PostEventReflectionDialog
         event={reflectionEvent}
