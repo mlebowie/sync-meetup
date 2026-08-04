@@ -14,19 +14,19 @@ const Hero = () => {
 
       <div className="container relative px-4 md:px-6">
         <div className="max-w-3xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6 animate-fade-in">
-            <Users className="h-4 w-4" />
-            <span>Built for expats who moved abroad and looking to find their tribe</span>
-          </div>
-
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-light tracking-tight text-foreground mb-6 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-            New to the city?{' '}
-            <span className="text-gradient-primary font-normal">SYNC finds your friends in the first 90 days.</span>
+            Making real friends as an adult{' '}
+            <span className="text-gradient-primary font-normal">shouldn't feel like a full-time job.</span>
           </h1>
 
-          <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-            Get matched to events, build new habits, meet your people.
+          <p className="text-lg md:text-xl text-muted-foreground mb-4 max-w-2xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+            SYNC does the hard work — finding the right events, connecting you with compatible people, whether you just moved here or you've been here your whole life waiting for your crowd to show up.
           </p>
+
+          <p className="text-base md:text-lg font-medium text-primary mb-8 animate-fade-in-up" style={{ animationDelay: '0.25s' }}>
+            Less searching. More belonging
+          </p>
+
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
             <Button variant="hero" size="xl">
