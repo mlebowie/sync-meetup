@@ -26,8 +26,23 @@ type Category = 'people' | 'organizers' | 'groups';
 const lastTs = (msgs: { timestamp: Date }[]) =>
   msgs.length ? new Date(msgs[msgs.length - 1].timestamp).getTime() : 0;
 
-const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) => {
+const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEventTitle }: Props) => {
   const { following, isMutual, dms, sendDM, organizerDms, sendOrganizerMessage, groupChats, crewChats, currentUser } = useSocial();
+  const { history, tags } = useActivityHistory();
+  const [metFilterOn, setMetFilterOn] = useState(true);
+
+  useEffect(() => {
+    if (open) setMetFilterOn(!!metAtEventTitle);
+  }, [open, metAtEventTitle]);
+
+  // Ids of people who attended the same event as the user (used by the "Met at ..." filter)
+  const metIds = useMemo(() => {
+    if (!metAtEventTitle) return null;
+    const ids = new Set<string>();
+    history.filter(h => h.title === metAtEventTitle).forEach(h => h.coAttendeeIds.forEach(id => ids.add(id)));
+    tags.filter(t => t.eventTitle === metAtEventTitle).forEach(t => ids.add(t.participantId));
+    return ids;
+  }, [metAtEventTitle, history, tags]);
 
   // People sorted by most recent DM
   const mutualIds = useMemo(() => {
@@ -36,8 +51,11 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId }: Props) =
     Object.keys(dms).forEach(id => ids.add(id));
     // And the person the dialog was opened with, so a fresh chat shows up immediately.
     if (initialPartnerId) ids.add(initialPartnerId);
-    return Array.from(ids).sort((a, b) => lastTs(dms[b]?.messages || []) - lastTs(dms[a]?.messages || []));
-  }, [following, isMutual, dms, initialPartnerId]);
+    let list = Array.from(ids);
+    if (metFilterOn && metIds) list = list.filter(id => metIds.has(id) || id === initialPartnerId);
+    return list.sort((a, b) => lastTs(dms[b]?.messages || []) - lastTs(dms[a]?.messages || []));
+  }, [following, isMutual, dms, initialPartnerId, metFilterOn, metIds]);
+
 
   // Organizers sorted by most recent
   const organizerIds = useMemo(
