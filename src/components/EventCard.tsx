@@ -180,16 +180,10 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
           </div>
         )}
 
-        <p className="text-sm text-muted-foreground mb-1 line-clamp-2">
+        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
           {event.description}
         </p>
-        <button
-          type="button"
-          onClick={(e) => { e.stopPropagation(); setDetailsOpen(true); }}
-          className="text-xs font-medium text-primary hover:underline mb-4 inline-flex items-center gap-1"
-        >
-          View more <ArrowRight className="h-3 w-3" />
-        </button>
+
 
         {/* Details */}
         <div className="flex flex-col gap-2 mb-4 text-sm text-muted-foreground">
@@ -248,6 +242,15 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
               </>
             )}
           </Button>
+          <Button
+            variant="outline"
+            className="flex-1 bg-transparent"
+            onClick={(e) => { e.stopPropagation(); setDetailsOpen(true); }}
+          >
+            View more
+            <ArrowRight className="h-4 w-4 ml-1" />
+          </Button>
+
           {isAttending && onOpenGroupChat && (
             <Button
               variant="outline"
