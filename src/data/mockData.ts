@@ -180,7 +180,7 @@ export const VENUE_COORDS: Record<string, { lat: number; lng: number; location: 
 const venue = (seriesId: keyof typeof VENUE_COORDS) => VENUE_COORDS[seriesId];
 
 export const currentUserHistory: PastAttendance[] = [
-  { eventId: 'h0', seriesId: 'trail-run', title: 'Saturday Trail Run', date: hoursAgo(14), category: 'Sports', coAttendeeIds: ['1', '4', '6'], attendeeCount: 19, ...venue('trail-run') },
+  { eventId: 'h0', seriesId: 'trail-run', title: 'Saturday Trail Run', date: hoursAgo(14), category: 'Sports', coAttendeeIds: ['1', '4', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15'], attendeeCount: 19, ...venue('trail-run') },
   { eventId: 'h1', seriesId: 'padel', title: 'Wednesday Padel', date: daysAgo(2), category: 'Sports', coAttendeeIds: ['1', '3'], attendeeCount: 8, ...venue('padel') },
   { eventId: 'h2', seriesId: 'brunch-club', title: 'Sunday Brunch Club', date: daysAgo(6), category: 'Social', coAttendeeIds: ['2', '4'], attendeeCount: 12, ...venue('brunch-club') },
   { eventId: 'h3', seriesId: 'trail-run', title: 'Saturday Trail Run', date: daysAgo(9), category: 'Sports', coAttendeeIds: ['1', '6'], attendeeCount: 17, ...venue('trail-run') },
