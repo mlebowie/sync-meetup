@@ -184,7 +184,26 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
 
 
           <div className="flex-1 overflow-y-auto">
+            {category === 'people' && metAtEventTitle && (
+              <div className="p-2 border-b">
+                <button
+                  type="button"
+                  onClick={() => setMetFilterOn(v => !v)}
+                  className={cn(
+                    'w-full flex items-center gap-1.5 px-2 py-1.5 rounded-full text-[11px] font-medium border transition-colors',
+                    metFilterOn
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'border-border text-muted-foreground hover:bg-secondary/60'
+                  )}
+                >
+                  {metFilterOn && <Check className="h-3 w-3 shrink-0" />}
+                  <span className="truncate">Met at {metAtEventTitle}</span>
+                </button>
+              </div>
+            )}
+
             {category === 'people' && (
+
               mutualIds.length === 0 ? (
                 <div className="p-4 text-center">
                   <MessageCircle className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
