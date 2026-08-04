@@ -16,6 +16,9 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   initialPartnerId?: string | null;
+  /** When opened from a post-event tag, filter People to co-attendees of this event. */
+  metAtEventTitle?: string | null;
+
 }
 
 type Category = 'people' | 'organizers' | 'groups';
