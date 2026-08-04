@@ -3,6 +3,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useSocial } from '@/context/SocialContext';
+import { useActivityHistory } from '@/context/ActivityHistoryContext';
+
 import { mockParticipants, mockEvents } from '@/data/mockData';
 import { Send, MessageCircle, Users, Shield, UsersRound } from 'lucide-react';
 import { cn } from '@/lib/utils';
