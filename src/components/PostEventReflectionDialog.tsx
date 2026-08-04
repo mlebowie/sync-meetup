@@ -30,6 +30,15 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
     }
   }, [open, event?.id]);
 
+  // Everyone the user could have met at this event: confirmed co-attendees first,
+  // then the rest of the attendee pool.
+  const options = useMemo<Participant[]>(() => {
+    const base = event?.participants ?? [];
+    const seen = new Set(base.map(p => p.id));
+    const extra = mockParticipants.filter(p => !seen.has(p.id));
+    return [...base, ...extra];
+  }, [event?.participants]);
+
   if (!event) return null;
 
   const toggle = (id: string) => {
@@ -45,21 +54,27 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
       eventTitle: event.title,
       taggedAt: new Date(),
     }));
-    const taggedPeople = event.participants.filter(p => picked.includes(p.id));
+    const taggedPeople = options.filter(p => picked.includes(p.id));
     setTagged(taggedPeople);
-    const mutualCount = picked.filter(hasTaggedMe).length;
+    const mutuals = picked.filter(hasTaggedMe);
     toast({
       title: `Tagged ${picked.length} ${picked.length === 1 ? 'person' : 'people'}`,
-      description: mutualCount > 0
-        ? `${mutualCount} of them tagged you back — DMs unlocked.`
+      description: mutuals.length > 0
+        ? `${mutuals.length} of them tagged you back — DMs unlocked.`
         : 'Stays private. If they tag you too, DMs unlock automatically.',
     });
+    // Mutual tag → open the messaging window filtered to this event.
+    if (mutuals.length > 0) {
+      onOpenChange(false);
+      onOpenDM?.(mutuals[0], event.title);
+      return;
+    }
     setStep('chat');
   };
 
   const startChat = (p: Participant) => {
     onOpenChange(false);
-    onOpenDM?.(p.id);
+    onOpenDM?.(p.id, event.title);
   };
 
   return (
@@ -70,12 +85,13 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
             <DialogHeader>
               <DialogTitle>Who did you click with?</DialogTitle>
               <DialogDescription>
-                Pick 1–3 people from {event.title}. Tags are private — only mutual tags unlock messages.
+                Tag who you connected with from {event.title}. Tags are private — only mutual tags unlock messages.
               </DialogDescription>
             </DialogHeader>
 
-            <div className="grid grid-cols-3 gap-3 py-2">
-              {event.participants.map(p => {
+            <div className="grid grid-cols-3 gap-3 py-2 max-h-[320px] overflow-y-auto">
+              {options.map(p => {
+
                 const selected = picked.includes(p.id);
                 return (
                   <button
