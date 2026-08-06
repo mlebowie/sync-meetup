@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Event, Participant, ActivityLevel, Intensity, GroupSize } from '@/types/event';
 import { CITY_NEIGHBORHOODS } from '@/lib/onboardingData';
 import { ONBOARDING_INTERESTS, getInterestKeywords, UserProfile } from '@/lib/userProfile';
-import EventCard from './EventCard';
+import ExpandableEventGrid from './ExpandableEventGrid';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -305,18 +305,14 @@ const UpcomingEventsSection = ({ events, profile, onAttend, onParticipantClick, 
         ) : (
           <>
             <p className="text-sm text-muted-foreground mb-4">{filtered.length} event{filtered.length === 1 ? '' : 's'} match your filters</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filtered.map(e => (
-                <EventCard
-                  key={e.id}
-                  event={e}
-                  onAttend={onAttend}
-                  onParticipantClick={onParticipantClick}
-                  onOpenGroupChat={onOpenGroupChat}
-                />
-              ))}
-            </div>
+            <ExpandableEventGrid
+              events={filtered}
+              onAttend={onAttend}
+              onParticipantClick={onParticipantClick}
+              onOpenGroupChat={onOpenGroupChat}
+            />
           </>
+
         )}
       </div>
     </section>

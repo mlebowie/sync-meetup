@@ -2,8 +2,9 @@ import { useMemo } from 'react';
 import { mockEvents } from '@/data/mockData';
 import { useSocial } from '@/context/SocialContext';
 import { Event, Participant } from '@/types/event';
-import EventCard from './EventCard';
+import ExpandableEventGrid from './ExpandableEventGrid';
 import { Heart, Users } from 'lucide-react';
+
 
 interface Props {
   onAttend: (id: string) => void;
@@ -11,8 +12,9 @@ interface Props {
   onOpenGroupChat?: (e: Event) => void;
 }
 
-// Anchor 3 events into the next 7 days
-const WEEK_OFFSETS = [1, 3, 5].map(d => d * 24 * 60 * 60 * 1000);
+// Anchor events across the next couple of weeks
+const WEEK_OFFSETS = [1, 3, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16].map(d => d * 24 * 60 * 60 * 1000);
+
 
 const FriendsLoveSection = ({ onAttend, onParticipantClick, onOpenGroupChat }: Props) => {
   const { following } = useSocial();
@@ -40,14 +42,15 @@ const FriendsLoveSection = ({ onAttend, onParticipantClick, onOpenGroupChat }: P
     if (pool.length === 0) {
       pool = mockEvents
         .filter(e => e.recurrence && e.recurrence !== 'one-off')
-        .slice(0, 3)
+        .slice(0, 13)
         .map(e => ({ event: e, score: 1, friendsAttending: [] }));
     }
-    return pool.slice(0, 3).map((s, i) => ({
+    return pool.slice(0, 13).map((s, i) => ({
       ...s.event,
       date: new Date(Date.now() + WEEK_OFFSETS[i % WEEK_OFFSETS.length]),
     }));
   }, [following]);
+
 
   if (events.length === 0) return null;
 
@@ -72,17 +75,13 @@ const FriendsLoveSection = ({ onAttend, onParticipantClick, onOpenGroupChat }: P
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {events.map(e => (
-            <EventCard
-              key={e.id}
-              event={e}
-              onAttend={onAttend}
-              onParticipantClick={onParticipantClick}
-              onOpenGroupChat={onOpenGroupChat}
-            />
-          ))}
-        </div>
+        <ExpandableEventGrid
+          events={events}
+          onAttend={onAttend}
+          onParticipantClick={onParticipantClick}
+          onOpenGroupChat={onOpenGroupChat}
+        />
+
       </div>
     </section>
   );

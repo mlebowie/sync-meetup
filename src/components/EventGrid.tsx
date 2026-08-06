@@ -1,5 +1,5 @@
 import { Event, FilterState, Participant } from '@/types/event';
-import EventCard from './EventCard';
+import ExpandableEventGrid from './ExpandableEventGrid';
 import { useMemo } from 'react';
 import { useSocial } from '@/context/SocialContext';
 
@@ -100,23 +100,14 @@ const EventGrid = ({ events, filters, onAttend, onParticipantClick, onOpenGroupC
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {filteredEvents.map((event, index) => (
-        <div
-          key={event.id}
-          className="animate-fade-in-up"
-          style={{ animationDelay: `${index * 0.1}s` }}
-        >
-          <EventCard
-            event={event}
-            onAttend={onAttend}
-            onParticipantClick={onParticipantClick}
-            onOpenGroupChat={onOpenGroupChat}
-          />
-        </div>
-      ))}
-    </div>
+    <ExpandableEventGrid
+      events={filteredEvents}
+      onAttend={onAttend}
+      onParticipantClick={onParticipantClick}
+      onOpenGroupChat={onOpenGroupChat}
+    />
   );
+
 };
 
 export default EventGrid;
