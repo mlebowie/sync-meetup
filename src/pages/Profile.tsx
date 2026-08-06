@@ -1,35 +1,21 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Heart, Bell, Calendar, MapPin, Clock, Compass, Globe, Sparkles, Users, Pencil } from 'lucide-react';
-import { format } from 'date-fns';
+import { ArrowLeft, Calendar, MapPin, Clock, Globe, Users, Pencil } from 'lucide-react';
 import Header from '@/components/Header';
-import EventCard from '@/components/EventCard';
-import ComingUpSection from '@/components/ComingUpSection';
 import GroupsSection from '@/components/GroupsSection';
 import EditProfileDialog from '@/components/EditProfileDialog';
 import { Button } from '@/components/ui/button';
 import { getUserProfile, ONBOARDING_INTERESTS, DEFAULT_PROFILE, calculateAge, UserProfile } from '@/lib/userProfile';
-import { useWishlist } from '@/context/WishlistContext';
-import { useActivityHistory } from '@/context/ActivityHistoryContext';
 import { useSocial } from '@/context/SocialContext';
-import { mockEvents } from '@/data/mockData';
-import { getDailyRotatingEvents } from '@/lib/dailyEvents';
 
 const Profile = () => {
   const [profile, setProfile] = useState<UserProfile>(() => getUserProfile() ?? DEFAULT_PROFILE);
   const [isDefault, setIsDefault] = useState<boolean>(() => !getUserProfile());
   const [editOpen, setEditOpen] = useState(false);
 
-  const { getWishlistedEvents } = useWishlist();
-  const rotatingEvents = getDailyRotatingEvents(mockEvents);
-  // Use full event catalog so any attended event (e.g. claimed from a waitlist notification) appears in Coming Up.
-  const allEvents = mockEvents;
-  const wishlist = getWishlistedEvents(rotatingEvents);
-
-  const { history } = useActivityHistory();
   const { following, followers } = useSocial();
   const connectionsCount = new Set([...following, ...followers]).size;
-  const attendedEvents = isDefault ? [] : history.slice(0, 3);
+
 
   const interests = ONBOARDING_INTERESTS.filter(i => profile.interests.includes(i.id));
   const age = profile.dateOfBirth ? calculateAge(profile.dateOfBirth) : null;
@@ -103,115 +89,21 @@ const Profile = () => {
           </div>
         </section>
 
-        {/* Coming Up */}
-        <ComingUpSection allEvents={allEvents} />
-
-        {/* Attended events */}
-        <section className="mb-10">
-          <div className="flex items-center gap-2 mb-4">
+        {/* Calendar entry point */}
+        <Link
+          to="/calendar"
+          className="flex items-center justify-between gap-3 p-4 rounded-xl border bg-card hover:shadow-card-hover transition-shadow mb-10"
+        >
+          <div className="flex items-center gap-3">
             <Calendar className="h-5 w-5 text-primary" />
-            <h2 className="text-xl font-bold">Last attended events</h2>
-            {attendedEvents.length > 0 && (
-              <span className="text-sm text-muted-foreground">({attendedEvents.length})</span>
-            )}
-          </div>
-
-          {attendedEvents.length === 0 ? (
-            <div className="text-center py-14 border border-dashed rounded-2xl bg-card/40">
-              <Compass className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
-              <p className="text-muted-foreground mb-1">No events attended yet.</p>
-              <p className="text-sm text-muted-foreground/70 mb-5">Find something happening near you.</p>
-              <Button asChild variant="hero">
-                <Link to="/">
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  Discover events
-                </Link>
-              </Button>
-            </div>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-3">
-              {attendedEvents.map(h => (
-                <div key={h.eventId} className="p-4 rounded-xl border bg-card hover:shadow-card-hover transition-shadow">
-                  <p className="font-medium text-sm line-clamp-2">{h.title}</p>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
-                    <Calendar className="h-3 w-3" />
-                    {format(h.date, 'EEE, MMM d')}
-                  </div>
-                  <div className="flex items-center gap-2 mt-1.5">
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground font-medium">
-                      {h.category}
-                    </span>
-                    {h.location && (
-                      <span className="text-xs text-muted-foreground flex items-center gap-0.5 truncate">
-                        <MapPin className="h-3 w-3 shrink-0" />
-                        <span className="truncate">{h.location}</span>
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* Wishlist */}
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <Heart className="h-5 w-5 text-destructive fill-destructive" />
-              <h2 className="text-xl font-bold">My wishlist</h2>
-              <span className="text-sm text-muted-foreground">({wishlist.length})</span>
+            <div>
+              <p className="font-semibold">My calendar</p>
+              <p className="text-xs text-muted-foreground">Coming up, past events and your wishlist</p>
             </div>
           </div>
+          <span className="text-sm text-primary font-medium">View →</span>
+        </Link>
 
-          <p className="text-sm text-muted-foreground mb-6 flex items-start gap-2 p-3 rounded-lg bg-muted/50">
-            <Bell className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
-            <span>We'll notify you when a wishlisted event is nearing capacity and 24 hours before it starts.</span>
-          </p>
-
-          {wishlist.length === 0 ? (
-            <div className="text-center py-16 border border-dashed rounded-2xl">
-              <Heart className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
-              <p className="text-muted-foreground mb-4">No saved events yet.</p>
-              <Button asChild>
-                <Link to="/">Browse events</Link>
-              </Button>
-            </div>
-          ) : (
-            <div className="grid gap-6 md:grid-cols-2">
-              {wishlist.map(event => (
-                <EventCard key={event.id} event={event} />
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* Quick agenda preview */}
-        {wishlist.length > 0 && (
-          <section className="mt-10">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Upcoming on your wishlist</h3>
-            <ul className="space-y-2">
-              {wishlist
-                .slice()
-                .sort((a, b) => a.date.getTime() - b.date.getTime())
-                .slice(0, 5)
-                .map(e => (
-                  <li key={e.id} className="flex items-center justify-between p-3 rounded-lg border bg-card">
-                    <div className="min-w-0">
-                      <p className="font-medium truncate">{e.title}</p>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                        <Calendar className="h-3 w-3" />
-                        {format(e.date, 'EEE, MMM d')} · {e.time}
-                      </p>
-                    </div>
-                    <span className="text-xs text-muted-foreground shrink-0 ml-3">
-                      {e.currentParticipants}/{e.maxParticipants}
-                    </span>
-                  </li>
-                ))}
-            </ul>
-          </section>
-        )}
 
         {/* Default profile hint */}
         {isDefault && (

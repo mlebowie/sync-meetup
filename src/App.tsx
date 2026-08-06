@@ -8,6 +8,8 @@ import NotFound from "./pages/NotFound";
 import Onboarding from "./pages/Onboarding";
 import Profile from "./pages/Profile";
 import Connections from "./pages/Connections";
+import CalendarPage from "./pages/CalendarPage";
+
 import { SocialProvider } from "./context/SocialContext";
 import { ActivityHistoryProvider } from "./context/ActivityHistoryContext";
 import { WishlistProvider } from "./context/WishlistContext";
@@ -31,6 +33,8 @@ const App = () => (
                   <Route path="/onboarding" element={<Onboarding />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/profile/connections" element={<Connections />} />
+                  <Route path="/calendar" element={<CalendarPage />} />
+
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
