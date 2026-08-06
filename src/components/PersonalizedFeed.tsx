@@ -2,10 +2,11 @@ import { useMemo, useState } from 'react';
 import { mockEvents } from '@/data/mockData';
 import { getInterestKeywords, UserProfile } from '@/lib/userProfile';
 import { Event, GroupSize, Participant } from '@/types/event';
-import EventCard from './EventCard';
+import ExpandableEventGrid from './ExpandableEventGrid';
 import { Button } from '@/components/ui/button';
 import { Sparkles, Clock, MapPin, Users } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 
 type TimeWindow = 'hour' | '6h' | 'day';
 
@@ -23,8 +24,8 @@ const WINDOWS: { value: TimeWindow; label: string; ms: number }[] = [
 ];
 
 // Re-anchor mock event dates so the "happening soon" demo is meaningful.
-// Spreads matching events at: +20min, +1.5h, +4h, +10h, +20h.
-const SOON_OFFSETS = [20, 90, 240, 600, 1200].map(m => m * 60 * 1000);
+const SOON_OFFSETS = [20, 90, 240, 600, 1200, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2100].map(m => m * 60 * 1000);
+
 
 const PersonalizedFeed = ({ profile, onAttend, onParticipantClick, onOpenGroupChat }: Props) => {
   const [timeWindow, setTimeWindow] = useState<TimeWindow>('day');
@@ -39,10 +40,11 @@ const PersonalizedFeed = ({ profile, onAttend, onParticipantClick, onOpenGroupCh
     });
     const pool = matches.length >= 5 ? matches : [...matches, ...mockEvents.filter(e => !matches.includes(e))];
     const now = Date.now();
-    return pool.slice(0, 5).map((e, i) => ({
+    return pool.slice(0, 13).map((e, i) => ({
       ...e,
-      date: new Date(now + SOON_OFFSETS[i]),
+      date: new Date(now + SOON_OFFSETS[i % SOON_OFFSETS.length]),
     }));
+
   }, [profile.interests]);
 
   const locations = useMemo(
@@ -72,8 +74,9 @@ const PersonalizedFeed = ({ profile, onAttend, onParticipantClick, onOpenGroupCh
             Happening soon, picked for you
           </h2>
           <p className="text-muted-foreground mb-6">
-            5 events matched to your interests and starting within your selected window.
+            Events matched to your interests and starting within your selected window.
           </p>
+
 
           <div className="flex flex-wrap items-end gap-3 mb-6 bg-card rounded-xl p-4 shadow-card">
             <div className="flex-1 min-w-[160px]">
@@ -129,18 +132,13 @@ const PersonalizedFeed = ({ profile, onAttend, onParticipantClick, onOpenGroupCh
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filtered.map((e, i) => (
-                <div key={e.id} className="animate-fade-in-up" style={{ animationDelay: `${i * 0.08}s` }}>
-                  <EventCard
-                    event={e}
-                    onAttend={onAttend}
-                    onParticipantClick={onParticipantClick}
-                    onOpenGroupChat={onOpenGroupChat}
-                  />
-                </div>
-              ))}
-            </div>
+            <ExpandableEventGrid
+              events={filtered}
+              onAttend={onAttend}
+              onParticipantClick={onParticipantClick}
+              onOpenGroupChat={onOpenGroupChat}
+            />
+
           )}
         </div>
       </div>
