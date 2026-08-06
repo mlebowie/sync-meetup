@@ -1,35 +1,21 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Heart, Bell, Calendar, MapPin, Clock, Compass, Globe, Sparkles, Users, Pencil } from 'lucide-react';
-import { format } from 'date-fns';
+import { ArrowLeft, Calendar, MapPin, Clock, Globe, Users, Pencil } from 'lucide-react';
 import Header from '@/components/Header';
-import EventCard from '@/components/EventCard';
-import ComingUpSection from '@/components/ComingUpSection';
 import GroupsSection from '@/components/GroupsSection';
 import EditProfileDialog from '@/components/EditProfileDialog';
 import { Button } from '@/components/ui/button';
 import { getUserProfile, ONBOARDING_INTERESTS, DEFAULT_PROFILE, calculateAge, UserProfile } from '@/lib/userProfile';
-import { useWishlist } from '@/context/WishlistContext';
-import { useActivityHistory } from '@/context/ActivityHistoryContext';
 import { useSocial } from '@/context/SocialContext';
-import { mockEvents } from '@/data/mockData';
-import { getDailyRotatingEvents } from '@/lib/dailyEvents';
 
 const Profile = () => {
   const [profile, setProfile] = useState<UserProfile>(() => getUserProfile() ?? DEFAULT_PROFILE);
   const [isDefault, setIsDefault] = useState<boolean>(() => !getUserProfile());
   const [editOpen, setEditOpen] = useState(false);
 
-  const { getWishlistedEvents } = useWishlist();
-  const rotatingEvents = getDailyRotatingEvents(mockEvents);
-  // Use full event catalog so any attended event (e.g. claimed from a waitlist notification) appears in Coming Up.
-  const allEvents = mockEvents;
-  const wishlist = getWishlistedEvents(rotatingEvents);
-
-  const { history } = useActivityHistory();
   const { following, followers } = useSocial();
   const connectionsCount = new Set([...following, ...followers]).size;
-  const attendedEvents = isDefault ? [] : history.slice(0, 3);
+
 
   const interests = ONBOARDING_INTERESTS.filter(i => profile.interests.includes(i.id));
   const age = profile.dateOfBirth ? calculateAge(profile.dateOfBirth) : null;
