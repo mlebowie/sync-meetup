@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { User, MessageCircle } from 'lucide-react';
+import { User, MessageCircle, CalendarDays } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import NotificationsPopover from './NotificationsPopover';
 import { getUserProfile } from '@/lib/userProfile';
@@ -44,6 +44,12 @@ const Header = ({ onOpenMessages }: HeaderProps) => {
             <MessageCircle className="h-5 w-5" />
           </Button>
           <NotificationsPopover open={notifOpen} onOpenChange={setNotifOpen} />
+          <Button variant="ghost" size="icon" asChild title="Calendar">
+            <Link to="/calendar" aria-label="Calendar">
+              <CalendarDays className="h-5 w-5" />
+            </Link>
+          </Button>
+
           <Button variant="ghost" size="icon" asChild title="Profile">
             <Link to="/profile">
               <User className="h-5 w-5" />
