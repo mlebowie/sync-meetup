@@ -16,6 +16,7 @@ export const getIcebreaker = (event: Event) =>
 
 export const seedGroupChat = (event: Event): ChatMessage[] => {
   const icebreaker = getIcebreaker(event);
+  const org = event.organizer;
   return [
     {
       id: `seed-${event.id}`,
@@ -26,6 +27,17 @@ export const seedGroupChat = (event: Event): ChatMessage[] => {
       type: 'text',
       timestamp: new Date(event.date.getTime() - 24 * 60 * 60 * 1000),
     },
+    ...(org
+      ? [{
+          id: `seed-${event.id}-host`,
+          authorId: org.id,
+          authorName: `${org.name} (host)`,
+          authorAvatar: org.avatar || '',
+          content: `Hi all — ${org.name} here, hosting "${event.title}". Drop any questions about timing, location or what to bring right here and I'll answer the whole group.`,
+          type: 'text' as const,
+          timestamp: new Date(event.date.getTime() - 23.5 * 60 * 60 * 1000),
+        }]
+      : []),
     ...event.participants.slice(0, 2).map((p, i) => ({
       id: `seed-${event.id}-${p.id}`,
       authorId: p.id,
