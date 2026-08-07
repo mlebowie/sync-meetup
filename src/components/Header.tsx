@@ -56,9 +56,14 @@ const Header = ({ onOpenMessages }: HeaderProps) => {
             </Link>
           </Button>
           {isGuest && (
-            <Button variant="hero" size="sm" asChild>
-              <Link to="/onboarding">Register</Link>
-            </Button>
+            <>
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/login">Log in</Link>
+              </Button>
+              <Button variant="hero" size="sm" asChild>
+                <Link to="/onboarding">Register</Link>
+              </Button>
+            </>
           )}
         </div>
       </div>
