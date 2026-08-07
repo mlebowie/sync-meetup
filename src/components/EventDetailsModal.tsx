@@ -138,17 +138,17 @@ Just yourself and an open attitude. Anything specific (gear, dress code, food co
                     <button
                       type="button"
                       onClick={() => {
-                        if (!isAttending) {
+                        if (!isAttending || !onOpenGroupChat) {
                           toast({
-                            title: 'Attend to unlock messaging',
-                            description: 'Private messages with the organizer open once you RSVP.',
+                            title: 'Attend to unlock the group chat',
+                            description: 'The event chat with the host and attendees opens once you RSVP.',
                           });
                           return;
                         }
-                        setMsgOpen(true);
+                        onOpenGroupChat(event);
                       }}
-                      aria-label={isAttending ? `Message ${org.name}` : 'Attend to message organizer'}
-                      title={isAttending ? `Message ${org.name} privately` : 'Attend to unlock private messaging'}
+                      aria-label={isAttending ? 'Open event group chat' : 'Attend to open group chat'}
+                      title={isAttending ? 'Message the host and attendees' : 'Attend to unlock the group chat'}
                       className={cn(
                         'inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] font-medium transition-colors',
                         isAttending
@@ -156,8 +156,8 @@ Just yourself and an open attitude. Anything specific (gear, dress code, food co
                           : 'border-border text-muted-foreground opacity-60 cursor-not-allowed'
                       )}
                     >
-                      {isAttending ? <Send className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
-                      Message
+                      {isAttending ? <MessageSquare className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
+                      Group chat
                     </button>
                     <span className="flex items-center gap-1 text-xs text-muted-foreground">
                       <Star className="h-3.5 w-3.5 fill-yellow-500 text-yellow-500" />
