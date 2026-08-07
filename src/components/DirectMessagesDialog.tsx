@@ -59,13 +59,6 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
   }, [following, isMutual, dms, initialPartnerId, metFilterOn, metIds]);
 
 
-  // Organizers sorted by most recent
-  const organizerIds = useMemo(
-    () => Object.keys(organizerDms).sort(
-      (a, b) => lastTs(organizerDms[b].messages) - lastTs(organizerDms[a].messages)
-    ),
-    [organizerDms]
-  );
 
   // Group chats sorted by most recent message
   const groupEntries = useMemo(() => {
