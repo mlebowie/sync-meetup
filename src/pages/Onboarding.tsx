@@ -25,6 +25,7 @@ const Onboarding = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [dob, setDob] = useState('');
   const [location, setLocation] = useState('');
   const [neighborhood, setNeighborhood] = useState('');
@@ -45,8 +46,23 @@ const Onboarding = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!firstName || !lastName || !email || interests.length === 0) {
-      toast({ title: 'A few more details', description: 'Name, email and at least one interest are required.' });
+    if (
+      !photo ||
+      !firstName ||
+      !lastName ||
+      !email ||
+      !password ||
+      !dob ||
+      !location ||
+      !neighborhood ||
+      !nationality ||
+      interests.length === 0
+    ) {
+      toast({ title: 'A few more details', description: 'All fields are required, including at least one interest.' });
+      return;
+    }
+    if (password.length < 8) {
+      toast({ title: 'Password too short', description: 'Use at least 8 characters.', variant: 'destructive' });
       return;
     }
     const profile: UserProfile = {
@@ -113,8 +129,13 @@ const Onboarding = () => {
               )}
             </button>
             <div>
-              <p className="font-semibold text-foreground">Profile photo</p>
-              <p className="text-sm text-muted-foreground">PNG or JPG, up to 4MB.</p>
+              <p className="font-semibold text-foreground">
+                Profile photo <span className="text-destructive">*</span>
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Upload a high-resolution photo of you. No avatars allowed.
+              </p>
+              <p className="text-xs text-muted-foreground">PNG or JPG, up to 4MB.</p>
               <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => fileRef.current?.click()}>
                 {photo ? 'Change photo' : 'Upload photo'}
               </Button>
@@ -131,31 +152,48 @@ const Onboarding = () => {
           {/* Name */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="firstName">First name</Label>
+              <Label htmlFor="firstName">First name <span className="text-destructive">*</span></Label>
               <Input id="firstName" value={firstName} onChange={e => setFirstName(e.target.value)} maxLength={60} required />
             </div>
             <div>
-              <Label htmlFor="lastName">Last name</Label>
+              <Label htmlFor="lastName">Last name <span className="text-destructive">*</span></Label>
               <Input id="lastName" value={lastName} onChange={e => setLastName(e.target.value)} maxLength={60} required />
             </div>
           </div>
 
-          {/* Email + DOB */}
+          {/* Email + password */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="email">Email address</Label>
+              <Label htmlFor="email">Email address <span className="text-destructive">*</span></Label>
               <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} maxLength={120} required />
             </div>
             <div>
-              <Label htmlFor="dob">Date of birth</Label>
-              <Input id="dob" type="date" value={dob} onChange={e => setDob(e.target.value)} />
+              <Label htmlFor="password">Password <span className="text-destructive">*</span></Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                minLength={8}
+                autoComplete="new-password"
+                required
+              />
+              <p className="text-xs text-muted-foreground mt-1">At least 8 characters.</p>
+            </div>
+          </div>
+
+          {/* DOB */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="dob">Date of birth <span className="text-destructive">*</span></Label>
+              <Input id="dob" type="date" value={dob} onChange={e => setDob(e.target.value)} required />
             </div>
           </div>
 
           {/* Location + neighborhood */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="location">Location (city)</Label>
+              <Label htmlFor="location">Location (city) <span className="text-destructive">*</span></Label>
               <TypeaheadSelect
                 id="location"
                 value={location}
@@ -171,7 +209,7 @@ const Onboarding = () => {
               />
             </div>
             <div>
-              <Label htmlFor="neighborhood">Neighborhood</Label>
+              <Label htmlFor="neighborhood">Neighborhood <span className="text-destructive">*</span></Label>
               {CITY_NEIGHBORHOODS[location] ? (
                 <TypeaheadSelect
                   id="neighborhood"
@@ -196,7 +234,7 @@ const Onboarding = () => {
 
           {/* Nationality */}
           <div>
-            <Label htmlFor="nationality">Nationality</Label>
+            <Label htmlFor="nationality">Nationality <span className="text-destructive">*</span></Label>
             <TypeaheadSelect
               id="nationality"
               value={nationality}
@@ -215,9 +253,12 @@ const Onboarding = () => {
 
           {/* Interests */}
           <div>
-            <Label className="text-sm font-semibold text-foreground mb-3 block">
-              Pick your interests
-            </Label>
+            <div className="flex items-baseline gap-2 mb-3">
+              <Label className="text-sm font-semibold text-foreground">
+                Pick your interests <span className="text-destructive">*</span>
+              </Label>
+              <span className="text-xs text-muted-foreground">Pick at least one.</span>
+            </div>
             <div className="flex flex-wrap gap-2">
               {ONBOARDING_INTERESTS.map(i => (
                 <Button
@@ -232,7 +273,6 @@ const Onboarding = () => {
                 </Button>
               ))}
             </div>
-            <p className="text-xs text-muted-foreground mt-2">Pick at least one.</p>
           </div>
 
           <div className="flex justify-end pt-2">
