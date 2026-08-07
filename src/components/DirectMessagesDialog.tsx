@@ -275,7 +275,7 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
             <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground p-8 text-center">
               Pick a group chat on the left to jump back in.
             </div>
-          ) : (partner || orgThread) ? (
+          ) : partner ? (
             <>
               <div className="p-3 border-b flex items-center gap-2">
                 {headerAvatar && (
@@ -332,9 +332,7 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
             </>
           ) : (
             <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground p-8 text-center">
-              {isOrganizerView
-                ? 'Message an event organizer from any event you’re attending — your conversation will appear here.'
-                : 'Tap on a participant avatar in any event card to view their profile and follow them.'}
+              Tap on a participant avatar in any event card to view their profile and follow them.
             </div>
           )}
         </section>
