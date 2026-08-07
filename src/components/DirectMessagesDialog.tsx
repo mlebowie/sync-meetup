@@ -6,7 +6,7 @@ import { useSocial } from '@/context/SocialContext';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
 
 import { mockParticipants, mockEvents } from '@/data/mockData';
-import { Send, MessageCircle, Users, Shield, UsersRound, Check } from 'lucide-react';
+import { Send, MessageCircle, Users, UsersRound, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import EventGroupChatDialog from './EventGroupChatDialog';
 import CrewChatDialog from './CrewChatDialog';
@@ -23,13 +23,13 @@ interface Props {
 
 }
 
-type Category = 'people' | 'organizers' | 'groups';
+type Category = 'people' | 'groups';
 
 const lastTs = (msgs: { timestamp: Date }[]) =>
   msgs.length ? new Date(msgs[msgs.length - 1].timestamp).getTime() : 0;
 
 const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEventTitle }: Props) => {
-  const { following, isMutual, dms, sendDM, organizerDms, sendOrganizerMessage, groupChats, crewChats, currentUser } = useSocial();
+  const { following, isMutual, dms, sendDM, groupChats, crewChats, currentUser } = useSocial();
   const { history, tags } = useActivityHistory();
   const [metFilterOn, setMetFilterOn] = useState(true);
 
@@ -126,7 +126,7 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
       <DialogContent className="max-w-2xl p-0 gap-0 flex h-[560px]">
         <DialogHeader className="sr-only">
           <DialogTitle>Direct messages</DialogTitle>
-          <DialogDescription>Chats with people and event organizers</DialogDescription>
+          <DialogDescription>Chats with people and event groups</DialogDescription>
         </DialogHeader>
 
         <aside className="w-60 border-r flex flex-col">
