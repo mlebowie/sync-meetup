@@ -31,7 +31,7 @@ const CalendarPage = () => {
         <h1 className="text-2xl font-bold mb-8">My calendar</h1>
 
         {/* Coming Up */}
-        <ComingUpSection allEvents={mockEvents} />
+        <ComingUpSection allEvents={rotatingEvents} />
 
         {/* Attended events */}
         <section className="mb-10">
