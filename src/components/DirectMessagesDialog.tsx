@@ -91,43 +91,33 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
         setCategory('people');
         setActiveId(initialPartnerId);
       } else {
-        setActiveId(category === 'people' ? mutualIds[0] || null : category === 'organizers' ? organizerIds[0] || null : null);
+        setActiveId(category === 'people' ? mutualIds[0] || null : null);
       }
     }
   }, [open, initialPartnerId]); // eslint-disable-line
 
   useEffect(() => {
     if (category === 'groups') return;
-    setActiveId(category === 'people' ? mutualIds[0] || null : organizerIds[0] || null);
+    setActiveId(mutualIds[0] || null);
     // eslint-disable-next-line
   }, [category]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
-  }, [activeId, dms, organizerDms]);
+  }, [activeId, dms]);
 
-  const isOrganizerView = category === 'organizers';
-  const partner = !isOrganizerView ? mockParticipants.find(p => p.id === activeId) : null;
-  const orgThread = isOrganizerView && activeId ? organizerDms[activeId] : null;
+  const partner = mockParticipants.find(p => p.id === activeId) || null;
 
-  const thread = isOrganizerView
-    ? orgThread?.messages || []
-    : activeId ? dms[activeId]?.messages || [] : [];
+  const thread = activeId ? dms[activeId]?.messages || [] : [];
 
-  const headerName = isOrganizerView ? orgThread?.organizer.name : partner?.name;
-  const headerAvatar = isOrganizerView ? orgThread?.organizer.avatar : partner?.avatar;
-  const headerSub = isOrganizerView
-    ? orgThread ? `Organizer · ${orgThread.eventTitle}` : ''
-    : partner?.neighborhood;
+  const headerName = partner?.name;
+  const headerAvatar = partner?.avatar;
+  const headerSub = partner?.neighborhood;
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeId || !draft.trim()) return;
-    if (isOrganizerView && orgThread) {
-      sendOrganizerMessage(orgThread.organizer, orgThread.eventTitle, draft.trim());
-    } else {
-      sendDM(activeId, draft.trim());
-    }
+    sendDM(activeId, draft.trim());
     setDraft('');
   };
 
