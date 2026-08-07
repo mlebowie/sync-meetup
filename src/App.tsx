@@ -9,6 +9,7 @@ import Onboarding from "./pages/Onboarding";
 import Profile from "./pages/Profile";
 import Connections from "./pages/Connections";
 import CalendarPage from "./pages/CalendarPage";
+import Login from "./pages/Login";
 
 import { SocialProvider } from "./context/SocialContext";
 import { ActivityHistoryProvider } from "./context/ActivityHistoryContext";
