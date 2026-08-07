@@ -46,8 +46,23 @@ const Onboarding = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!firstName || !lastName || !email || interests.length === 0) {
-      toast({ title: 'A few more details', description: 'Name, email and at least one interest are required.' });
+    if (
+      !photo ||
+      !firstName ||
+      !lastName ||
+      !email ||
+      !password ||
+      !dob ||
+      !location ||
+      !neighborhood ||
+      !nationality ||
+      interests.length === 0
+    ) {
+      toast({ title: 'A few more details', description: 'All fields are required, including at least one interest.' });
+      return;
+    }
+    if (password.length < 8) {
+      toast({ title: 'Password too short', description: 'Use at least 8 characters.', variant: 'destructive' });
       return;
     }
     const profile: UserProfile = {
