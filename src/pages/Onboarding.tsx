@@ -25,6 +25,7 @@ const Onboarding = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [dob, setDob] = useState('');
   const [location, setLocation] = useState('');
   const [neighborhood, setNeighborhood] = useState('');
