@@ -150,11 +150,10 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
           <div className="p-3 border-b">
             <h3 className="font-display text-sm">Messages</h3>
           </div>
-          <div className="grid grid-cols-3 gap-1 p-2 border-b">
+          <div className="grid grid-cols-2 gap-1 p-2 border-b">
             {([
               { id: 'people' as const, label: 'People', icon: Users, count: mutualIds.length },
               { id: 'groups' as const, label: 'Groups', icon: UsersRound, count: groupEntries.length + crewEntries.length },
-              { id: 'organizers' as const, label: 'Hosts', icon: Shield, count: organizerIds.length },
             ]).map(tab => {
               const Icon = tab.icon;
               const active = category === tab.id;
@@ -285,38 +284,6 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
               )
             )}
 
-            {category === 'organizers' && (
-              organizerIds.length === 0 ? (
-                <div className="p-4 text-center">
-                  <Shield className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-xs text-muted-foreground">
-                    Message an event organizer from any event you're attending to start a private thread.
-                  </p>
-                </div>
-              ) : (
-                organizerIds.map(id => {
-                  const t = organizerDms[id];
-                  const last = t.messages[t.messages.length - 1];
-                  return (
-                    <button
-                      key={id}
-                      onClick={() => setActiveId(id)}
-                      className={`w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-secondary/50 transition-colors ${activeId === id ? 'bg-secondary' : ''}`}
-                    >
-                      {t.organizer.avatar && (
-                        <img src={t.organizer.avatar} alt={t.organizer.name} className="w-8 h-8 rounded-full object-cover" />
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm truncate">{t.organizer.name}</p>
-                        <p className="text-[11px] text-muted-foreground truncate">
-                          {last ? formatDistanceToNowStrict(new Date(last.timestamp), { addSuffix: true }) : t.eventTitle}
-                        </p>
-                      </div>
-                    </button>
-                  );
-                })
-              )
-            )}
           </div>
         </aside>
 
