@@ -49,7 +49,7 @@ const EventDetailsModal = ({
   const org = event.organizer;
   const extraTestimonials = syntheticTestimonials(event);
   const [orgOpen, setOrgOpen] = useState(false);
-  const [msgOpen, setMsgOpen] = useState(false);
+  
   const { toast } = useToast();
 
   const extendedDescription = `${event.description}
@@ -271,7 +271,7 @@ Just yourself and an open attitude. Anything specific (gear, dress code, food co
           )}
         </div>
       </DialogContent>
-      {org && <OrganizerDetailsDialog organizer={org} open={orgOpen} onOpenChange={setOrgOpen} />
+      {org && <OrganizerDetailsDialog organizer={org} open={orgOpen} onOpenChange={setOrgOpen} />}
     </Dialog>
   );
 };
