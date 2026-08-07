@@ -6,7 +6,7 @@ import { useSocial } from '@/context/SocialContext';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
 
 import { mockParticipants, mockEvents } from '@/data/mockData';
-import { Send, MessageCircle, Users, Shield, UsersRound, Check } from 'lucide-react';
+import { Send, MessageCircle, Users, UsersRound, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import EventGroupChatDialog from './EventGroupChatDialog';
 import CrewChatDialog from './CrewChatDialog';
@@ -23,13 +23,13 @@ interface Props {
 
 }
 
-type Category = 'people' | 'organizers' | 'groups';
+type Category = 'people' | 'groups';
 
 const lastTs = (msgs: { timestamp: Date }[]) =>
   msgs.length ? new Date(msgs[msgs.length - 1].timestamp).getTime() : 0;
 
 const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEventTitle }: Props) => {
-  const { following, isMutual, dms, sendDM, organizerDms, sendOrganizerMessage, groupChats, crewChats, currentUser } = useSocial();
+  const { following, isMutual, dms, sendDM, groupChats, crewChats, currentUser } = useSocial();
   const { history, tags } = useActivityHistory();
   const [metFilterOn, setMetFilterOn] = useState(true);
 
@@ -59,13 +59,6 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
   }, [following, isMutual, dms, initialPartnerId, metFilterOn, metIds]);
 
 
-  // Organizers sorted by most recent
-  const organizerIds = useMemo(
-    () => Object.keys(organizerDms).sort(
-      (a, b) => lastTs(organizerDms[b].messages) - lastTs(organizerDms[a].messages)
-    ),
-    [organizerDms]
-  );
 
   // Group chats sorted by most recent message
   const groupEntries = useMemo(() => {
@@ -98,43 +91,33 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
         setCategory('people');
         setActiveId(initialPartnerId);
       } else {
-        setActiveId(category === 'people' ? mutualIds[0] || null : category === 'organizers' ? organizerIds[0] || null : null);
+        setActiveId(category === 'people' ? mutualIds[0] || null : null);
       }
     }
   }, [open, initialPartnerId]); // eslint-disable-line
 
   useEffect(() => {
     if (category === 'groups') return;
-    setActiveId(category === 'people' ? mutualIds[0] || null : organizerIds[0] || null);
+    setActiveId(mutualIds[0] || null);
     // eslint-disable-next-line
   }, [category]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
-  }, [activeId, dms, organizerDms]);
+  }, [activeId, dms]);
 
-  const isOrganizerView = category === 'organizers';
-  const partner = !isOrganizerView ? mockParticipants.find(p => p.id === activeId) : null;
-  const orgThread = isOrganizerView && activeId ? organizerDms[activeId] : null;
+  const partner = mockParticipants.find(p => p.id === activeId) || null;
 
-  const thread = isOrganizerView
-    ? orgThread?.messages || []
-    : activeId ? dms[activeId]?.messages || [] : [];
+  const thread = activeId ? dms[activeId]?.messages || [] : [];
 
-  const headerName = isOrganizerView ? orgThread?.organizer.name : partner?.name;
-  const headerAvatar = isOrganizerView ? orgThread?.organizer.avatar : partner?.avatar;
-  const headerSub = isOrganizerView
-    ? orgThread ? `Organizer · ${orgThread.eventTitle}` : ''
-    : partner?.neighborhood;
+  const headerName = partner?.name;
+  const headerAvatar = partner?.avatar;
+  const headerSub = partner?.neighborhood;
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeId || !draft.trim()) return;
-    if (isOrganizerView && orgThread) {
-      sendOrganizerMessage(orgThread.organizer, orgThread.eventTitle, draft.trim());
-    } else {
-      sendDM(activeId, draft.trim());
-    }
+    sendDM(activeId, draft.trim());
     setDraft('');
   };
 
@@ -143,18 +126,17 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
       <DialogContent className="max-w-2xl p-0 gap-0 flex h-[560px]">
         <DialogHeader className="sr-only">
           <DialogTitle>Direct messages</DialogTitle>
-          <DialogDescription>Chats with people and event organizers</DialogDescription>
+          <DialogDescription>Chats with people and event groups</DialogDescription>
         </DialogHeader>
 
         <aside className="w-60 border-r flex flex-col">
           <div className="p-3 border-b">
             <h3 className="font-display text-sm">Messages</h3>
           </div>
-          <div className="grid grid-cols-3 gap-1 p-2 border-b">
+          <div className="grid grid-cols-2 gap-1 p-2 border-b">
             {([
               { id: 'people' as const, label: 'People', icon: Users, count: mutualIds.length },
               { id: 'groups' as const, label: 'Groups', icon: UsersRound, count: groupEntries.length + crewEntries.length },
-              { id: 'organizers' as const, label: 'Hosts', icon: Shield, count: organizerIds.length },
             ]).map(tab => {
               const Icon = tab.icon;
               const active = category === tab.id;
@@ -285,38 +267,6 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
               )
             )}
 
-            {category === 'organizers' && (
-              organizerIds.length === 0 ? (
-                <div className="p-4 text-center">
-                  <Shield className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-xs text-muted-foreground">
-                    Message an event organizer from any event you're attending to start a private thread.
-                  </p>
-                </div>
-              ) : (
-                organizerIds.map(id => {
-                  const t = organizerDms[id];
-                  const last = t.messages[t.messages.length - 1];
-                  return (
-                    <button
-                      key={id}
-                      onClick={() => setActiveId(id)}
-                      className={`w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-secondary/50 transition-colors ${activeId === id ? 'bg-secondary' : ''}`}
-                    >
-                      {t.organizer.avatar && (
-                        <img src={t.organizer.avatar} alt={t.organizer.name} className="w-8 h-8 rounded-full object-cover" />
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm truncate">{t.organizer.name}</p>
-                        <p className="text-[11px] text-muted-foreground truncate">
-                          {last ? formatDistanceToNowStrict(new Date(last.timestamp), { addSuffix: true }) : t.eventTitle}
-                        </p>
-                      </div>
-                    </button>
-                  );
-                })
-              )
-            )}
           </div>
         </aside>
 
@@ -325,7 +275,7 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
             <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground p-8 text-center">
               Pick a group chat on the left to jump back in.
             </div>
-          ) : (partner || orgThread) ? (
+          ) : partner ? (
             <>
               <div className="p-3 border-b flex items-center gap-2">
                 {headerAvatar && (
@@ -382,9 +332,7 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
             </>
           ) : (
             <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground p-8 text-center">
-              {isOrganizerView
-                ? 'Message an event organizer from any event you’re attending — your conversation will appear here.'
-                : 'Tap on a participant avatar in any event card to view their profile and follow them.'}
+              Tap on a participant avatar in any event card to view their profile and follow them.
             </div>
           )}
         </section>

@@ -1,15 +1,17 @@
 import { useMemo, useState } from 'react';
-import { Calendar, MapPin, Clock, Bell, Mail, MessageSquare, X, Check, Eye, Send } from 'lucide-react';
+import { Calendar, MapPin, Clock, Bell, Mail, MessageSquare, X, Check, Eye, Send, CalendarPlus, Share2, Apple, MessageCircle, Link2, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { Event } from '@/types/event';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAttending, ReminderMethod } from '@/context/AttendingContext';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import EventDetailsModal from '@/components/EventDetailsModal';
-import OrganizerMessageDialog from '@/components/OrganizerMessageDialog';
+import EventGroupChatDialog from '@/components/EventGroupChatDialog';
+import { googleCalendarUrl, downloadIcs, shareStrings } from '@/lib/eventCalendar';
 
 interface Props {
   allEvents: Event[];
@@ -69,8 +71,14 @@ const ComingUpCard = ({ event, prefs, onUpdate, onRemove }: CardProps) => {
   const [showContact, setShowContact] = useState(prefs.reminder !== 'none');
   const [submitted, setSubmitted] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const [msgOpen, setMsgOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
   const { toast } = useToast();
+  const share = shareStrings(event);
+
+  const copyLink = async () => {
+    await navigator.clipboard.writeText(`${share.text} ${share.url}`);
+    toast({ title: 'Link copied', description: 'Share it anywhere.' });
+  };
 
   const pickReminder = (method: ReminderMethod) => {
     onUpdate({ reminder: method });
@@ -140,18 +148,71 @@ const ComingUpCard = ({ event, prefs, onUpdate, onRemove }: CardProps) => {
                 <Eye className="h-3 w-3" />
                 View more
               </button>
-              {event.organizer && (
-                <button
-                  type="button"
-                  onClick={() => setMsgOpen(true)}
-                  className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
-                >
-                  <Send className="h-3 w-3" />
-                  Message organizer
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => setChatOpen(true)}
+                className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+              >
+                <Users className="h-3 w-3" />
+                Group chat
+              </button>
             </div>
           </div>
+        </div>
+
+        {/* Add to calendar / Share */}
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-8 text-xs justify-center">
+                <CalendarPlus className="h-3.5 w-3.5 mr-1.5" />
+                Add to calendar
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="z-50">
+              <DropdownMenuItem asChild>
+                <a href={googleCalendarUrl(event)} target="_blank" rel="noopener noreferrer">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Google Calendar
+                </a>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => downloadIcs(event)}>
+                <Apple className="h-4 w-4 mr-2" />
+                Apple / .ics
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-8 text-xs justify-center">
+                <Share2 className="h-3.5 w-3.5 mr-1.5" />
+                Share
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="z-50">
+              <DropdownMenuItem asChild>
+                <a
+                  href={`https://wa.me/?text=${encodeURIComponent(`${share.text} ${share.url}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  WhatsApp
+                </a>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <a href={`mailto:?subject=${encodeURIComponent(event.title)}&body=${encodeURIComponent(`${share.text}\n\n${share.url}`)}`}>
+                  <Mail className="h-4 w-4 mr-2" />
+                  Email
+                </a>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={copyLink}>
+                <Link2 className="h-4 w-4 mr-2" />
+                Copy link
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         <div className="mt-3 pt-3 border-t space-y-3">
@@ -225,15 +286,9 @@ const ComingUpCard = ({ event, prefs, onUpdate, onRemove }: CardProps) => {
         onOpenChange={setDetailsOpen}
         isAttending={true}
         onAttend={onRemove}
+        onOpenGroupChat={() => { setDetailsOpen(false); setChatOpen(true); }}
       />
-      {event.organizer && (
-        <OrganizerMessageDialog
-          organizer={event.organizer}
-          eventTitle={event.title}
-          open={msgOpen}
-          onOpenChange={setMsgOpen}
-        />
-      )}
+      <EventGroupChatDialog event={event} open={chatOpen} onOpenChange={setChatOpen} />
     </>
   );
 };
