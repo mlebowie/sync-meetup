@@ -1,15 +1,17 @@
 import { useMemo, useState } from 'react';
-import { Calendar, MapPin, Clock, Bell, Mail, MessageSquare, X, Check, Eye, Send } from 'lucide-react';
+import { Calendar, MapPin, Clock, Bell, Mail, MessageSquare, X, Check, Eye, Send, CalendarPlus, Share2, Apple, MessageCircle, Link2, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { Event } from '@/types/event';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAttending, ReminderMethod } from '@/context/AttendingContext';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import EventDetailsModal from '@/components/EventDetailsModal';
-import OrganizerMessageDialog from '@/components/OrganizerMessageDialog';
+import EventGroupChatDialog from '@/components/EventGroupChatDialog';
+import { googleCalendarUrl, downloadIcs, shareStrings } from '@/lib/eventCalendar';
 
 interface Props {
   allEvents: Event[];
