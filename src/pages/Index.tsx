@@ -9,6 +9,7 @@ import ActivityFeed from '@/components/ActivityFeed';
 
 import PostEventReflectionDialog from '@/components/PostEventReflectionDialog';
 import GuestLanding from '@/components/GuestLanding';
+import HowSyncWorks from '@/components/HowSyncWorks';
 import RecommendedCarousel from '@/components/RecommendedCarousel';
 import FriendsLoveSection from '@/components/FriendsLoveSection';
 import UpcomingEventsSection from '@/components/UpcomingEventsSection';
@@ -124,6 +125,7 @@ const Index = () => {
       {isGuest ? (
         <>
           <Hero />
+          <HowSyncWorks />
           <GuestLanding
             onAttend={handleAttend}
             onParticipantClick={handleParticipantClick}
