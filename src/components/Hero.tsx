@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Repeat, Trophy, Users } from 'lucide-react';
 
@@ -30,10 +31,12 @@ const Hero = () => {
 
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-            <Button variant="hero" size="xl">
-              See your matches
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
+            <Link to="/onboarding">
+              <Button variant="hero" size="xl">
+                See your matches
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
             <Button variant="outline" size="xl" className="bg-transparent text-hero-foreground border-hero-foreground/40 hover:bg-[hsl(0_0%_100%/0.12)] hover:text-hero-foreground">How it works</Button>
           </div>
 
