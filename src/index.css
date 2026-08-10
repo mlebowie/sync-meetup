@@ -158,22 +158,23 @@
   }
   
   .gradient-hero {
-    background: linear-gradient(135deg, hsl(212 75% 7%) 0%, hsl(210 65% 13%) 30%, hsl(207 58% 20%) 55%, hsl(16 85% 32%) 80%, hsl(33 80% 38%) 100%);
+    background: linear-gradient(135deg, hsl(20 30% 9%) 0%, hsl(30 22% 14%) 30%, hsl(75 20% 20%) 55%, hsl(10 70% 32%) 80%, hsl(20 75% 38%) 100%);
     background-size: 300% 300%;
     animation: sunset-drift 18s ease-in-out infinite;
   }
 
   .text-hero-foreground {
-    color: hsl(0 0% 100%);
+    color: hsl(45 57% 97%);
   }
 
   .text-hero-muted {
-    color: hsl(210 40% 94%);
+    color: hsl(42 40% 92%);
   }
 
   .text-hero-accent {
-    color: hsl(33 100% 72%);
+    color: hsl(37 100% 82%);
   }
+
 
   @keyframes sunset-drift {
     0%, 100% { background-position: 0% 50%; }
