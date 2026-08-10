@@ -55,6 +55,11 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        "event-card": {
+          DEFAULT: "hsl(var(--event-card))",
+          foreground: "hsl(var(--event-card-foreground))",
+        },
+
         activity: {
           low: "hsl(var(--activity-low))",
           moderate: "hsl(var(--activity-moderate))",
