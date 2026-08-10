@@ -83,7 +83,7 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
 
   return (
     <div
-      className="group bg-card rounded-2xl shadow-card hover:shadow-card-hover transition-all duration-300 overflow-hidden"
+      className="group bg-event-card text-event-card-foreground rounded-2xl shadow-card hover:shadow-card-hover transition-all duration-300 overflow-hidden"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
