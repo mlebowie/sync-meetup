@@ -31,16 +31,17 @@ function ordinal(n: number) {
 }
 
 const sourceColors = {
-  meetup: 'bg-red-500',
-  eventbrite: 'bg-orange-500',
-  luma: 'bg-purple-500',
+  meetup: 'bg-red-700 text-red-50',
+  eventbrite: 'bg-orange-700 text-orange-50',
+  luma: 'bg-purple-700 text-purple-50',
 };
 
 const activityColors = {
-  low: 'bg-activity-low',
-  moderate: 'bg-activity-moderate',
-  high: 'bg-activity-high',
+  low: 'bg-activity-low text-primary-foreground',
+  moderate: 'bg-activity-moderate text-foreground',
+  high: 'bg-activity-high text-primary-foreground',
 };
+
 
 const intensityLabels = {
   chill: '😌 Chill',
