@@ -105,8 +105,9 @@
     --success: 75 30% 55%;
     --success-foreground: 20 25% 10%;
 
-    --destructive: 10 65% 42%;
-    --destructive-foreground: 45 40% 96%;
+    --destructive: 10 65% 60%;
+    --destructive-foreground: 20 25% 10%;
+
 
 
     --border: 30 12% 24%;
