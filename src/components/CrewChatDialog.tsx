@@ -46,7 +46,7 @@ const CrewChatDialog = ({ crew, open, onOpenChange }: Props) => {
       <DialogContent className="max-w-lg p-0 gap-0 flex flex-col h-[600px]">
         <DialogHeader className="p-4 border-b">
           <DialogTitle className="text-base font-display flex items-center gap-2">
-            <Users2 className="h-4 w-4 text-accent" />
+            <Users2 className="h-4 w-4 text-accent-strong" />
             {crew.name}
           </DialogTitle>
           <DialogDescription className="text-xs">{crew.reason}</DialogDescription>

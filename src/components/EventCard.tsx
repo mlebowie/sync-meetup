@@ -125,7 +125,7 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
             <span className="px-2 py-1 rounded-md text-xs font-medium bg-emerald-500/90 text-white">Pet friendly</span>
           )}
           {event.trending && (
-            <span className="px-2 py-1 rounded-md text-xs font-medium bg-accent text-white flex items-center gap-1">
+            <span className="px-2 py-1 rounded-md text-xs font-medium bg-accent text-accent-foreground flex items-center gap-1">
               <TrendingUp className="h-3 w-3" />
               Trending
             </span>
@@ -166,7 +166,7 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
             </span>
           )}
           {familiarCount > 0 && (
-            <span className="px-2 py-0.5 text-[11px] font-medium rounded-full bg-accent/15 text-accent">
+            <span className="px-2 py-0.5 text-[11px] font-medium rounded-full bg-accent/15 text-accent-strong">
               {familiarCount} familiar {familiarCount === 1 ? 'face' : 'faces'}
             </span>
           )}
@@ -192,7 +192,7 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
             <span>{format(event.date, 'EEEE, MMMM d')}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-accent" />
+            <Clock className="h-4 w-4 text-accent-strong" />
             <span>{event.time}</span>
           </div>
           <div className="flex items-center gap-2">

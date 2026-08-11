@@ -86,7 +86,7 @@ const WaitlistDialog = ({ event, open, onOpenChange }: Props) => {
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            {joined ? <Check className="h-5 w-5 text-primary" /> : <Hourglass className="h-5 w-5 text-accent" />}
+            {joined ? <Check className="h-5 w-5 text-primary" /> : <Hourglass className="h-5 w-5 text-accent-strong" />}
             {joined ? "You're on the waitlist" : 'Join the waitlist'}
           </DialogTitle>
           <DialogDescription>

@@ -37,7 +37,7 @@ const iconFor = (t: NotifType) => {
 
 const tint: Record<NotifType, string> = {
   follow: 'bg-primary/10 text-primary',
-  reflect: 'bg-accent/10 text-accent',
+  reflect: 'bg-accent/10 text-accent-strong',
   rate: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
   waitlist: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
 };

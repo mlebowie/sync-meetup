@@ -198,7 +198,7 @@ const UpcomingEventsSection = ({ events, profile, onAttend, onParticipantClick, 
           {/* Intensity */}
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <Zap className="h-4 w-4 text-accent" />
+              <Zap className="h-4 w-4 text-accent-strong" />
               <span className="text-sm font-semibold">Preferred intensity</span>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -250,7 +250,7 @@ const UpcomingEventsSection = ({ events, profile, onAttend, onParticipantClick, 
           {/* Interests */}
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <Sparkles className="h-4 w-4 text-accent" />
+              <Sparkles className="h-4 w-4 text-accent-strong" />
               <span className="text-sm font-semibold">Interests</span>
             </div>
             <div className="flex flex-wrap gap-2">

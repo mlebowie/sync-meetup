@@ -236,7 +236,7 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
                       className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-secondary/50 transition-colors"
                     >
                       <div className="w-8 h-8 rounded-md bg-accent/20 flex items-center justify-center shrink-0">
-                        <UsersRound className="h-4 w-4 text-accent" />
+                        <UsersRound className="h-4 w-4 text-accent-strong" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="text-sm truncate">{crew.name}</p>
