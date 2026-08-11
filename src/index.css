@@ -32,6 +32,8 @@
     --accent-foreground: 20 25% 14%;
     /* Text-safe variant of the olive highlight (AA on cream/white) */
     --accent-strong: 75 27% 34%;
+    /* Text/icon color for solid vivid badges — light in both themes */
+    --vivid-foreground: 45 57% 97%;
 
     --success: 75 27% 34%;
     --success-foreground: 45 57% 97%;
@@ -102,6 +104,7 @@
     --accent: 75 27% 58%;
     --accent-foreground: 20 25% 12%;
     --accent-strong: 75 32% 62%;
+    --vivid-foreground: 45 40% 96%;
 
     --success: 75 30% 55%;
     --success-foreground: 20 25% 10%;

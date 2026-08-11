@@ -37,9 +37,9 @@ const sourceColors = {
 };
 
 const activityColors = {
-  low: 'bg-activity-low text-primary-foreground',
+  low: 'bg-activity-low text-vivid-foreground',
   moderate: 'bg-activity-moderate text-foreground',
-  high: 'bg-activity-high text-primary-foreground',
+  high: 'bg-activity-high text-vivid-foreground',
 };
 
 

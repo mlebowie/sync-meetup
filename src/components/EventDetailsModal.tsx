@@ -76,7 +76,7 @@ Just yourself and an open attitude. Anything specific (gear, dress code, food co
           <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
           <div className="absolute top-3 left-3 flex items-center gap-2">
-            <span className={`px-2 py-1 rounded-md text-xs font-semibold text-white ${sourceColors[event.source]}`}>
+            <span className={`px-2 py-1 rounded-md text-xs font-semibold text-vivid-foreground ${sourceColors[event.source]}`}>
               {event.source.charAt(0).toUpperCase() + event.source.slice(1)}
             </span>
             <span className="px-2 py-1 rounded-md text-xs font-medium bg-white/90 text-foreground">
