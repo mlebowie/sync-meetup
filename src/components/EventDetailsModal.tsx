@@ -21,10 +21,11 @@ interface EventDetailsModalProps {
 }
 
 const sourceColors: Record<string, string> = {
-  meetup: 'bg-red-500',
-  eventbrite: 'bg-orange-500',
-  luma: 'bg-purple-500',
+  meetup: 'bg-red-700',
+  eventbrite: 'bg-orange-700',
+  luma: 'bg-purple-700',
 };
+
 
 function syntheticTestimonials(event: Event) {
   // Build 2 extra testimonials from past participants for richer social proof
