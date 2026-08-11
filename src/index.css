@@ -90,22 +90,24 @@
     --popover-foreground: 45 40% 95%;
 
     --primary: 10 71% 56%;
-    --primary-foreground: 45 40% 96%;
+    --primary-foreground: 20 25% 10%;
 
     --secondary: 30 15% 18%;
     --secondary-foreground: 45 30% 92%;
 
     --muted: 30 12% 18%;
-    --muted-foreground: 40 12% 68%;
+    --muted-foreground: 40 12% 70%;
 
     --accent: 75 27% 58%;
     --accent-foreground: 20 25% 12%;
+    --accent-strong: 75 32% 62%;
 
-    --success: 75 27% 46%;
-    --success-foreground: 20 25% 12%;
+    --success: 75 30% 55%;
+    --success-foreground: 20 25% 10%;
 
-    --destructive: 10 65% 48%;
+    --destructive: 10 65% 42%;
     --destructive-foreground: 45 40% 96%;
+
 
     --border: 30 12% 24%;
     --input: 30 12% 24%;
