@@ -19,47 +19,59 @@
     --popover: 45 57% 98%;
     --popover-foreground: 20 25% 14%;
 
-    --primary: 10 71% 53%;
+    --primary: 10 71% 47%;
     --primary-foreground: 45 57% 97%;
+    --primary-hover: 10 71% 39%;
 
     --secondary: 42 45% 92%;
     --secondary-foreground: 20 25% 18%;
+    --secondary-hover: 42 45% 85%;
 
     --muted: 42 30% 92%;
-    --muted-foreground: 25 12% 40%;
+    --muted-foreground: 25 12% 38%;
 
     --accent: 75 27% 54%;
-    --accent-foreground: 45 57% 97%;
+    --accent-foreground: 20 25% 14%;
+    /* Text-safe variant of the olive highlight (AA on cream/white) */
+    --accent-strong: 75 27% 34%;
+    /* Text/icon color for solid vivid badges — light in both themes */
+    --vivid-foreground: 45 57% 97%;
+    /* Fixed dark ink for light/amber solid surfaces (does not flip with theme) */
+    --vivid-ink: 20 25% 12%;
 
-    --success: 75 27% 42%;
+    --success: 75 27% 34%;
     --success-foreground: 45 57% 97%;
 
-    --destructive: 10 71% 48%;
+    --destructive: 10 71% 44%;
     --destructive-foreground: 45 57% 97%;
+    --destructive-hover: 10 71% 36%;
 
-    --border: 40 25% 86%;
-    --input: 40 25% 86%;
-    --ring: 10 71% 53%;
+    --border: 40 25% 80%;
+    --input: 40 25% 76%;
+    --ring: 10 71% 47%;
+
 
     --radius: 0.75rem;
 
     /* Custom tokens - SYNC clay & olive palette */
-    --gradient-primary: linear-gradient(135deg, hsl(10 71% 53%) 0%, hsl(20 85% 58%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(10 71% 47%) 0%, hsl(20 85% 50%) 100%);
     --gradient-accent: linear-gradient(135deg, hsl(75 27% 54%) 0%, hsl(37 100% 87%) 100%);
+
     --gradient-hero: linear-gradient(135deg, hsl(20 30% 14%) 0%, hsl(75 22% 24%) 45%, hsl(10 71% 45%) 85%, hsl(37 80% 62%) 100%);
     --shadow-card: 0 2px 12px -4px hsl(20 30% 15% / 0.10);
     --shadow-card-hover: 0 8px 24px -8px hsl(20 30% 15% / 0.18);
     --shadow-button: 0 2px 8px -2px hsl(10 71% 45% / 0.35);
 
-    /* Activity level colors */
-    --activity-low: 75 27% 48%;
-    --activity-moderate: 37 75% 55%;
-    --activity-high: 10 71% 53%;
+    /* Activity level colors (AA with cream text, except moderate which pairs with dark text) */
+    --activity-low: 75 27% 36%;
+    --activity-moderate: 37 85% 60%;
+    --activity-high: 10 71% 47%;
 
     /* Intensity colors */
-    --intensity-chill: 75 27% 54%;
-    --intensity-social: 37 75% 55%;
-    --intensity-energetic: 10 71% 53%;
+    --intensity-chill: 75 27% 36%;
+    --intensity-social: 37 85% 60%;
+    --intensity-energetic: 10 71% 47%;
+
 
     --sidebar-background: 45 57% 97%;
     --sidebar-foreground: 20 25% 22%;
@@ -85,27 +97,35 @@
     --popover: 20 18% 13%;
     --popover-foreground: 45 40% 95%;
 
-    --primary: 10 71% 56%;
-    --primary-foreground: 45 40% 96%;
+    --primary: 10 71% 58%;
+    --primary-foreground: 20 25% 10%;
+    --primary-hover: 10 71% 66%;
 
     --secondary: 30 15% 18%;
     --secondary-foreground: 45 30% 92%;
+    --secondary-hover: 30 15% 25%;
 
     --muted: 30 12% 18%;
-    --muted-foreground: 40 12% 68%;
+    --muted-foreground: 40 12% 70%;
 
     --accent: 75 27% 58%;
     --accent-foreground: 20 25% 12%;
+    --accent-strong: 75 32% 62%;
+    --vivid-foreground: 45 40% 96%;
+    --vivid-ink: 20 25% 12%;
 
-    --success: 75 27% 46%;
-    --success-foreground: 20 25% 12%;
+    --success: 75 30% 55%;
+    --success-foreground: 20 25% 10%;
 
-    --destructive: 10 65% 48%;
-    --destructive-foreground: 45 40% 96%;
+    --destructive: 10 65% 60%;
+    --destructive-foreground: 20 25% 10%;
+    --destructive-hover: 10 65% 68%;
+
+
 
     --border: 30 12% 24%;
     --input: 30 12% 24%;
-    --ring: 10 71% 56%;
+    --ring: 10 71% 58%;
 
     --gradient-hero: linear-gradient(135deg, hsl(20 25% 8%) 0%, hsl(75 18% 18%) 50%, hsl(10 65% 32%) 100%);
     --shadow-card: 0 4px 20px -4px hsl(0 0% 0% / 0.4);

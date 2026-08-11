@@ -92,7 +92,7 @@ const EventFilters = ({ filters, onFiltersChange }: EventFiltersProps) => {
         {/* Intensity */}
         <div>
           <div className="flex items-center gap-2 mb-3">
-            <Zap className="h-4 w-4 text-accent" />
+            <Zap className="h-4 w-4 text-accent-strong" />
             <span className="text-sm font-semibold text-foreground">Intensity</span>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -162,7 +162,7 @@ const EventFilters = ({ filters, onFiltersChange }: EventFiltersProps) => {
         {/* Follow my friends */}
         <div>
           <div className="flex items-center gap-2 mb-3">
-            <Heart className="h-4 w-4 text-accent" />
+            <Heart className="h-4 w-4 text-accent-strong" />
             <span className="text-sm font-semibold text-foreground">Social</span>
           </div>
           <button

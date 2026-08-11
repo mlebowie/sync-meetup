@@ -43,7 +43,7 @@ const MomentumPanel = () => {
 
             <div className="bg-card rounded-2xl p-5 shadow-card">
               <div className="flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-wide mb-2">
-                <Repeat className="h-4 w-4 text-accent" /> Your weekly anchor
+                <Repeat className="h-4 w-4 text-accent-strong" /> Your weekly anchor
               </div>
               <div className="text-lg font-semibold text-foreground line-clamp-1">
                 {topSeries?.title || 'Pick a recurring event'}

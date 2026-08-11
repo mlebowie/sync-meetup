@@ -34,7 +34,7 @@ const GroupsSection = ({ onOpenDM: _onOpenDM }: Props) => {
         <div className="max-w-5xl mx-auto">
           <div className="flex items-baseline justify-between mb-5">
             <h2 className="text-xl md:text-2xl font-bold text-foreground flex items-center gap-2">
-              <Users2 className="h-5 w-5 text-accent" />
+              <Users2 className="h-5 w-5 text-accent-strong" />
               Your crews
             </h2>
             <span className="text-xs text-muted-foreground">Auto-formed from your history</span>

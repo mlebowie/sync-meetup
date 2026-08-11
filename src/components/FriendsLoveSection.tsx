@@ -60,7 +60,7 @@ const FriendsLoveSection = ({ onAttend, onParticipantClick, onOpenGroupChat }: P
     <section className="py-8 md:py-12">
       <div className="container px-4 md:px-6">
         <div className="mb-5">
-          <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-accent font-semibold mb-1">
+          <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-accent-strong font-semibold mb-1">
             <Heart className="h-3.5 w-3.5 fill-current" />
             Events your friends love
           </div>

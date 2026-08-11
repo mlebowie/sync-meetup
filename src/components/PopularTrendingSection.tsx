@@ -31,7 +31,7 @@ const PopularTrendingSection = ({ onAttend, onParticipantClick, onOpenGroupChat,
       <div className="container px-4 md:px-6">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-start gap-3 mb-6">
-            <div className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-accent/15 text-accent mt-0.5">
+            <div className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-accent/15 text-accent-strong mt-0.5">
               <TrendingUp className="h-5 w-5" />
             </div>
             <div>
