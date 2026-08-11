@@ -55,15 +55,16 @@
     --shadow-card-hover: 0 8px 24px -8px hsl(20 30% 15% / 0.18);
     --shadow-button: 0 2px 8px -2px hsl(10 71% 45% / 0.35);
 
-    /* Activity level colors */
-    --activity-low: 75 27% 48%;
-    --activity-moderate: 37 75% 55%;
-    --activity-high: 10 71% 53%;
+    /* Activity level colors (AA with cream text, except moderate which pairs with dark text) */
+    --activity-low: 75 27% 36%;
+    --activity-moderate: 37 85% 60%;
+    --activity-high: 10 71% 47%;
 
     /* Intensity colors */
-    --intensity-chill: 75 27% 54%;
-    --intensity-social: 37 75% 55%;
-    --intensity-energetic: 10 71% 53%;
+    --intensity-chill: 75 27% 36%;
+    --intensity-social: 37 85% 60%;
+    --intensity-energetic: 10 71% 47%;
+
 
     --sidebar-background: 45 57% 97%;
     --sidebar-foreground: 20 25% 22%;
