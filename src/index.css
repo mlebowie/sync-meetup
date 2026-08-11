@@ -36,6 +36,8 @@
     --accent-strong: 75 27% 34%;
     /* Text/icon color for solid vivid badges — light in both themes */
     --vivid-foreground: 45 57% 97%;
+    /* Fixed dark ink for light/amber solid surfaces (does not flip with theme) */
+    --vivid-ink: 20 25% 12%;
 
     --success: 75 27% 34%;
     --success-foreground: 45 57% 97%;
@@ -95,9 +97,9 @@
     --popover: 20 18% 13%;
     --popover-foreground: 45 40% 95%;
 
-    --primary: 10 71% 56%;
+    --primary: 10 71% 58%;
     --primary-foreground: 20 25% 10%;
-    --primary-hover: 10 71% 64%;
+    --primary-hover: 10 71% 66%;
 
     --secondary: 30 15% 18%;
     --secondary-foreground: 45 30% 92%;
@@ -110,6 +112,7 @@
     --accent-foreground: 20 25% 12%;
     --accent-strong: 75 32% 62%;
     --vivid-foreground: 45 40% 96%;
+    --vivid-ink: 20 25% 12%;
 
     --success: 75 30% 55%;
     --success-foreground: 20 25% 10%;
@@ -122,7 +125,7 @@
 
     --border: 30 12% 24%;
     --input: 30 12% 24%;
-    --ring: 10 71% 56%;
+    --ring: 10 71% 58%;
 
     --gradient-hero: linear-gradient(135deg, hsl(20 25% 8%) 0%, hsl(75 18% 18%) 50%, hsl(10 65% 32%) 100%);
     --shadow-card: 0 4px 20px -4px hsl(0 0% 0% / 0.4);

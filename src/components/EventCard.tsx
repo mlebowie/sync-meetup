@@ -38,7 +38,7 @@ const sourceColors = {
 
 const activityColors = {
   low: 'bg-activity-low text-vivid-foreground',
-  moderate: 'bg-activity-moderate text-foreground',
+  moderate: 'bg-activity-moderate text-vivid-ink',
   high: 'bg-activity-high text-vivid-foreground',
 };
 
