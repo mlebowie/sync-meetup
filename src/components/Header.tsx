@@ -4,6 +4,7 @@ import { User, MessageCircle, CalendarDays } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import NotificationsPopover from './NotificationsPopover';
 import { getUserProfile } from '@/lib/userProfile';
+import { useAttending } from '@/context/AttendingContext';
 
 interface HeaderProps {
   onOpenMessages?: () => void;
@@ -11,10 +12,13 @@ interface HeaderProps {
 
 const Header = ({ onOpenMessages }: HeaderProps) => {
   const [notifOpen, setNotifOpen] = useState(false);
-  const [isGuest, setIsGuest] = useState(false);
+  const [isGuest, setIsGuest] = useState(() => !getUserProfile());
+  const { attending } = useAttending();
   useEffect(() => {
     setIsGuest(!getUserProfile());
   }, []);
+  // Notifications only start once a registered user has signed up for their first event
+  const showNotifications = !isGuest && attending.size > 0;
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-lg">
       <div className="container flex h-16 items-center justify-between px-4 md:px-6">
@@ -43,7 +47,9 @@ const Header = ({ onOpenMessages }: HeaderProps) => {
           <Button variant="ghost" size="icon" onClick={onOpenMessages} title="Messages">
             <MessageCircle className="h-5 w-5" />
           </Button>
-          <NotificationsPopover open={notifOpen} onOpenChange={setNotifOpen} />
+          {showNotifications && (
+            <NotificationsPopover open={notifOpen} onOpenChange={setNotifOpen} />
+          )}
           <Button variant="ghost" size="icon" asChild title="Calendar">
             <Link to="/calendar" aria-label="Calendar">
               <CalendarDays className="h-5 w-5" />
