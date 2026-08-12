@@ -1,20 +1,43 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, Calendar, MapPin, Clock, Globe, Users, Pencil } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Calendar, MapPin, Clock, Globe, Users, Pencil, LogOut } from 'lucide-react';
 import Header from '@/components/Header';
 import GroupsSection from '@/components/GroupsSection';
 import EditProfileDialog from '@/components/EditProfileDialog';
 import { Button } from '@/components/ui/button';
-import { getUserProfile, ONBOARDING_INTERESTS, DEFAULT_PROFILE, calculateAge, UserProfile } from '@/lib/userProfile';
+import { getUserProfile, saveUserProfile, clearUserProfile, ONBOARDING_INTERESTS, DEFAULT_PROFILE, calculateAge, UserProfile } from '@/lib/userProfile';
 import { useSocial } from '@/context/SocialContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const Profile = () => {
   const [profile, setProfile] = useState<UserProfile>(() => getUserProfile() ?? DEFAULT_PROFILE);
   const [isDefault, setIsDefault] = useState<boolean>(() => !getUserProfile());
   const [editOpen, setEditOpen] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   const { following, followers } = useSocial();
   const connectionsCount = new Set([...following, ...followers]).size;
+
+  const handleLogout = async () => {
+    // Sign out from backend auth when available
+    const { error } = await supabase.auth.signOut();
+    if (error && error.message !== 'Auth session missing!') {
+      toast({ title: 'Error signing out', description: error.message, variant: 'destructive' });
+      return;
+    }
+    // Clear local guest profile and persisted state
+    clearUserProfile();
+    toast({ title: 'Signed out', description: 'See you soon!' });
+    navigate('/');
+  };
+
+  const handleSaveProfile = (p: UserProfile) => {
+    setProfile(p);
+    setIsDefault(false);
+    saveUserProfile(p);
+  };
 
 
   const interests = ONBOARDING_INTERESTS.filter(i => profile.interests.includes(i.id));
@@ -24,9 +47,15 @@ const Profile = () => {
     <div className="min-h-screen bg-background">
       <Header />
       <main className="container px-4 md:px-6 py-8 max-w-5xl">
-        <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
-          <ArrowLeft className="h-4 w-4" /> Back
-        </Link>
+        <div className="flex items-center justify-between mb-6">
+          <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="h-4 w-4" /> Back
+          </Link>
+          <Button variant="outline" size="sm" onClick={handleLogout}>
+            <LogOut className="h-3.5 w-3.5 mr-1.5" />
+            Log out
+          </Button>
+        </div>
 
         {/* Profile header */}
         <section className="flex flex-col sm:flex-row items-start sm:items-center gap-5 mb-10">
@@ -123,7 +152,7 @@ const Profile = () => {
         open={editOpen}
         onOpenChange={setEditOpen}
         profile={profile}
-        onSaved={(p) => { setProfile(p); setIsDefault(false); }}
+        onSaved={handleSaveProfile}
       />
     </div>
   );
