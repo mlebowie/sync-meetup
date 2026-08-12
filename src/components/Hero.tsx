@@ -37,7 +37,9 @@ const Hero = () => {
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-            <Button variant="outline" size="xl" className="bg-transparent text-hero-foreground border-hero-foreground/40 hover:bg-[hsl(0_0%_100%/0.12)] hover:text-hero-foreground">How it works</Button>
+            <a href="#how-sync-works">
+              <Button variant="outline" size="xl" className="bg-transparent text-hero-foreground border-hero-foreground/40 hover:bg-[hsl(0_0%_100%/0.12)] hover:text-hero-foreground">How it works</Button>
+            </a>
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-8 text-hero-muted animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
