@@ -47,7 +47,9 @@ const Header = ({ onOpenMessages }: HeaderProps) => {
           <Button variant="ghost" size="icon" onClick={onOpenMessages} title="Messages">
             <MessageCircle className="h-5 w-5" />
           </Button>
-          <NotificationsPopover open={notifOpen} onOpenChange={setNotifOpen} />
+          {showNotifications && (
+            <NotificationsPopover open={notifOpen} onOpenChange={setNotifOpen} />
+          )}
           <Button variant="ghost" size="icon" asChild title="Calendar">
             <Link to="/calendar" aria-label="Calendar">
               <CalendarDays className="h-5 w-5" />
