@@ -12,7 +12,7 @@ interface HeaderProps {
 
 const Header = ({ onOpenMessages }: HeaderProps) => {
   const [notifOpen, setNotifOpen] = useState(false);
-  const [isGuest, setIsGuest] = useState(true);
+  const [isGuest, setIsGuest] = useState(() => !getUserProfile());
   const { attending } = useAttending();
   useEffect(() => {
     setIsGuest(!getUserProfile());
