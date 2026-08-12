@@ -47,9 +47,15 @@ const Profile = () => {
     <div className="min-h-screen bg-background">
       <Header />
       <main className="container px-4 md:px-6 py-8 max-w-5xl">
-        <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
-          <ArrowLeft className="h-4 w-4" /> Back
-        </Link>
+        <div className="flex items-center justify-between mb-6">
+          <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="h-4 w-4" /> Back
+          </Link>
+          <Button variant="outline" size="sm" onClick={handleLogout}>
+            <LogOut className="h-3.5 w-3.5 mr-1.5" />
+            Log out
+          </Button>
+        </div>
 
         {/* Profile header */}
         <section className="flex flex-col sm:flex-row items-start sm:items-center gap-5 mb-10">
