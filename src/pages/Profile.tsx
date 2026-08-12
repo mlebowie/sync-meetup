@@ -146,7 +146,7 @@ const Profile = () => {
         open={editOpen}
         onOpenChange={setEditOpen}
         profile={profile}
-        onSaved={(p) => { setProfile(p); setIsDefault(false); }}
+        onSaved={handleSaveProfile}
       />
     </div>
   );
