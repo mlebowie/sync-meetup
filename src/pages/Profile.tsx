@@ -14,9 +14,30 @@ const Profile = () => {
   const [profile, setProfile] = useState<UserProfile>(() => getUserProfile() ?? DEFAULT_PROFILE);
   const [isDefault, setIsDefault] = useState<boolean>(() => !getUserProfile());
   const [editOpen, setEditOpen] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   const { following, followers } = useSocial();
   const connectionsCount = new Set([...following, ...followers]).size;
+
+  const handleLogout = async () => {
+    // Sign out from backend auth when available
+    const { error } = await supabase.auth.signOut();
+    if (error && error.message !== 'Auth session missing!') {
+      toast({ title: 'Error signing out', description: error.message, variant: 'destructive' });
+      return;
+    }
+    // Clear local guest profile and persisted state
+    clearUserProfile();
+    toast({ title: 'Signed out', description: 'See you soon!' });
+    navigate('/');
+  };
+
+  const handleSaveProfile = (p: UserProfile) => {
+    setProfile(p);
+    setIsDefault(false);
+    saveUserProfile(p);
+  };
 
 
   const interests = ONBOARDING_INTERESTS.filter(i => profile.interests.includes(i.id));
