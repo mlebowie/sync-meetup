@@ -73,3 +73,15 @@ export const DEFAULT_PROFILE: UserProfile = {
   photo: '/__l5e/assets-v1/a4f70df6-c027-49e5-a43d-1b0852f12c3e/default-profile.jpg',
   interests: ['social-networking', 'dining-cooking', 'arts-theatre', 'tech-ai', 'music-live', 'education'],
 };
+
+/** True when an event's category/tags match any of the user's selected interests. */
+export const matchesInterests = (
+  event: { category: string; tags: string[] },
+  interestIds: string[],
+): boolean => {
+  if (interestIds.length === 0) return true;
+  const keywords = getInterestKeywords(interestIds).map(k => k.toLowerCase());
+  if (keywords.length === 0) return true;
+  const blob = [event.category, ...event.tags].join(' ').toLowerCase();
+  return keywords.some(k => blob.includes(k));
+};

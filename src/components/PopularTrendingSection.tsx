@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Event, Participant } from '@/types/event';
 import { mockEvents } from '@/data/mockData';
 import ExpandableEventGrid from './ExpandableEventGrid';
+import { matchesInterests } from '@/lib/userProfile';
 import { TrendingUp, Clock } from 'lucide-react';
 
 interface Props {
@@ -9,20 +10,23 @@ interface Props {
   onParticipantClick?: (p: Participant) => void;
   onOpenGroupChat?: (event: Event) => void;
   guest?: boolean;
+  interests?: string[];
 }
 
 // Spread trending one-off events across the next 7–14 days.
 const TRENDING_OFFSETS = [3, 5, 7, 10, 12, 14, 16, 18, 20, 22].map(d => d * 24 * 60 * 60 * 1000);
 
-const PopularTrendingSection = ({ onAttend, onParticipantClick, onOpenGroupChat, guest = false }: Props) => {
+const PopularTrendingSection = ({ onAttend, onParticipantClick, onOpenGroupChat, guest = false, interests = [] }: Props) => {
   const trendingEvents: Event[] = useMemo(() => {
     const now = Date.now();
-    const oneOffs = mockEvents.filter(e => e.recurrence === 'one-off');
+    const oneOffs = mockEvents
+      .filter(e => e.recurrence === 'one-off')
+      .filter(e => matchesInterests(e, interests));
     return oneOffs.slice(0, 13).map((e, i) => ({
       ...e,
       date: new Date(now + TRENDING_OFFSETS[i % TRENDING_OFFSETS.length]),
     }));
-  }, []);
+  }, [interests]);
 
   if (trendingEvents.length === 0) return null;
 

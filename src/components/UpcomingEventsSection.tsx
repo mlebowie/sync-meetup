@@ -59,7 +59,7 @@ const UpcomingEventsSection = ({ events, profile, onAttend, onParticipantClick, 
   const [groupSizeIdx, setGroupSizeIdx] = useState<number>(0);
   const [ageRange, setAgeRange] = useState<[number, number]>([22, 45]);
   const [maxDistance, setMaxDistance] = useState<number>(15);
-  const [interests, setInterests] = useState<string[]>([]);
+  const [interests, setInterests] = useState<string[]>(profile.interests ?? []);
   const [recommendMode, setRecommendMode] = useState(false);
   const [womenOnly, setWomenOnly] = useState(false);
   const [lgbtqFriendly, setLgbtqFriendly] = useState(false);
@@ -284,7 +284,7 @@ const UpcomingEventsSection = ({ events, profile, onAttend, onParticipantClick, 
           <div className="flex flex-wrap items-center justify-end gap-3 pt-2 border-t border-border">
             <Button variant="ghost" onClick={() => {
               setTimeWindow('any'); setNeighborhood(''); setActivityLevel([]); setIntensity([]);
-              setGroupSizeIdx(0); setAgeRange([22, 45]); setMaxDistance(15); setInterests([]); setRecommendMode(false);
+              setGroupSizeIdx(0); setAgeRange([22, 45]); setMaxDistance(15); setInterests(profile.interests ?? []); setRecommendMode(false);
               setWomenOnly(false); setLgbtqFriendly(false); setPetFriendly(false);
             }}>
               Reset filters

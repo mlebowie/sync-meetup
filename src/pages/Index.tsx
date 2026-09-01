@@ -165,6 +165,7 @@ const Index = () => {
 
           {/* 3) Events your friends love */}
           <FriendsLoveSection
+            interests={profile?.interests ?? []}
             onAttend={handleAttend}
             onParticipantClick={handleParticipantClick}
             onOpenGroupChat={handleOpenGroupChat}
@@ -172,6 +173,7 @@ const Index = () => {
 
           {/* 3b) Popular & Trending one-time events */}
           <PopularTrendingSection
+            interests={profile?.interests ?? []}
             onAttend={handleAttend}
             onParticipantClick={handleParticipantClick}
             onOpenGroupChat={handleOpenGroupChat}

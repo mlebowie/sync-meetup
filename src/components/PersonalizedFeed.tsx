@@ -38,7 +38,7 @@ const PersonalizedFeed = ({ profile, onAttend, onParticipantClick, onOpenGroupCh
       const blob = [e.category, ...e.tags].join(' ').toLowerCase();
       return keywords.some(k => blob.includes(k));
     });
-    const pool = matches.length >= 5 ? matches : [...matches, ...mockEvents.filter(e => !matches.includes(e))];
+    const pool = matches;
     const now = Date.now();
     return pool.slice(0, 13).map((e, i) => ({
       ...e,
