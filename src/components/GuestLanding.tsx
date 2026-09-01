@@ -1,12 +1,14 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { mockEvents } from '@/data/mockData';
 import { ONBOARDING_INTERESTS } from '@/lib/userProfile';
+import { searchEvents } from '@/lib/search';
 import { Event, Participant } from '@/types/event';
 import EventCard from './EventCard';
 import PopularTrendingSection from './PopularTrendingSection';
-import { Users, Globe2, Sparkles, Clock, ArrowRight } from 'lucide-react';
+import { Users, Globe2, Sparkles, Clock, ArrowRight, Search, X } from 'lucide-react';
 
 interface Props {
   onAttend: (id: string) => void;
@@ -18,6 +20,7 @@ interface Props {
 const SOON_OFFSETS = [120, 165, 210, 255, 300, 330, 345, 360].map(m => m * 60 * 1000);
 
 const GuestLanding = ({ onAttend, onParticipantClick }: Props) => {
+  const [query, setQuery] = useState('');
   const portoEvents: Event[] = useMemo(() => {
     const now = Date.now();
     return mockEvents
@@ -25,6 +28,8 @@ const GuestLanding = ({ onAttend, onParticipantClick }: Props) => {
       .slice(0, 8)
       .map((e, i) => ({ ...e, date: new Date(now + SOON_OFFSETS[i % SOON_OFFSETS.length]) }));
   }, []);
+
+  const filteredPorto = useMemo(() => searchEvents(portoEvents, query), [portoEvents, query]);
 
   // Platform-wide stats derived from mock data — feels real, not hardcoded.
   const stats = useMemo(() => {
@@ -67,7 +72,7 @@ const GuestLanding = ({ onAttend, onParticipantClick }: Props) => {
       />
 
       {/* Public Porto feed */}
-      <section className="py-10 md:py-14">
+      <section id="happening-porto" className="py-10 md:py-14 scroll-mt-24">
         <div className="container px-4 md:px-6">
           <div className="max-w-6xl mx-auto">
             <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
@@ -87,18 +92,47 @@ const GuestLanding = ({ onAttend, onParticipantClick }: Props) => {
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {portoEvents.map((e, i) => (
-                <div key={e.id} className="animate-fade-in-up" style={{ animationDelay: `${i * 0.06}s` }}>
-                  <EventCard
-                    event={e}
-                    onAttend={onAttend}
-                    onParticipantClick={onParticipantClick}
-                    guest
-                  />
-                </div>
-              ))}
+{/* Search — same utility the homefeed uses */}
+            <div className="relative mb-6">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <Input
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                placeholder="Search events, locations, organizers…"
+                className="pl-9 pr-9"
+                aria-label="Search events"
+              />
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => setQuery('')}
+                  aria-label="Clear search"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
             </div>
+
+            {filteredPorto.length === 0 ? (
+              <div className="text-center py-12 bg-card rounded-2xl">
+                <p className="text-muted-foreground mb-4">No events match “{query}”. Try another search.</p>
+                <Button variant="outline" onClick={() => setQuery('')}>Clear search</Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredPorto.map((e, i) => (
+                  <div key={e.id} className="animate-fade-in-up" style={{ animationDelay: `${i * 0.06}s` }}>
+                    <EventCard
+                      event={e}
+                      onAttend={onAttend}
+                      onParticipantClick={onParticipantClick}
+                      guest
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </section>

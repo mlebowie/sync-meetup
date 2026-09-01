@@ -43,8 +43,8 @@ const ExpandableEventGrid = ({
   return (
     <div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {primary.map((e, i) => (
-          <div key={e.id} className="animate-fade-in-up" style={{ animationDelay: `${i * 0.06}s` }}>
+{primary.map((e, i) => (
+          <div key={e.id} id={`event-${e.id}`} className="animate-fade-in-up scroll-mt-24" style={{ animationDelay: `${i * 0.06}s` }}>
             {card(e)}
           </div>
         ))}
@@ -52,8 +52,8 @@ const ExpandableEventGrid = ({
 
       {hasMore && expanded && (
         <div className="mt-6 max-h-[70vh] overflow-y-auto pr-1 space-y-4 rounded-xl">
-          {extra.map(e => (
-            <div key={e.id} className="animate-fade-in-up">
+{extra.map(e => (
+            <div key={e.id} id={`event-${e.id}`} className="animate-fade-in-up scroll-mt-24">
               {card(e)}
             </div>
           ))}

@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { User, MessageCircle, CalendarDays } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import NotificationsPopover from './NotificationsPopover';
+import HeaderSearch from './HeaderSearch';
 import { getUserProfile } from '@/lib/userProfile';
 import { useAttending } from '@/context/AttendingContext';
 import syncWordmark from '@/assets/sync-wordmark.png.asset.json';
@@ -43,7 +44,8 @@ const Header = ({ onOpenMessages }: HeaderProps) => {
           </a>
         </nav>
 
-        <div className="flex items-center gap-2">
+<div className="flex items-center gap-2">
+          <HeaderSearch />
           <Button variant="ghost" size="icon" onClick={onOpenMessages} title="Messages">
             <MessageCircle className="h-5 w-5" />
           </Button>
