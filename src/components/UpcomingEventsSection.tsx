@@ -1,13 +1,15 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Event, Participant, ActivityLevel, Intensity, GroupSize } from '@/types/event';
 import { CITY_NEIGHBORHOODS } from '@/lib/onboardingData';
 import { ONBOARDING_INTERESTS, getInterestKeywords, UserProfile } from '@/lib/userProfile';
 import ExpandableEventGrid from './ExpandableEventGrid';
+import FilterTour, { TourStep } from './FilterTour';
+import { START_FILTER_TOUR_EVENT, setFilterTourState } from '@/lib/filterTour';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TypeaheadSelect } from './TypeaheadSelect';
-import { Clock, MapPin, Users, Activity, Zap, Ruler, Sparkles, CalendarRange, Heart } from 'lucide-react';
+import { Clock, MapPin, Users, Activity, Zap, Ruler, Sparkles, CalendarRange, Heart, HelpCircle } from 'lucide-react';
 
 interface Props {
   events: Event[];
