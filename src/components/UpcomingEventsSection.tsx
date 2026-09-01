@@ -67,6 +67,50 @@ const UpcomingEventsSection = ({ events, profile, onAttend, onParticipantClick, 
   const [lgbtqFriendly, setLgbtqFriendly] = useState(false);
   const [petFriendly, setPetFriendly] = useState(false);
 
+  // --- First-run tutorial ---------------------------------------------------
+  const interestsRef = useRef<HTMLDivElement>(null);
+  const vibeRef = useRef<HTMLDivElement>(null);
+  const placeRef = useRef<HTMLDivElement>(null);
+  const inclusivityRef = useRef<HTMLDivElement>(null);
+  const [tourOpen, setTourOpen] = useState(false);
+
+  useEffect(() => {
+    const start = () => setTourOpen(true);
+    window.addEventListener(START_FILTER_TOUR_EVENT, start);
+    return () => window.removeEventListener(START_FILTER_TOUR_EVENT, start);
+  }, []);
+
+  const tourSteps: TourStep[] = [
+    {
+      title: 'Interests come from your profile',
+      body: 'These are pre-selected from onboarding, so your feed already matches you. Add or remove any of them here — and use the Time dropdown above when you only want what starts soon.',
+      ref: interestsRef,
+    },
+    {
+      title: 'Choose how the room should feel',
+      body: 'Group size, activity level and intensity set the vibe. Chill coffee for 6, or a high-energy group run for 30 — pick what you actually want to walk into.',
+      ref: vibeRef,
+    },
+    {
+      title: 'Keep it close to home',
+      body: `We show events closest to your neighborhood first. Tighten the radius for things you can walk to, and set the age range of who you'll meet.`,
+      ref: placeRef,
+    },
+    {
+      title: 'Only show spaces that fit you',
+      body: 'Women only, LGBTQ+ friendly and pet friendly narrow the feed to events built with those in mind. That\u2019s it — change any of this any time and your feed updates instantly.',
+      ref: inclusivityRef,
+    },
+  ];
+
+  const resetFilters = () => {
+    setTimeWindow('any'); setNeighborhood(''); setActivityLevel([]); setIntensity([]);
+    setGroupSizeIdx(0); setAgeRange([22, 45]); setMaxDistance(15);
+    setInterests(profile.interests ?? []); setRecommendMode(false);
+    setWomenOnly(false); setLgbtqFriendly(false); setPetFriendly(false);
+  };
+
+
   const toggle = <T,>(value: T, list: T[], setter: (v: T[]) => void) => {
     setter(list.includes(value) ? list.filter(v => v !== value) : [...list, value]);
   };
