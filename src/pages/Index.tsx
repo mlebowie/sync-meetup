@@ -159,7 +159,7 @@ const Index = () => {
             </section>
           )}
 
-          {/* 2) Recommended for you */}
+{/* 2) Recommended for you */}
           <RecommendedCarousel
             profile={profile!}
             onAttend={handleAttend}
@@ -167,7 +167,16 @@ const Index = () => {
             onOpenGroupChat={handleOpenGroupChat}
           />
 
-          {/* 3) Events your friends love */}
+          {/* 3) Upcoming events with expanded filters */}
+          <UpcomingEventsSection
+            events={events}
+            profile={profile!}
+            onAttend={handleAttend}
+            onParticipantClick={handleParticipantClick}
+            onOpenGroupChat={handleOpenGroupChat}
+          />
+
+          {/* 4) Events your friends love */}
           <FriendsLoveSection
             interests={profile?.interests ?? []}
             onAttend={handleAttend}
@@ -175,18 +184,9 @@ const Index = () => {
             onOpenGroupChat={handleOpenGroupChat}
           />
 
-          {/* 3b) Popular & Trending one-time events */}
+          {/* 5) Popular & Trending one-time events */}
           <PopularTrendingSection
             interests={profile?.interests ?? []}
-            onAttend={handleAttend}
-            onParticipantClick={handleParticipantClick}
-            onOpenGroupChat={handleOpenGroupChat}
-          />
-
-          {/* 4) Upcoming events with expanded filters */}
-          <UpcomingEventsSection
-            events={events}
-            profile={profile!}
             onAttend={handleAttend}
             onParticipantClick={handleParticipantClick}
             onOpenGroupChat={handleOpenGroupChat}
