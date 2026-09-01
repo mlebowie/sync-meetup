@@ -24,15 +24,33 @@ import { MessageCircle, Sparkles } from 'lucide-react';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
 import { getUserProfile } from '@/lib/userProfile';
 import { getReflectionCandidate } from '@/lib/reflection';
+import { useSearchParams } from 'react-router-dom';
+import { useSearch } from '@/context/SearchContext';
 
 const Index = () => {
   const { toast } = useToast();
   const { history, tags } = useActivityHistory();
   const profile = getUserProfile();
   const isGuest = !profile;
-  const [events, setEvents] = useState<Event[]>(() => getDailyRotatingEvents(mockEvents));
+const [events, setEvents] = useState<Event[]>(() => getDailyRotatingEvents(mockEvents));
 
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { setQuery } = useSearch();
 
+  // Pick up a search handed off from the header on another page (?q=...&event=...).
+  useEffect(() => {
+    const q = searchParams.get('q');
+    if (q == null) return;
+    const eventId = searchParams.get('event');
+    setQuery(q);
+    const t = setTimeout(() => {
+      const target = eventId ? document.getElementById(`event-${eventId}`) : null;
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      else document.getElementById('upcoming')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 400);
+    setSearchParams({}, { replace: true });
+    return () => clearTimeout(t);
+  }, [searchParams, setSearchParams, setQuery]);
 
   const [profileParticipant, setProfileParticipant] = useState<Participant | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
