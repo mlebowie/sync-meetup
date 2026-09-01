@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Camera, Sparkles } from 'lucide-react';
-import { ONBOARDING_INTERESTS, saveUserProfile, clearUserProfile, UserProfile } from '@/lib/userProfile';
+import { ONBOARDING_INTERESTS, saveUserProfile, clearUserProfile, UserProfile, calculateAge } from '@/lib/userProfile';
 import { useToast } from '@/hooks/use-toast';
 import { TypeaheadSelect } from '@/components/TypeaheadSelect';
 import { CITIES, CITY_NEIGHBORHOODS, NATIONALITIES } from '@/lib/onboardingData';
@@ -13,9 +13,16 @@ const fileToDataUrl = (file: File): Promise<string> =>
   new Promise((res, rej) => {
     const r = new FileReader();
     r.onload = () => res(String(r.result));
-    r.onerror = rej;
+r.onerror = rej;
     r.readAsDataURL(file);
   });
+
+// Latest birthdate a user may select — anything after this means they are under 18.
+const maxDob = (() => {
+  const d = new Date();
+  d.setFullYear(d.getFullYear() - 18);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+})();
 
 const Onboarding = () => {
   const navigate = useNavigate();
@@ -61,8 +68,12 @@ const Onboarding = () => {
       toast({ title: 'A few more details', description: 'All fields are required, including at least one interest.' });
       return;
     }
-    if (password.length < 8) {
+if (password.length < 8) {
       toast({ title: 'Password too short', description: 'Use at least 8 characters.', variant: 'destructive' });
+      return;
+    }
+    if (calculateAge(dob) < 18) {
+      toast({ title: 'You must be at least 18', description: 'SYNC is for adults aged 18 and over.', variant: 'destructive' });
       return;
     }
     const profile: UserProfile = {
@@ -184,9 +195,10 @@ const Onboarding = () => {
 
           {/* DOB */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
+<div>
               <Label htmlFor="dob">Date of birth <span className="text-destructive">*</span></Label>
-              <Input id="dob" type="date" value={dob} onChange={e => setDob(e.target.value)} required />
+              <Input id="dob" type="date" value={dob} onChange={e => setDob(e.target.value)} max={maxDob} required />
+              <p className="text-xs text-muted-foreground mt-1">You must be 18 or older to join.</p>
             </div>
           </div>
 
