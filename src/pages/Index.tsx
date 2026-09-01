@@ -23,6 +23,7 @@ import { Button } from '@/components/ui/button';
 import { MessageCircle, Sparkles } from 'lucide-react';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
 import { getUserProfile } from '@/lib/userProfile';
+import { getReflectionCandidate } from '@/lib/reflection';
 
 const Index = () => {
   const { toast } = useToast();
@@ -43,7 +44,7 @@ const Index = () => {
   const [reflectionOpen, setReflectionOpen] = useState(false);
 
   // The most recent past event becomes the post-event reflection prompt.
-  const latestPast = history[0];
+  const latestPast = getReflectionCandidate(history, profile);
   const reflectionEvent: Event | null = latestPast
     ? {
         id: latestPast.eventId,
