@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -8,7 +8,7 @@ import { useSearch } from '@/context/SearchContext';
 
 const HeaderSearch = () => {
   const { query, setQuery, results } = useSearch();
-  const [open, setOpen] = usePopoverState();
+  const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -97,9 +97,5 @@ const HeaderSearch = () => {
     </Popover>
   );
 };
-
-/** Small local helper so the trigger state reads like the rest of the app. */
-import { useState } from 'react';
-const usePopoverState = () => useState(false);
 
 export default HeaderSearch;
