@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
-import { Check } from 'lucide-react';
+import { Check, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface TypeaheadOption {
@@ -20,7 +20,8 @@ interface TypeaheadSelectProps {
   placeholder?: string;
   emptyText?: string;
   disabled?: boolean;
-  allowFreeText?: boolean; // accept arbitrary typed input as the value
+allowFreeText?: boolean; // accept arbitrary typed input as the value
+  showChevron?: boolean; // render a dropdown chevron on the right side
 }
 
 export const TypeaheadSelect = ({
@@ -31,7 +32,8 @@ export const TypeaheadSelect = ({
   placeholder,
   emptyText = 'No matches',
   disabled,
-  allowFreeText = false,
+allowFreeText = false,
+  showChevron = false,
 }: TypeaheadSelectProps) => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -67,6 +69,14 @@ export const TypeaheadSelect = ({
               {selected.leading}
             </span>
           )}
+{showChevron && (
+            <ChevronDown
+              className={cn(
+                'absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none transition-transform',
+                open && 'rotate-180'
+              )}
+            />
+          )}
           <Input
             id={id}
             value={display}
@@ -78,7 +88,7 @@ export const TypeaheadSelect = ({
               if (allowFreeText) onChange(e.target.value);
             }}
             onFocus={() => setOpen(true)}
-            className={cn(selected?.leading && !open && 'pl-9')}
+            className={cn(selected?.leading && !open && 'pl-9', showChevron && 'pr-9')}
             autoComplete="off"
           />
         </div>

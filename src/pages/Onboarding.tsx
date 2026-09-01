@@ -206,7 +206,7 @@ if (password.length < 8) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="location">Location (city) <span className="text-destructive">*</span></Label>
-              <TypeaheadSelect
+<TypeaheadSelect
                 id="location"
                 value={location}
                 onChange={(v) => {
@@ -214,10 +214,10 @@ if (password.length < 8) {
                   // Reset neighborhood when city changes to one with its own list
                   if (CITY_NEIGHBORHOODS[v]) setNeighborhood('');
                 }}
-                allowFreeText
-                placeholder="Start typing… e.g. Porto"
+                showChevron
+                placeholder="Select a city"
                 options={CITIES.map(c => ({ value: c, label: c }))}
-                emptyText="Keep typing — we'll add more cities soon"
+                emptyText="No matching cities"
               />
             </div>
             <div>
