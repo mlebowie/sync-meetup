@@ -1,41 +1,49 @@
-## Plan: Meetball-style relationship filters on Connections screen
+# Teaching new users how to refine their feed
 
-### Goal
-Replace the current "All / Mutual / Follows you / You follow" pills on `/profile/connections` with richer, activity-based relationship filters that reflect how people actually met in the app.
+Right now onboarding interests pre-filter the home feed, but the deeper filters (group size, activity level, intensity, distance/neighborhood, age, inclusivity) sit further down the page with no explanation. New users don't know they exist or why they'd use them.
 
-### Draft filter titles
-| Pill | Meaning | Data source |
-|---|---|---|
-| **All** | Everyone in your network | Union of followers + following |
-| **We Met** | Co-attended at least one event | `crossedPathsWith > 0` in ActivityHistory |
-| **Tagged** | You tagged them in a post-event reflection | `tags` in ActivityHistory |
-| **Tagged Me** | They tagged you back | `hasTaggedMe()` in ActivityHistory |
-| **Crew** | Part of an auto-suggested crew | `suggestGroups()` output |
-| **Mutual** | You follow each other | `isMutual()` in SocialContext |
-| **Follows You** | They follow you, you don't follow back | `followers` minus `following` |
+## The approach: a 3-part progressive tutorial
 
-A user can appear under multiple pills (e.g., someone can be both "We Met" and "Mutual").
+Nothing modal or blocking. Guidance appears where the controls are, and disappears once used.
 
-### Files to change
+### 1. Handoff moment (right after "Submit & enter Sync")
+A dismissible banner at the top of the home feed:
 
-**`src/pages/Connections.tsx`**
-- Import `useActivityHistory` and `suggestGroups`.
-- Build a `relationships` map for every participant:
-  - `coAttended: boolean` — `crossedPathsWith(participant.id) > 0`
-  - `tagged: boolean` — user has a `TaggedConnection` for this participant
-  - `taggedMe: boolean` — `hasTaggedMe(participant.id)`
-  - `inCrew: boolean` — participant id exists in any `Group` from `suggestGroups`
-  - `mutual`, `followsYou`, `youFollow` — existing from SocialContext
-- Replace the current `FilterKey` union and `pills` array with the 7 pills above.
-- Each pill shows a count of how many participants match that category.
-- Filtering logic: participant must match the selected category AND the search query.
-- Sort order: mutuals first, then alphabetical (unchanged).
-- Row labels: keep the existing badge text (Mutual / Follows you / You follow) and add badges for the new categories when relevant, e.g. a row can show both "Mutual" and "We Met" badges.
+> **Your feed is set to: Sports, Languages, Social networking.**
+> That's your starting point. Scroll down to Upcoming events to fine-tune by vibe, group size and distance.
+> [Show me how] [Got it]
 
-### Out of scope
-- No backend changes (still client-side mock data).
-- No changes to the Profile header link.
-- No changes to row click behavior or the unfollow confirm flow.
+"Show me how" scrolls to the filter panel and starts the coach marks.
 
-### Open question before I start
-Do you want to keep the existing "Mutual / Follows you / You follow" labels inside each row's badge, or should the row badge reflect the *strongest* relationship signal (e.g., "Crew" or "We Met" takes priority over "You follow")?
+### 2. Coach marks on the filter panel (4 steps)
+A small numbered tooltip anchored to one filter group at a time, with Back / Next / Skip tour and a "2 of 4" counter. The highlighted group gets a soft ring; the rest of the page dims slightly.
+
+```text
+Step 1 - Interests + Time     "Start broad. These come from your profile - add or remove any time."
+Step 2 - Group size + Activity/Intensity
+                              "How do you want the room to feel? Chill coffee for 6, or a high-energy
+                               group run for 30."
+Step 3 - Neighborhood + Distance
+                              "We show events closest to Cedofeita first. Tighten the radius for
+                               things you can walk to."
+Step 4 - Inclusivity          "Women-only, LGBTQI+ friendly, pet friendly - only show spaces that
+                               fit you."
+```
+
+Ends with: "That's it. Change these any time - your feed updates instantly." plus a **Reset filters** hint.
+
+### 3. Always-available help (after the tour)
+- A "How filters work" link with a question-mark icon in the filter panel header, which replays the tour.
+- One-line helper text under each filter group heading (permanent, plain language) so the meaning survives after the tour is gone.
+- A live result counter above the grid: "Showing 12 of 40 events" plus a **Clear filters** button when the result set is small, so users never feel stuck in an empty feed.
+
+## Supporting change: distance ordering
+Events get sorted nearest-to-chosen-neighborhood first (currently distance is only a max cutoff), so the "closest first" promise in the tutorial is true.
+
+## Technical notes
+- New `FilterTour` component using the existing `Popover` primitive, anchored via refs to filter groups inside `UpcomingEventsSection.tsx`; dim overlay via a fixed backdrop with the active group elevated.
+- Tour state persisted in `localStorage` (`sync.filterTour.v1`: `unseen | completed | skipped`), so it runs once per user and only for signed-in profiles - guests never see it.
+- Auto-trigger: the banner shows on the first home-feed visit after onboarding; the tour itself only starts on explicit click, never on load.
+- Helper text, result counter and Clear filters are presentation-only additions in `UpcomingEventsSection.tsx`.
+- Sorting added to the existing `filtered` memo (sort by the current `eventDistance` value when a neighborhood is chosen).
+- Mobile: coach marks render as a bottom sheet card rather than a floating tooltip, with the target scrolled into view.
