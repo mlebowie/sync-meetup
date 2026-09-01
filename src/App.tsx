@@ -15,6 +15,7 @@ import { SocialProvider } from "./context/SocialContext";
 import { ActivityHistoryProvider } from "./context/ActivityHistoryContext";
 import { WishlistProvider } from "./context/WishlistContext";
 import { AttendingProvider } from "./context/AttendingContext";
+import { SearchProvider } from "./context/SearchContext";
 import { mockEvents } from "./data/mockData";
 
 const queryClient = new QueryClient();
@@ -25,9 +26,10 @@ const App = () => (
       <SocialProvider>
         <ActivityHistoryProvider>
           <WishlistProvider allEvents={mockEvents}>
-            <AttendingProvider>
-              <Toaster />
-              <Sonner />
+<AttendingProvider>
+              <SearchProvider>
+                <Toaster />
+                <Sonner />
               <BrowserRouter>
                 <Routes>
                   <Route path="/" element={<Index />} />
