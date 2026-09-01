@@ -3,8 +3,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ONBOARDING_INTERESTS, UserProfile, saveUserProfile } from '@/lib/userProfile';
+import { ONBOARDING_INTERESTS, UserProfile, saveUserProfile, calculateAge } from '@/lib/userProfile';
 import { toast } from '@/hooks/use-toast';
+
+// Latest birthdate a user may select — anything after this means they are under 18.
+const maxDob = (() => {
+  const d = new Date();
+  d.setFullYear(d.getFullYear() - 18);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+})();
 
 interface EditProfileDialogProps {
   open: boolean;
@@ -37,8 +44,12 @@ const EditProfileDialog = ({ open, onOpenChange, profile, onSaved }: EditProfile
       toast({ title: 'Location required', description: 'Please enter your city.', variant: 'destructive' });
       return;
     }
-    if (!dateOfBirth) {
+if (!dateOfBirth) {
       toast({ title: 'Date of birth required', description: 'Please enter your date of birth.', variant: 'destructive' });
+      return;
+    }
+    if (calculateAge(dateOfBirth) < 18) {
+      toast({ title: 'You must be at least 18', description: 'SYNC is for adults aged 18 and over.', variant: 'destructive' });
       return;
     }
     const updated: UserProfile = {
@@ -81,7 +92,7 @@ const EditProfileDialog = ({ open, onOpenChange, profile, onSaved }: EditProfile
               type="date"
               value={dateOfBirth}
               onChange={e => setDateOfBirth(e.target.value)}
-              max={new Date().toISOString().split('T')[0]}
+max={maxDob}
             />
           </div>
 
