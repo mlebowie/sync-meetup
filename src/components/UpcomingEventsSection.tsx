@@ -8,8 +8,11 @@ import { START_FILTER_TOUR_EVENT, setFilterTourState } from '@/lib/filterTour';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { TypeaheadSelect } from './TypeaheadSelect';
-import { Clock, MapPin, Users, Activity, Zap, Ruler, Sparkles, CalendarRange, Heart, HelpCircle } from 'lucide-react';
+import { useSearch } from '@/context/SearchContext';
+import { searchEvents } from '@/lib/search';
+import { Clock, MapPin, Users, Activity, Zap, Ruler, Sparkles, CalendarRange, Heart, HelpCircle, Search, X } from 'lucide-react';
 
 interface Props {
   events: Event[];
@@ -52,6 +55,7 @@ const groupSizeStops: { value: 0 | 1 | 2 | 3; label: string; size: GroupSize | n
 ];
 
 const UpcomingEventsSection = ({ events, profile, onAttend, onParticipantClick, onOpenGroupChat }: Props) => {
+  const { query, setQuery } = useSearch();
   const neighborhoods = CITY_NEIGHBORHOODS[profile.location] ?? CITY_NEIGHBORHOODS['Porto'];
 
   const [timeWindow, setTimeWindow] = useState<TimeWindow>('any');
@@ -149,15 +153,16 @@ const UpcomingEventsSection = ({ events, profile, onAttend, onParticipantClick, 
         const blob = [e.category, ...e.tags].join(' ').toLowerCase();
         if (!keywords.some(k => blob.includes(k))) return false;
       }
-      if (womenOnly && !e.womenOnly) return false;
+if (womenOnly && !e.womenOnly) return false;
       if (lgbtqFriendly && !e.lgbtqFriendly) return false;
       if (petFriendly && !e.petFriendly) return false;
+      if (query.trim() && searchEvents([e], query).length === 0) return false;
       return true;
     });
 
     // Closest to the chosen neighborhood first.
     return [...list].sort((a, b) => eventDistance(a.id) - eventDistance(b.id));
-  }, [events, timeWindow, neighborhood, activityLevel, intensity, groupSizeIdx, ageRange, maxDistance, interests, recommendMode, profile.interests, womenOnly, lgbtqFriendly, petFriendly]);
+  }, [events, timeWindow, neighborhood, activityLevel, intensity, groupSizeIdx, ageRange, maxDistance, interests, recommendMode, profile.interests, womenOnly, lgbtqFriendly, petFriendly, query]);
 
   const pill = (active: boolean) =>
     `px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
@@ -174,9 +179,31 @@ const UpcomingEventsSection = ({ events, profile, onAttend, onParticipantClick, 
             onClick={() => setTourOpen(true)}
             className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
           >
-            <HelpCircle className="h-4 w-4" />
+<HelpCircle className="h-4 w-4" />
             How filters work
           </button>
+        </div>
+
+        {/* Search field — filters the feed live, stays in sync with the header search */}
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+          <Input
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder="Search events, locations, organizers…"
+            className="pl-9 pr-9"
+            aria-label="Search events"
+          />
+          {query && (
+            <button
+              type="button"
+              onClick={() => setQuery('')}
+              aria-label="Clear search"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
 
         <div className="bg-card rounded-2xl shadow-card p-5 md:p-6 mb-8 space-y-6">
@@ -374,16 +401,22 @@ const UpcomingEventsSection = ({ events, profile, onAttend, onParticipantClick, 
           </div>
         ) : (
           <>
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+<div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               <p className="text-sm text-muted-foreground">
-                Showing {filtered.length} of {events.length} events
+                {query.trim() ? `Results for “${query}” — ` : ''}Showing {filtered.length} of {events.length} events
               </p>
-              {filtered.length < events.length && (
-                <Button variant="ghost" size="sm" onClick={resetFilters}>Clear filters</Button>
-              )}
+              <div className="flex items-center gap-2">
+                {query.trim() && (
+                  <Button variant="ghost" size="sm" onClick={() => setQuery('')}>Clear search</Button>
+                )}
+                {filtered.length < events.length && !query.trim() && (
+                  <Button variant="ghost" size="sm" onClick={resetFilters}>Clear filters</Button>
+                )}
+              </div>
             </div>
             <ExpandableEventGrid
               events={filtered}
+              initialCount={query.trim() ? filtered.length : 3}
               onAttend={onAttend}
               onParticipantClick={onParticipantClick}
               onOpenGroupChat={onOpenGroupChat}
