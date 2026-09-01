@@ -3,6 +3,7 @@ import { mockEvents } from '@/data/mockData';
 import { useSocial } from '@/context/SocialContext';
 import { Event, Participant } from '@/types/event';
 import ExpandableEventGrid from './ExpandableEventGrid';
+import { matchesInterests } from '@/lib/userProfile';
 import { Heart, Users } from 'lucide-react';
 
 
@@ -10,18 +11,20 @@ interface Props {
   onAttend: (id: string) => void;
   onParticipantClick?: (p: Participant) => void;
   onOpenGroupChat?: (e: Event) => void;
+  interests?: string[];
 }
 
 // Anchor events across the next couple of weeks
 const WEEK_OFFSETS = [1, 3, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16].map(d => d * 24 * 60 * 60 * 1000);
 
 
-const FriendsLoveSection = ({ onAttend, onParticipantClick, onOpenGroupChat }: Props) => {
+const FriendsLoveSection = ({ onAttend, onParticipantClick, onOpenGroupChat, interests = [] }: Props) => {
   const { following } = useSocial();
 
   const events: Event[] = useMemo(() => {
     // Find events where followed users attend regularly (in participants OR recurring series match)
-    const scored = mockEvents.map(e => {
+    const pool0 = mockEvents.filter(e => matchesInterests(e, interests));
+    const scored = pool0.map(e => {
       let score = 0;
       const friendsAttending: Participant[] = [];
       e.participants.forEach(p => {
@@ -40,7 +43,7 @@ const FriendsLoveSection = ({ onAttend, onParticipantClick, onOpenGroupChat }: P
     let pool = scored.filter(s => s.score > 0).sort((a, b) => b.score - a.score);
     // Fallback when user follows no one — show popular recurring events
     if (pool.length === 0) {
-      pool = mockEvents
+      pool = pool0
         .filter(e => e.recurrence && e.recurrence !== 'one-off')
         .slice(0, 13)
         .map(e => ({ event: e, score: 1, friendsAttending: [] }));
@@ -49,7 +52,7 @@ const FriendsLoveSection = ({ onAttend, onParticipantClick, onOpenGroupChat }: P
       ...s.event,
       date: new Date(Date.now() + WEEK_OFFSETS[i % WEEK_OFFSETS.length]),
     }));
-  }, [following]);
+  }, [following, interests]);
 
 
   if (events.length === 0) return null;

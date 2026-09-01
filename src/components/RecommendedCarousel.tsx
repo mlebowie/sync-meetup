@@ -26,8 +26,7 @@ const RecommendedCarousel = ({ profile, onAttend, onParticipantClick, onOpenGrou
       const blob = [e.category, ...e.tags].join(' ').toLowerCase();
       return keywords.some(k => blob.includes(k));
     });
-    const pool = matches.length >= 5 ? matches : [...matches, ...mockEvents.filter(e => !matches.includes(e))];
-    return pool.slice(0, 5);
+    return matches.slice(0, 5);
   }, [profile.interests]);
 
   const random: Event[] = useMemo(() => {
