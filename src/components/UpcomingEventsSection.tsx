@@ -135,7 +135,7 @@ const UpcomingEventsSection = ({ events, profile, onAttend, onParticipantClick, 
     const selectedSize = groupSizeStops[groupSizeIdx]?.size ?? null;
     const nbq = neighborhood.trim().toLowerCase();
 
-    return events.filter(e => {
+    const list = events.filter(e => {
       const diff = e.date.getTime() - now;
       if (windowMs[timeWindow] !== Infinity && (diff < 0 || diff > windowMs[timeWindow])) return false;
       if (nbq && !e.location.toLowerCase().includes(nbq)) return false;
@@ -154,6 +154,9 @@ const UpcomingEventsSection = ({ events, profile, onAttend, onParticipantClick, 
       if (petFriendly && !e.petFriendly) return false;
       return true;
     });
+
+    // Closest to the chosen neighborhood first.
+    return [...list].sort((a, b) => eventDistance(a.id) - eventDistance(b.id));
   }, [events, timeWindow, neighborhood, activityLevel, intensity, groupSizeIdx, ageRange, maxDistance, interests, recommendMode, profile.interests, womenOnly, lgbtqFriendly, petFriendly]);
 
   const pill = (active: boolean) =>
