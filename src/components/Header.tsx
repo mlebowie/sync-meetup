@@ -5,6 +5,8 @@ import { Link } from 'react-router-dom';
 import NotificationsPopover from './NotificationsPopover';
 import { getUserProfile } from '@/lib/userProfile';
 import { useAttending } from '@/context/AttendingContext';
+import syncWordmark from '@/assets/sync-wordmark.png.asset.json';
+
 
 interface HeaderProps {
   onOpenMessages?: () => void;
