@@ -9,6 +9,7 @@ import ActivityFeed from '@/components/ActivityFeed';
 
 import PostEventReflectionDialog from '@/components/PostEventReflectionDialog';
 import GuestLanding from '@/components/GuestLanding';
+import FeedSetupBanner from '@/components/FeedSetupBanner';
 import HowSyncWorks from '@/components/HowSyncWorks';
 import RecommendedCarousel from '@/components/RecommendedCarousel';
 import FriendsLoveSection from '@/components/FriendsLoveSection';
@@ -133,6 +134,9 @@ const Index = () => {
         </>
       ) : (
         <>
+          {/* 0) First-run tutorial banner */}
+          <FeedSetupBanner interests={profile?.interests ?? []} />
+
           {/* 1) Reflect from last event attended */}
           {reflectionEvent && !alreadyTagged && (
             <section className="py-6">
