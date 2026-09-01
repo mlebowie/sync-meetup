@@ -170,16 +170,24 @@ const UpcomingEventsSection = ({ events, profile, onAttend, onParticipantClick, 
         <div className="text-center mb-8">
           <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">Upcoming events</h2>
           <p className="text-muted-foreground">Dial in exactly what you want to walk into</p>
+          <button
+            onClick={() => setTourOpen(true)}
+            className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+          >
+            <HelpCircle className="h-4 w-4" />
+            How filters work
+          </button>
         </div>
 
         <div className="bg-card rounded-2xl shadow-card p-5 md:p-6 mb-8 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Time dropdown */}
             <div>
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-2 mb-1">
                 <Clock className="h-4 w-4 text-primary" />
                 <span className="text-sm font-semibold">Time</span>
               </div>
+              <p className="text-xs text-muted-foreground mb-2">How soon you want to be out the door.</p>
               <Select value={timeWindow} onValueChange={(v) => setTimeWindow(v as TimeWindow)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Any time" />
@@ -194,10 +202,11 @@ const UpcomingEventsSection = ({ events, profile, onAttend, onParticipantClick, 
 
             {/* Neighborhood typeahead */}
             <div>
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-2 mb-1">
                 <MapPin className="h-4 w-4 text-danger" />
                 <span className="text-sm font-semibold">Neighborhood</span>
               </div>
+              <p className="text-xs text-muted-foreground mb-2">Anchor your feed to one part of the city.</p>
               <TypeaheadSelect
                 value={neighborhood}
                 onChange={setNeighborhood}
@@ -208,100 +217,114 @@ const UpcomingEventsSection = ({ events, profile, onAttend, onParticipantClick, 
             </div>
           </div>
 
-          {/* Group size slider */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-success" />
-                <span className="text-sm font-semibold">Preferred group size</span>
+          {/* Vibe: group size + activity + intensity */}
+          <div ref={vibeRef} className="space-y-6 rounded-xl">
+            {/* Group size slider */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-success" />
+                  <span className="text-sm font-semibold">Preferred group size</span>
+                </div>
+                <span className="text-sm text-muted-foreground">{groupSizeStops[groupSizeIdx].label}</span>
               </div>
-              <span className="text-sm text-muted-foreground">{groupSizeStops[groupSizeIdx].label}</span>
-            </div>
-            <Slider
-              min={0}
-              max={3}
-              step={1}
-              value={[groupSizeIdx]}
-              onValueChange={v => setGroupSizeIdx(v[0])}
-            />
-            <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-              {groupSizeStops.map(s => <span key={s.value}>{s.label.split(' ')[0]}</span>)}
-            </div>
-          </div>
-
-          {/* Activity level */}
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <Activity className="h-4 w-4 text-primary" />
-              <span className="text-sm font-semibold">Preferred activity level</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {activityLevels.map(a => (
-                <button key={a} onClick={() => toggle(a, activityLevel, setActivityLevel)} className={pill(activityLevel.includes(a))}>
-                  {a.charAt(0).toUpperCase() + a.slice(1)}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Intensity */}
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <Zap className="h-4 w-4 text-accent-strong" />
-              <span className="text-sm font-semibold">Preferred intensity</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {intensities.map(i => (
-                <button key={i} onClick={() => toggle(i, intensity, setIntensity)} className={pill(intensity.includes(i))}>
-                  {i.charAt(0).toUpperCase() + i.slice(1)}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Age range — two handles */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <CalendarRange className="h-4 w-4 text-primary" />
-                <span className="text-sm font-semibold">Age range of attendees</span>
+              <p className="text-xs text-muted-foreground mb-3">Small rooms are easier to talk in; big ones are easier to blend into.</p>
+              <Slider
+                min={0}
+                max={3}
+                step={1}
+                value={[groupSizeIdx]}
+                onValueChange={v => setGroupSizeIdx(v[0])}
+              />
+              <div className="flex justify-between mt-2 text-xs text-muted-foreground">
+                {groupSizeStops.map(s => <span key={s.value}>{s.label.split(' ')[0]}</span>)}
               </div>
-              <span className="text-sm text-muted-foreground">{ageRange[0]}–{ageRange[1]} years old</span>
             </div>
-            <Slider
-              min={18}
-              max={65}
-              step={1}
-              minStepsBetweenThumbs={1}
-              value={ageRange}
-              onValueChange={v => setAgeRange([v[0], v[1]] as [number, number])}
-            />
+
+            {/* Activity level */}
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <Activity className="h-4 w-4 text-primary" />
+                <span className="text-sm font-semibold">Preferred activity level</span>
+              </div>
+              <p className="text-xs text-muted-foreground mb-3">How physical it gets — sitting and talking, or moving the whole time.</p>
+              <div className="flex flex-wrap gap-2">
+                {activityLevels.map(a => (
+                  <button key={a} onClick={() => toggle(a, activityLevel, setActivityLevel)} className={pill(activityLevel.includes(a))}>
+                    {a.charAt(0).toUpperCase() + a.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Intensity */}
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <Zap className="h-4 w-4 text-accent-strong" />
+                <span className="text-sm font-semibold">Preferred intensity</span>
+              </div>
+              <p className="text-xs text-muted-foreground mb-3">The social energy in the room, from quiet and chill to loud and lively.</p>
+              <div className="flex flex-wrap gap-2">
+                {intensities.map(i => (
+                  <button key={i} onClick={() => toggle(i, intensity, setIntensity)} className={pill(intensity.includes(i))}>
+                    {i.charAt(0).toUpperCase() + i.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
-          {/* Distance */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Ruler className="h-4 w-4 text-success" />
-                <span className="text-sm font-semibold">Distance from event</span>
+          {/* Place & people: age + distance */}
+          <div ref={placeRef} className="space-y-6 rounded-xl">
+            {/* Age range — two handles */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-2">
+                  <CalendarRange className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-semibold">Age range of attendees</span>
+                </div>
+                <span className="text-sm text-muted-foreground">{ageRange[0]}–{ageRange[1]} years old</span>
               </div>
-              <span className="text-sm text-muted-foreground">≤ {maxDistance.toFixed(1)} km</span>
+              <p className="text-xs text-muted-foreground mb-3">Roughly who else will be there.</p>
+              <Slider
+                min={18}
+                max={65}
+                step={1}
+                minStepsBetweenThumbs={1}
+                value={ageRange}
+                onValueChange={v => setAgeRange([v[0], v[1]] as [number, number])}
+              />
             </div>
-            <Slider
-              min={1}
-              max={20}
-              step={0.5}
-              value={[maxDistance]}
-              onValueChange={v => setMaxDistance(v[0])}
-            />
+
+            {/* Distance */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-2">
+                  <Ruler className="h-4 w-4 text-success" />
+                  <span className="text-sm font-semibold">Distance from event</span>
+                </div>
+                <span className="text-sm text-muted-foreground">≤ {maxDistance.toFixed(1)} km</span>
+              </div>
+              <p className="text-xs text-muted-foreground mb-3">
+                Closest events to {neighborhood || profile.neighborhood || 'your neighborhood'} are always shown first.
+              </p>
+              <Slider
+                min={1}
+                max={20}
+                step={0.5}
+                value={[maxDistance]}
+                onValueChange={v => setMaxDistance(v[0])}
+              />
+            </div>
           </div>
 
           {/* Interests */}
-          <div>
-            <div className="flex items-center gap-2 mb-3">
+          <div ref={interestsRef} className="rounded-xl">
+            <div className="flex items-center gap-2 mb-1">
               <Sparkles className="h-4 w-4 text-accent-strong" />
               <span className="text-sm font-semibold">Interests</span>
             </div>
+            <p className="text-xs text-muted-foreground mb-3">Pre-selected from your profile — add or remove any time.</p>
             <div className="flex flex-wrap gap-2">
               {ONBOARDING_INTERESTS.map(i => (
                 <button key={i.id} onClick={() => toggle(i.id, interests, setInterests)} className={pill(interests.includes(i.id))}>
@@ -312,11 +335,12 @@ const UpcomingEventsSection = ({ events, profile, onAttend, onParticipantClick, 
           </div>
 
           {/* Inclusivity */}
-          <div>
-            <div className="flex items-center gap-2 mb-3">
+          <div ref={inclusivityRef} className="rounded-xl">
+            <div className="flex items-center gap-2 mb-1">
               <Heart className="h-4 w-4 text-danger" />
               <span className="text-sm font-semibold">Inclusivity</span>
             </div>
+            <p className="text-xs text-muted-foreground mb-3">Only show events built with these spaces in mind.</p>
             <div className="flex flex-wrap gap-2">
               <button onClick={() => setWomenOnly(v => !v)} className={pill(womenOnly)}>
                 Women only
@@ -331,11 +355,7 @@ const UpcomingEventsSection = ({ events, profile, onAttend, onParticipantClick, 
           </div>
 
           <div className="flex flex-wrap items-center justify-end gap-3 pt-2 border-t border-border">
-            <Button variant="ghost" onClick={() => {
-              setTimeWindow('any'); setNeighborhood(''); setActivityLevel([]); setIntensity([]);
-              setGroupSizeIdx(0); setAgeRange([22, 45]); setMaxDistance(15); setInterests(profile.interests ?? []); setRecommendMode(false);
-              setWomenOnly(false); setLgbtqFriendly(false); setPetFriendly(false);
-            }}>
+            <Button variant="ghost" onClick={resetFilters}>
               Reset filters
             </Button>
             <Button variant="hero" onClick={() => setRecommendMode(true)}>
@@ -349,11 +369,19 @@ const UpcomingEventsSection = ({ events, profile, onAttend, onParticipantClick, 
           <div className="text-center py-16">
             <div className="text-6xl mb-4">🔍</div>
             <h3 className="text-xl font-semibold mb-2">No matches yet</h3>
-            <p className="text-muted-foreground">Loosen a filter and try again.</p>
+            <p className="text-muted-foreground mb-4">Loosen a filter and try again.</p>
+            <Button variant="outline" onClick={resetFilters}>Clear filters</Button>
           </div>
         ) : (
           <>
-            <p className="text-sm text-muted-foreground mb-4">{filtered.length} event{filtered.length === 1 ? '' : 's'} match your filters</p>
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <p className="text-sm text-muted-foreground">
+                Showing {filtered.length} of {events.length} events
+              </p>
+              {filtered.length < events.length && (
+                <Button variant="ghost" size="sm" onClick={resetFilters}>Clear filters</Button>
+              )}
+            </div>
             <ExpandableEventGrid
               events={filtered}
               onAttend={onAttend}
@@ -361,9 +389,17 @@ const UpcomingEventsSection = ({ events, profile, onAttend, onParticipantClick, 
               onOpenGroupChat={onOpenGroupChat}
             />
           </>
-
         )}
       </div>
+
+      <FilterTour
+        open={tourOpen}
+        steps={tourSteps}
+        onClose={(reason) => {
+          setTourOpen(false);
+          setFilterTourState(reason);
+        }}
+      />
     </section>
   );
 };
