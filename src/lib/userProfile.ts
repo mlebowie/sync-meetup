@@ -28,6 +28,8 @@ export interface UserProfile {
   nationality: string;
   photo?: string; // data URL
   interests: string[]; // ids from ONBOARDING_INTERESTS
+  /** ISO timestamp of account creation — used to ignore seeded demo history. */
+  onboardedAt?: string;
 }
 
 const KEY = 'sync.userProfile.v1';

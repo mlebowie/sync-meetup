@@ -86,6 +86,7 @@ if (password.length < 8) {
       nationality: nationality.trim().slice(0, 60),
       photo,
       interests,
+      onboardedAt: new Date().toISOString(),
     };
     saveUserProfile(profile);
     toast({ title: `Welcome, ${profile.firstName}!`, description: 'Your feed is being personalized.' });

@@ -12,6 +12,7 @@ import { mockParticipants, mockEvents } from '@/data/mockData';
 import PostEventReflectionDialog from './PostEventReflectionDialog';
 import { Event } from '@/types/event';
 import { formatDistanceToNow } from 'date-fns';
+import { getUserProfile } from '@/lib/userProfile';
 
 type NotifType = 'follow' | 'reflect' | 'rate' | 'waitlist';
 interface Notif {
@@ -58,6 +59,15 @@ const NotificationsPopover = ({ open, onOpenChange }: Props) => {
   const notifications = useMemo<Notif[]>(() => {
     const now = Date.now();
     const list: Notif[] = [];
+    const profile = getUserProfile();
+    // The most recent event the user actually registered for and that has happened.
+    const attendedPast = mockEvents
+      .filter(e => attending.has(e.id) && new Date(e.date).getTime() < now)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+
+    // Newly onboarded users get no notifications until they've registered for
+    // and attended their first event.
+    if (profile?.onboardedAt && !attendedPast) return [];
 
     // 1. New followers
     const newFollowers = [mockParticipants[1], mockParticipants[4]];
@@ -71,9 +81,8 @@ const NotificationsPopover = ({ open, onOpenChange }: Props) => {
       participantId: p.id,
     }));
 
-    // 2. Post-event reflect (tag) + 3. Rate — use most recent past attending / mock event
-    const attendedPast = mockEvents.find(e => attending.has(e.id) && new Date(e.date).getTime() < now);
-    const pastEvent = attendedPast ?? mockEvents[6];
+    // 2. Post-event reflect (tag) + 3. Rate — only for a real attended past event
+    const pastEvent = attendedPast ?? (profile?.onboardedAt ? undefined : mockEvents[6]);
     if (pastEvent) {
       list.push({
         id: `reflect-${pastEvent.id}`,
