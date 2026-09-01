@@ -20,12 +20,14 @@ const HeaderSearch = () => {
     }
   }, [open]);
 
-  const select = (eventId: string) => {
+const select = (eventId: string) => {
     setOpen(false);
     if (location.pathname === '/') {
-      document
-        .getElementById(`event-${eventId}`)
-        ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const target =
+        document.getElementById(`event-${eventId}`) ??
+        document.getElementById('upcoming') ??
+        document.getElementById('happening-porto');
+      target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     } else {
       navigate(`/?q=${encodeURIComponent(query)}&event=${eventId}`);
     }

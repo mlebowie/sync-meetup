@@ -72,7 +72,7 @@ const GuestLanding = ({ onAttend, onParticipantClick }: Props) => {
       />
 
       {/* Public Porto feed */}
-      <section className="py-10 md:py-14">
+      <section id="happening-porto" className="py-10 md:py-14 scroll-mt-24">
         <div className="container px-4 md:px-6">
           <div className="max-w-6xl mx-auto">
             <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
