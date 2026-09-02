@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Event, Participant } from '@/types/event';
-import { Calendar, MapPin, Users, Clock, ArrowRight, Check, MessageSquare, Repeat, Heart, TrendingUp, Hourglass } from 'lucide-react';
+import { Calendar, MapPin, Users, Clock, ArrowRight, Check, MessageSquare, Repeat, Heart, TrendingUp, Hourglass, X } from 'lucide-react';
 import { format } from 'date-fns';
 import ParticipantAvatars from './ParticipantAvatars';
 import OrganizerPopover from './OrganizerPopover';
@@ -10,6 +10,7 @@ import EventDetailsModal from './EventDetailsModal';
 import EventPhotoCarousel from './EventPhotoCarousel';
 import { useEventRatings } from '@/context/EventRatingContext';
 import AttendConfirmationDialog from './AttendConfirmationDialog';
+import CancelRegistrationDialog from './CancelRegistrationDialog';
 import WaitlistDialog from './WaitlistDialog';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
 import { useWishlist } from '@/context/WishlistContext';
@@ -60,6 +61,9 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [waitlistOpen, setWaitlistOpen] = useState(false);
+  const [cancelArmed, setCancelArmed] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const armTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { seriesCount, crossedPathsWith } = useActivityHistory();
   const { isWishlisted, toggle: toggleWishlist } = useWishlist();
   const { friendScore } = useEventRatings();
@@ -67,6 +71,17 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
   const seriesTimes = guest ? 0 : seriesCount(event.seriesId);
   const familiarCount = guest ? 0 : event.participants.filter(p => crossedPathsWith(p.id) > 0).length;
   const isFull = event.currentParticipants >= event.maxParticipants;
+
+  const disarmCancel = () => {
+    if (armTimer.current) clearTimeout(armTimer.current);
+    armTimer.current = null;
+    setCancelArmed(false);
+  };
+
+  useEffect(() => () => { if (armTimer.current) clearTimeout(armTimer.current); }, []);
+
+  // Reset the armed state if the user leaves the event (or re-joins elsewhere)
+  useEffect(() => { if (!isAttending) disarmCancel(); }, [isAttending]);
 
   const handleAttend = () => {
     if (guest) {
@@ -77,12 +92,28 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
       setWaitlistOpen(true);
       return;
     }
-    const next = toggleAttending(event.id);
-    onAttend?.(event.id);
-    if (next) {
-      ensureGroupChat(event.id, seedGroupChat(event));
-      setConfirmOpen(true);
+    if (isAttending) {
+      if (cancelArmed) {
+        disarmCancel();
+        setCancelOpen(true);
+      } else {
+        setCancelArmed(true);
+        if (armTimer.current) clearTimeout(armTimer.current);
+        armTimer.current = setTimeout(() => setCancelArmed(false), 4000);
+      }
+      return;
     }
+    toggleAttending(event.id);
+    onAttend?.(event.id);
+    ensureGroupChat(event.id, seedGroupChat(event));
+    setConfirmOpen(true);
+  };
+
+  const confirmCancel = () => {
+    disarmCancel();
+    setCancelOpen(false);
+    toggleAttending(event.id);
+    onAttend?.(event.id);
   };
 
   return (
@@ -236,17 +267,25 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
         </div>
 
         {/* Actions */}
-        <div className="flex gap-2">
+        <div className="flex gap-2" onMouseLeave={disarmCancel}>
           <Button
-            variant={isAttending ? 'attend' : 'default'}
+            variant={isAttending ? (cancelArmed ? 'destructive' : 'attend') : 'default'}
             className="flex-1"
             onClick={handleAttend}
+            onBlur={() => cancelArmed && disarmCancel()}
           >
             {isAttending ? (
-              <>
-                <Check className="h-4 w-4 mr-1" />
-                Attending
-              </>
+              cancelArmed ? (
+                <>
+                  <X className="h-4 w-4 mr-1" />
+                  Cancel registration?
+                </>
+              ) : (
+                <>
+                  <Check className="h-4 w-4 mr-1" />
+                  Attending
+                </>
+              )
             ) : isFull ? (
               <>
                 <Hourglass className="h-4 w-4 mr-1" />
@@ -283,13 +322,19 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
 
       <AttendConfirmationDialog event={event} open={confirmOpen} onOpenChange={setConfirmOpen} />
       <WaitlistDialog event={event} open={waitlistOpen} onOpenChange={setWaitlistOpen} />
-
+      <CancelRegistrationDialog
+        event={event}
+        open={cancelOpen}
+        onOpenChange={(o) => { setCancelOpen(o); if (!o) disarmCancel(); }}
+        onConfirm={confirmCancel}
+      />
 
       <EventDetailsModal
         event={event}
         open={detailsOpen}
-        onOpenChange={setDetailsOpen}
+        onOpenChange={(o) => { setDetailsOpen(o); if (!o) disarmCancel(); }}
         isAttending={isAttending}
+        cancelArmed={cancelArmed}
         onAttend={handleAttend}
         onOpenGroupChat={onOpenGroupChat}
         onParticipantClick={onParticipantClick}

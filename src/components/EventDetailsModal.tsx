@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Event, Participant } from '@/types/event';
-import { Calendar, Clock, MapPin, Users, Star, Check, MessageSquare, Heart, ArrowRight, Quote, Instagram, Linkedin, Mail, Lock } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, Star, Check, MessageSquare, Heart, ArrowRight, Quote, Instagram, Linkedin, Mail, Lock, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { useWishlist } from '@/context/WishlistContext';
 import { cn } from '@/lib/utils';
@@ -16,6 +16,7 @@ interface EventDetailsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   isAttending: boolean;
+  cancelArmed?: boolean;
   onAttend: () => void;
   onOpenGroupChat?: (event: Event) => void;
   onParticipantClick?: (participant: Participant) => void;
@@ -45,7 +46,7 @@ function syntheticTestimonials(event: Event) {
 }
 
 const EventDetailsModal = ({
-  event, open, onOpenChange, isAttending, onAttend, onOpenGroupChat, onParticipantClick, guest = false,
+  event, open, onOpenChange, isAttending, cancelArmed = false, onAttend, onOpenGroupChat, onParticipantClick, guest = false,
 }: EventDetailsModalProps) => {
   const { isWishlisted, toggle: toggleWishlist } = useWishlist();
   const { friendScore, ratingCount } = useEventRatings();
@@ -53,6 +54,7 @@ const EventDetailsModal = ({
   const org = event.organizer;
   const extraTestimonials = syntheticTestimonials(event);
   const [orgOpen, setOrgOpen] = useState(false);
+  const testimonialsRef = useRef<HTMLElement>(null);
   
   const { toast } = useToast();
 
@@ -90,9 +92,14 @@ Just yourself and an open attitude. Anything specific (gear, dress code, food co
               {event.category}
             </span>
             {friendScore(event.id) !== null && (
-              <span className="px-2 py-1 rounded-md text-xs font-medium bg-white/90 text-foreground">
+              <button
+                type="button"
+                onClick={() => testimonialsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                aria-label="Jump to testimonials"
+                className="px-2 py-1 rounded-md text-xs font-medium bg-white/90 text-foreground hover:bg-white transition-colors underline-offset-2 hover:underline cursor-pointer"
+              >
                 {friendScore(event.id)}% would bring a friend · {ratingCount(event.id)} ratings
-              </span>
+              </button>
             )}
           </div>
           <div className="absolute bottom-3 left-4 right-4 text-white pointer-events-none">
@@ -199,7 +206,7 @@ Just yourself and an open attitude. Anything specific (gear, dress code, food co
           </section>
 
           {/* Testimonials */}
-          <section>
+          <section ref={testimonialsRef} id={`event-testimonials-${event.id}`} className="scroll-mt-4">
             <h3 className="text-sm font-semibold text-foreground mb-2">What people said</h3>
             <div className="space-y-2">
               {org?.recentReview && (
@@ -257,11 +264,15 @@ Just yourself and an open attitude. Anything specific (gear, dress code, food co
           ) : (
             <>
               <Button
-                variant={isAttending ? 'attend' : 'default'}
+                variant={isAttending ? (cancelArmed ? 'destructive' : 'attend') : 'default'}
                 className="flex-1"
                 onClick={onAttend}
               >
-                {isAttending ? (<><Check className="h-4 w-4 mr-1" />Attending</>) : (<>Attend<ArrowRight className="h-4 w-4 ml-1" /></>)}
+                {isAttending
+                  ? (cancelArmed
+                    ? (<><X className="h-4 w-4 mr-1" />Cancel registration?</>)
+                    : (<><Check className="h-4 w-4 mr-1" />Attending</>))
+                  : (<>Attend<ArrowRight className="h-4 w-4 ml-1" /></>)}
               </Button>
               <Button
                 variant="outline"
