@@ -46,7 +46,7 @@ function syntheticTestimonials(event: Event) {
 }
 
 const EventDetailsModal = ({
-  event, open, onOpenChange, isAttending, onAttend, onOpenGroupChat, onParticipantClick, guest = false,
+  event, open, onOpenChange, isAttending, cancelArmed = false, onAttend, onOpenGroupChat, onParticipantClick, guest = false,
 }: EventDetailsModalProps) => {
   const { isWishlisted, toggle: toggleWishlist } = useWishlist();
   const { friendScore, ratingCount } = useEventRatings();
