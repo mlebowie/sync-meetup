@@ -30,6 +30,8 @@ const App = () => (
           <WishlistProvider allEvents={mockEvents}>
 <AttendingProvider>
               <SearchProvider>
+                <EventRatingProvider>
+                <EventMediaProvider>
                 <Toaster />
                 <Sonner />
               <BrowserRouter>
@@ -45,6 +47,8 @@ const App = () => (
                   <Route path="*" element={<NotFound />} />
                 </Routes>
 </BrowserRouter>
+                </EventMediaProvider>
+                </EventRatingProvider>
               </SearchProvider>
             </AttendingProvider>
           </WishlistProvider>
