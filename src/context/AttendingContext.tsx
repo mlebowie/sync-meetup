@@ -66,7 +66,7 @@ export const AttendingProvider = ({ children }: { children: ReactNode }) => {
     window.localStorage.setItem(KEY, JSON.stringify(Array.from(attending)));
   }, [attending]);
 
-useEffect(() => {
+  useEffect(() => {
     window.localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
   }, [prefs]);
 
