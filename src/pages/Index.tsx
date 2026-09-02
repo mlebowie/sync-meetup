@@ -169,10 +169,10 @@ const [events, setEvents] = useState<Event[]>(() => getDailyRotatingEvents(mockE
                       Who did you click with at {reflectionEvent.title}?
                     </h3>
                     <p className="text-sm text-muted-foreground mt-0.5">
-                      Tag 1–3 people. Mutual tags unlock DMs and form crews.
+                      Rate it, tag up to 3 people, and add a photo to the event card.
                     </p>
                   </div>
-                  <Button onClick={() => setReflectionOpen(true)}>Tag attendees</Button>
+                  <Button onClick={() => setReflectionOpen(true)}>Start recap</Button>
                 </div>
               </div>
             </section>
