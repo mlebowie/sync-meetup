@@ -7,6 +7,8 @@ import { format } from 'date-fns';
 import ParticipantAvatars from './ParticipantAvatars';
 import OrganizerPopover from './OrganizerPopover';
 import EventDetailsModal from './EventDetailsModal';
+import EventPhotoCarousel from './EventPhotoCarousel';
+import { useEventRatings } from '@/context/EventRatingContext';
 import AttendConfirmationDialog from './AttendConfirmationDialog';
 import WaitlistDialog from './WaitlistDialog';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
@@ -60,6 +62,7 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
   const [waitlistOpen, setWaitlistOpen] = useState(false);
   const { seriesCount, crossedPathsWith } = useActivityHistory();
   const { isWishlisted, toggle: toggleWishlist } = useWishlist();
+  const { friendScore } = useEventRatings();
   const wishlisted = isWishlisted(event.id);
   const seriesTimes = guest ? 0 : seriesCount(event.seriesId);
   const familiarCount = guest ? 0 : event.participants.filter(p => crossedPathsWith(p.id) > 0).length;
@@ -88,15 +91,8 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Image */}
-      <div className="relative h-48 overflow-hidden">
-        <img
-          src={event.imageUrl}
-          alt={event.title}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-        
+      {/* Image / attendee photo carousel */}
+      <EventPhotoCarousel eventId={event.id} fallbackUrl={event.imageUrl} alt={event.title}>
         {/* Source badge */}
         <div className="absolute top-3 left-3 flex items-center gap-2">
           <span className={`px-2 py-1 rounded-md text-xs font-semibold ${sourceColors[event.source]}`}>
@@ -155,7 +151,7 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
             />
           </button>
         )}
-      </div>
+      </EventPhotoCarousel>
 
       {/* Content */}
       <div className="p-5">
@@ -170,6 +166,12 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
           {familiarCount > 0 && (
             <span className="px-2 py-0.5 text-[11px] font-medium rounded-full bg-accent/15 text-accent-strong">
               {familiarCount} familiar {familiarCount === 1 ? 'face' : 'faces'}
+            </span>
+          )}
+          {friendScore(event.id) !== null && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-full bg-primary/10 text-primary">
+              <Heart className="h-3 w-3" />
+              {friendScore(event.id)}% would bring a friend
             </span>
           )}
         </div>

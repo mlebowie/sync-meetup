@@ -16,6 +16,8 @@ import { ActivityHistoryProvider } from "./context/ActivityHistoryContext";
 import { WishlistProvider } from "./context/WishlistContext";
 import { AttendingProvider } from "./context/AttendingContext";
 import { SearchProvider } from "./context/SearchContext";
+import { EventMediaProvider } from "./context/EventMediaContext";
+import { EventRatingProvider } from "./context/EventRatingContext";
 import { mockEvents } from "./data/mockData";
 
 const queryClient = new QueryClient();
@@ -28,6 +30,8 @@ const App = () => (
           <WishlistProvider allEvents={mockEvents}>
 <AttendingProvider>
               <SearchProvider>
+                <EventRatingProvider>
+                <EventMediaProvider>
                 <Toaster />
                 <Sonner />
               <BrowserRouter>
@@ -43,6 +47,8 @@ const App = () => (
                   <Route path="*" element={<NotFound />} />
                 </Routes>
 </BrowserRouter>
+                </EventMediaProvider>
+                </EventRatingProvider>
               </SearchProvider>
             </AttendingProvider>
           </WishlistProvider>
