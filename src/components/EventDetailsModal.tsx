@@ -48,6 +48,7 @@ const EventDetailsModal = ({
   event, open, onOpenChange, isAttending, onAttend, onOpenGroupChat, onParticipantClick, guest = false,
 }: EventDetailsModalProps) => {
   const { isWishlisted, toggle: toggleWishlist } = useWishlist();
+  const { friendScore, ratingCount } = useEventRatings();
   const wishlisted = isWishlisted(event.id);
   const org = event.organizer;
   const extraTestimonials = syntheticTestimonials(event);
