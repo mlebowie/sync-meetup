@@ -1,10 +1,13 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { mockEvents } from '@/data/mockData';
 import { useSocial } from '@/context/SocialContext';
 import { Event, Participant } from '@/types/event';
 import ExpandableEventGrid from './ExpandableEventGrid';
+import EventCarousel from './EventCarousel';
+import SectionFilterBar, { SectionFilters, defaultSectionFilters, applySectionFilters } from './SectionFilterBar';
 import { matchesInterests } from '@/lib/userProfile';
 import { Heart, Users } from 'lucide-react';
+
 
 
 interface Props {
@@ -54,6 +57,9 @@ const FriendsLoveSection = ({ onAttend, onParticipantClick, onOpenGroupChat, int
     }));
   }, [following, interests]);
 
+  const [filters, setFilters] = useState<SectionFilters>(defaultSectionFilters);
+  const [showAll, setShowAll] = useState(false);
+  const visible = useMemo(() => applySectionFilters(events, filters), [events, filters]);
 
   if (events.length === 0) return null;
 
@@ -62,30 +68,53 @@ const FriendsLoveSection = ({ onAttend, onParticipantClick, onOpenGroupChat, int
   return (
     <section className="py-8 md:py-12">
       <div className="container px-4 md:px-6">
-        <div className="mb-5">
-          <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-accent-strong font-semibold mb-1">
-            <Heart className="h-3.5 w-3.5 fill-current" />
-            Events your friends love
+        <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
+          <div>
+            <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-accent-strong font-semibold mb-1">
+              <Heart className="h-3.5 w-3.5 fill-current" />
+              Events your friends love
+            </div>
+            <h2 className="text-xl md:text-2xl font-bold text-foreground">
+              {hasFriends ? 'Where your people keep showing up' : 'Recurring events the community loves'}
+            </h2>
+            <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1.5">
+              <Users className="h-3.5 w-3.5" />
+              {hasFriends
+                ? 'Events where people you follow attend regularly'
+                : 'Follow a few faces to see where they regularly show up'}
+            </p>
           </div>
-          <h2 className="text-xl md:text-2xl font-bold text-foreground">
-            {hasFriends ? 'Where your people keep showing up' : 'Recurring events the community loves'}
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1.5">
-            <Users className="h-3.5 w-3.5" />
-            {hasFriends
-              ? '3 events next week where people you follow attend regularly'
-              : 'Follow a few faces to see where they regularly show up'}
-          </p>
+          <button
+            type="button"
+            onClick={() => setShowAll(v => !v)}
+            className="text-sm font-semibold text-primary hover:underline"
+          >
+            {showAll ? 'Show as carousel' : `See all (${visible.length})`}
+          </button>
         </div>
 
-        <ExpandableEventGrid
-          events={events}
-          onAttend={onAttend}
-          onParticipantClick={onParticipantClick}
-          onOpenGroupChat={onOpenGroupChat}
-        />
+        <SectionFilterBar value={filters} onChange={setFilters} />
+
+        {visible.length === 0 ? (
+          <p className="text-sm text-muted-foreground py-8 text-center">No events match those filters yet.</p>
+        ) : showAll ? (
+          <ExpandableEventGrid
+            events={visible}
+            onAttend={onAttend}
+            onParticipantClick={onParticipantClick}
+            onOpenGroupChat={onOpenGroupChat}
+          />
+        ) : (
+          <EventCarousel
+            events={visible}
+            onAttend={onAttend}
+            onParticipantClick={onParticipantClick}
+            onOpenGroupChat={onOpenGroupChat}
+          />
+        )}
 
       </div>
+
     </section>
   );
 };
