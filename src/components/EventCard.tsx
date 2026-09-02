@@ -88,15 +88,8 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Image */}
-      <div className="relative h-48 overflow-hidden">
-        <img
-          src={event.imageUrl}
-          alt={event.title}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-        
+      {/* Image / attendee photo carousel */}
+      <EventPhotoCarousel eventId={event.id} fallbackUrl={event.imageUrl} alt={event.title}>
         {/* Source badge */}
         <div className="absolute top-3 left-3 flex items-center gap-2">
           <span className={`px-2 py-1 rounded-md text-xs font-semibold ${sourceColors[event.source]}`}>
