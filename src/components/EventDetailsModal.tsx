@@ -206,7 +206,7 @@ Just yourself and an open attitude. Anything specific (gear, dress code, food co
           </section>
 
           {/* Testimonials */}
-          <section>
+          <section ref={testimonialsRef} id={`event-testimonials-${event.id}`} className="scroll-mt-4">
             <h3 className="text-sm font-semibold text-foreground mb-2">What people said</h3>
             <div className="space-y-2">
               {org?.recentReview && (
