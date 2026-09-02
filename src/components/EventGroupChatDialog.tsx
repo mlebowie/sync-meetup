@@ -10,7 +10,7 @@ import { format, differenceInHours, formatDistanceToNowStrict } from 'date-fns';
 import { mockParticipants } from '@/data/mockData';
 import ParticipantProfileDialog from './ParticipantProfileDialog';
 
-const CHAT_LIFETIME_HOURS = 7 * 24;
+const CHAT_LIFETIME_HOURS = 48;
 const notifiedExpiry = new Set<string>();
 
 interface Props {
@@ -95,6 +95,9 @@ const EventGroupChatDialog = ({ event, open, onOpenChange }: Props) => {
           <DialogTitle className="text-base font-display">{event.title}</DialogTitle>
           <DialogDescription className="text-xs">
             Group chat · {event.currentParticipants} attendees · {format(event.date, 'MMM d')}
+            <span className="block mt-1 text-muted-foreground">
+              This chat disappears 48 hours after the event takes place.
+            </span>
           </DialogDescription>
         </DialogHeader>
 
