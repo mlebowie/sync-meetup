@@ -10,6 +10,7 @@ import EventDetailsModal from './EventDetailsModal';
 import EventPhotoCarousel from './EventPhotoCarousel';
 import { useEventRatings } from '@/context/EventRatingContext';
 import AttendConfirmationDialog from './AttendConfirmationDialog';
+import CancelRegistrationDialog from './CancelRegistrationDialog';
 import WaitlistDialog from './WaitlistDialog';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
 import { useWishlist } from '@/context/WishlistContext';
