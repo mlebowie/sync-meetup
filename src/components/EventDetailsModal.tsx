@@ -16,6 +16,7 @@ interface EventDetailsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   isAttending: boolean;
+  cancelArmed?: boolean;
   onAttend: () => void;
   onOpenGroupChat?: (event: Event) => void;
   onParticipantClick?: (participant: Participant) => void;
