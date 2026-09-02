@@ -60,6 +60,9 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [waitlistOpen, setWaitlistOpen] = useState(false);
+  const [cancelArmed, setCancelArmed] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const armTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { seriesCount, crossedPathsWith } = useActivityHistory();
   const { isWishlisted, toggle: toggleWishlist } = useWishlist();
   const { friendScore } = useEventRatings();
@@ -67,6 +70,17 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
   const seriesTimes = guest ? 0 : seriesCount(event.seriesId);
   const familiarCount = guest ? 0 : event.participants.filter(p => crossedPathsWith(p.id) > 0).length;
   const isFull = event.currentParticipants >= event.maxParticipants;
+
+  const disarmCancel = () => {
+    if (armTimer.current) clearTimeout(armTimer.current);
+    armTimer.current = null;
+    setCancelArmed(false);
+  };
+
+  useEffect(() => () => { if (armTimer.current) clearTimeout(armTimer.current); }, []);
+
+  // Reset the armed state if the user leaves the event (or re-joins elsewhere)
+  useEffect(() => { if (!isAttending) disarmCancel(); }, [isAttending]);
 
   const handleAttend = () => {
     if (guest) {
@@ -77,12 +91,28 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
       setWaitlistOpen(true);
       return;
     }
-    const next = toggleAttending(event.id);
-    onAttend?.(event.id);
-    if (next) {
-      ensureGroupChat(event.id, seedGroupChat(event));
-      setConfirmOpen(true);
+    if (isAttending) {
+      if (cancelArmed) {
+        disarmCancel();
+        setCancelOpen(true);
+      } else {
+        setCancelArmed(true);
+        if (armTimer.current) clearTimeout(armTimer.current);
+        armTimer.current = setTimeout(() => setCancelArmed(false), 4000);
+      }
+      return;
     }
+    toggleAttending(event.id);
+    onAttend?.(event.id);
+    ensureGroupChat(event.id, seedGroupChat(event));
+    setConfirmOpen(true);
+  };
+
+  const confirmCancel = () => {
+    disarmCancel();
+    setCancelOpen(false);
+    toggleAttending(event.id);
+    onAttend?.(event.id);
   };
 
   return (
