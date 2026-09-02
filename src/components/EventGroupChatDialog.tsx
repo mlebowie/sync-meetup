@@ -95,6 +95,9 @@ const EventGroupChatDialog = ({ event, open, onOpenChange }: Props) => {
           <DialogTitle className="text-base font-display">{event.title}</DialogTitle>
           <DialogDescription className="text-xs">
             Group chat · {event.currentParticipants} attendees · {format(event.date, 'MMM d')}
+            <span className="block mt-1 text-muted-foreground">
+              This chat disappears 48 hours after the event takes place.
+            </span>
           </DialogDescription>
         </DialogHeader>
 
