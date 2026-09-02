@@ -7,6 +7,8 @@ import { format } from 'date-fns';
 import { useWishlist } from '@/context/WishlistContext';
 import { cn } from '@/lib/utils';
 import OrganizerDetailsDialog from './OrganizerDetailsDialog';
+import EventPhotoCarousel from './EventPhotoCarousel';
+import { useEventRatings } from '@/context/EventRatingContext';
 import { useToast } from '@/hooks/use-toast';
 
 interface EventDetailsModalProps {
