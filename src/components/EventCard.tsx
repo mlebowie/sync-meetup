@@ -167,6 +167,12 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
               {familiarCount} familiar {familiarCount === 1 ? 'face' : 'faces'}
             </span>
           )}
+          {friendScore(event.id) !== null && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-full bg-primary/10 text-primary">
+              <Heart className="h-3 w-3" />
+              {friendScore(event.id)}% would bring a friend
+            </span>
+          )}
         </div>
         <h3 className="text-lg font-bold text-foreground mb-1 line-clamp-1 group-hover:text-primary transition-colors">
           {event.title}
