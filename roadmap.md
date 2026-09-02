@@ -12,4 +12,4 @@
 - [x] Calendar "Last attended events" cards now show event photos
 - [x] Demo profile calendar seeded with registered + wishlisted Porto events so Coming Up / wishlist show real content
 ## Event title → event preview
-- [ ] Clicking an event card title opens the same event preview as the "View more" button
+- [x] Clicking an event card title opens the same event preview as the "View more" button
