@@ -50,9 +50,11 @@ export const WishlistProvider = ({ children, allEvents }: { children: ReactNode;
     window.localStorage.setItem(KEY, JSON.stringify(Array.from(wishlist)));
   }, [wishlist]);
 
-  // Request browser notification permission once when user wishlists something
+// Request browser notification permission once the user actually saves an
+  // event themselves (seeded demo items alone shouldn't prompt on page load).
   useEffect(() => {
-    if (wishlist.size === 0) return;
+    const hasUserSaved = Array.from(wishlist).some(id => !DEMO_SEED_WISHLIST.includes(id));
+    if (!hasUserSaved) return;
     if (typeof window === 'undefined' || !('Notification' in window)) return;
     if (Notification.permission === 'default') {
       Notification.requestPermission().catch(() => {});
