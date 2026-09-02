@@ -54,6 +54,7 @@ const EventDetailsModal = ({
   const org = event.organizer;
   const extraTestimonials = syntheticTestimonials(event);
   const [orgOpen, setOrgOpen] = useState(false);
+  const testimonialsRef = useRef<HTMLElement>(null);
   
   const { toast } = useToast();
 
