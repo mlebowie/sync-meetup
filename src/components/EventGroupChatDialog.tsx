@@ -10,7 +10,7 @@ import { format, differenceInHours, formatDistanceToNowStrict } from 'date-fns';
 import { mockParticipants } from '@/data/mockData';
 import ParticipantProfileDialog from './ParticipantProfileDialog';
 
-const CHAT_LIFETIME_HOURS = 7 * 24;
+const CHAT_LIFETIME_HOURS = 48;
 const notifiedExpiry = new Set<string>();
 
 interface Props {
