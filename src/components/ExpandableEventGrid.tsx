@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Event, Participant } from '@/types/event';
 import EventCard from './EventCard';
 import { ChevronDown, ChevronUp } from 'lucide-react';
@@ -11,8 +11,8 @@ interface Props {
   guest?: boolean;
   /** Cards shown before expanding */
   initialCount?: number;
-  /** Extra cards revealed on expand */
-  expandCount?: number;
+  /** How many extra cards each "View more results" click appends */
+  batchSize?: number;
 }
 
 const ExpandableEventGrid = ({
@@ -22,57 +22,63 @@ const ExpandableEventGrid = ({
   onOpenGroupChat,
   guest = false,
   initialCount = 3,
-  expandCount = 10,
+  batchSize = 12,
 }: Props) => {
-  const [expanded, setExpanded] = useState(false);
+  const topRef = useRef<HTMLDivElement>(null);
+  const [visibleCount, setVisibleCount] = useState(initialCount);
 
-  const primary = events.slice(0, initialCount);
-  const extra = events.slice(initialCount, initialCount + expandCount);
-  const hasMore = extra.length > 0;
+  const shown = events.slice(0, visibleCount);
+  const remaining = Math.max(events.length - shown.length, 0);
+  const isExpanded = visibleCount > initialCount;
+  const hasMore = remaining > 0;
 
-  const card = (e: Event) => (
-    <EventCard
-      event={e}
-      onAttend={onAttend}
-      onParticipantClick={onParticipantClick}
-      onOpenGroupChat={onOpenGroupChat}
-      guest={guest}
-    />
-  );
+  const collapse = () => {
+    setVisibleCount(initialCount);
+    topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   return (
     <div>
+      <div ref={topRef} className="scroll-mt-24" />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-{primary.map((e, i) => (
-          <div key={e.id} id={`event-${e.id}`} className="animate-fade-in-up scroll-mt-24" style={{ animationDelay: `${i * 0.06}s` }}>
-            {card(e)}
+        {shown.map((e, i) => (
+          <div
+            key={e.id}
+            id={`event-${e.id}`}
+            className="animate-fade-in-up scroll-mt-24"
+            style={{ animationDelay: `${(i % batchSize) * 0.04}s` }}
+          >
+            <EventCard
+              event={e}
+              onAttend={onAttend}
+              onParticipantClick={onParticipantClick}
+              onOpenGroupChat={onOpenGroupChat}
+              guest={guest}
+            />
           </div>
         ))}
       </div>
 
-      {hasMore && expanded && (
-        <div className="mt-6 max-h-[70vh] overflow-y-auto pr-1 space-y-4 rounded-xl">
-{extra.map(e => (
-            <div key={e.id} id={`event-${e.id}`} className="animate-fade-in-up scroll-mt-24">
-              {card(e)}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {hasMore && (
-        <div className="flex justify-center mt-8">
-          <button
-            type="button"
-            onClick={() => setExpanded(v => !v)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-card border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors"
-          >
-            {expanded ? (
-              <>Show less <ChevronUp className="h-4 w-4" /></>
-            ) : (
-              <>View more ({extra.length}) <ChevronDown className="h-4 w-4" /></>
-            )}
-          </button>
+      {(hasMore || isExpanded) && (
+        <div className="flex flex-wrap justify-center gap-3 mt-8">
+          {hasMore && (
+            <button
+              type="button"
+              onClick={() => setVisibleCount(c => c + batchSize)}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-card border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors"
+            >
+              View more results ({remaining} remaining) <ChevronDown className="h-4 w-4" />
+            </button>
+          )}
+          {isExpanded && (
+            <button
+              type="button"
+              onClick={collapse}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-card border border-border text-sm font-medium text-muted-foreground hover:bg-muted transition-colors"
+            >
+              Show less <ChevronUp className="h-4 w-4" />
+            </button>
+          )}
         </div>
       )}
     </div>
