@@ -91,9 +91,14 @@ Just yourself and an open attitude. Anything specific (gear, dress code, food co
               {event.category}
             </span>
             {friendScore(event.id) !== null && (
-              <span className="px-2 py-1 rounded-md text-xs font-medium bg-white/90 text-foreground">
+              <button
+                type="button"
+                onClick={() => testimonialsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                aria-label="Jump to testimonials"
+                className="px-2 py-1 rounded-md text-xs font-medium bg-white/90 text-foreground hover:bg-white transition-colors underline-offset-2 hover:underline cursor-pointer"
+              >
                 {friendScore(event.id)}% would bring a friend · {ratingCount(event.id)} ratings
-              </span>
+              </button>
             )}
           </div>
           <div className="absolute bottom-3 left-4 right-4 text-white pointer-events-none">
