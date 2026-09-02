@@ -1,8 +1,13 @@
 import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
 import { Event } from '@/types/event';
+import { getUserProfile } from '@/lib/userProfile';
 
 const KEY = 'sync.attending.v1';
 const PREFS_KEY = 'sync.attending.prefs.v1';
+
+/** Demo profile (created at login, no onboarding) starts with a few registered
+ *  Porto events so the calendar shows real content instead of empty states. */
+const DEMO_SEED_ATTENDING = ['8', '21', '14'];
 
 export type ReminderMethod = 'none' | 'sms' | 'email';
 
@@ -37,7 +42,11 @@ const loadSet = (): Set<string> => {
   if (typeof window === 'undefined') return new Set();
   try {
     const raw = window.localStorage.getItem(KEY);
-    return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
+    if (raw) return new Set(JSON.parse(raw) as string[]);
+    // Only seed for the demo persona (profile exists without onboarding).
+    const profile = getUserProfile();
+    if (profile && !profile.onboardedAt) return new Set(DEMO_SEED_ATTENDING);
+    return new Set();
   } catch { return new Set(); }
 };
 

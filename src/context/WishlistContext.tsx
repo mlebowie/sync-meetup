@@ -1,8 +1,13 @@
 import { createContext, useContext, useEffect, useState, ReactNode, useCallback, useRef } from 'react';
 import { Event } from '@/types/event';
 import { useToast } from '@/hooks/use-toast';
+import { getUserProfile } from '@/lib/userProfile';
 
 const KEY = 'sync.wishlist.v1';
+
+/** Demo profile (created at login, no onboarding) starts with a couple of saved
+ *  Porto events so the calendar's wishlist shows real content. */
+const DEMO_SEED_WISHLIST = ['22', '25'];
 
 interface WishlistContextValue {
   wishlist: Set<string>;
@@ -23,7 +28,11 @@ const loadInitial = (): Set<string> => {
   if (typeof window === 'undefined') return new Set();
   try {
     const raw = window.localStorage.getItem(KEY);
-    return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
+    if (raw) return new Set(JSON.parse(raw) as string[]);
+    // Only seed for the demo persona (profile exists without onboarding).
+    const profile = getUserProfile();
+    if (profile && !profile.onboardedAt) return new Set(DEMO_SEED_WISHLIST);
+    return new Set();
   } catch {
     return new Set();
   }
