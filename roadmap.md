@@ -11,3 +11,5 @@
 - [x] Swap real Porto photography into signature events (Douro sunset, Matosinhos beach, Ribeira, Dom Luís bridge, Casa da Música)
 - [x] Calendar "Last attended events" cards now show event photos
 - [x] Demo profile calendar seeded with registered + wishlisted Porto events so Coming Up / wishlist show real content
+## Event title → event preview
+- [ ] Clicking an event card title opens the same event preview as the "View more" button
