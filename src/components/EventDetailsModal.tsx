@@ -72,10 +72,13 @@ Just yourself and an open attitude. Anything specific (gear, dress code, food co
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl p-0 overflow-hidden max-h-[90vh] flex flex-col">
-        {/* Hero */}
-        <div className="relative h-56 shrink-0">
-          <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+        {/* Hero — attendee photo carousel when photos exist */}
+        <EventPhotoCarousel
+          eventId={event.id}
+          fallbackUrl={event.imageUrl}
+          alt={event.title}
+          className="h-56 shrink-0"
+        >
           <div className="absolute top-3 left-3 flex items-center gap-2">
             <span className={`px-2 py-1 rounded-md text-xs font-semibold text-vivid-foreground ${sourceColors[event.source]}`}>
               {event.source.charAt(0).toUpperCase() + event.source.slice(1)}
@@ -83,8 +86,13 @@ Just yourself and an open attitude. Anything specific (gear, dress code, food co
             <span className="px-2 py-1 rounded-md text-xs font-medium bg-white/90 text-foreground">
               {event.category}
             </span>
+            {friendScore(event.id) !== null && (
+              <span className="px-2 py-1 rounded-md text-xs font-medium bg-white/90 text-foreground">
+                {friendScore(event.id)}% would bring a friend · {ratingCount(event.id)} ratings
+              </span>
+            )}
           </div>
-          <div className="absolute bottom-3 left-4 right-4 text-white">
+          <div className="absolute bottom-3 left-4 right-4 text-white pointer-events-none">
             <h2 className="text-xl font-bold leading-tight mb-1">{event.title}</h2>
             <div className="flex items-center gap-3 text-xs text-white/90 flex-wrap">
               <span className="flex items-center gap-1"><Calendar className="h-3.5 w-3.5" />{format(event.date, 'EEE, MMM d')}</span>
@@ -92,7 +100,7 @@ Just yourself and an open attitude. Anything specific (gear, dress code, food co
               <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{event.location}</span>
             </div>
           </div>
-        </div>
+        </EventPhotoCarousel>
 
         {/* Scrollable body */}
         <div className="overflow-y-auto px-6 py-5 space-y-6">
