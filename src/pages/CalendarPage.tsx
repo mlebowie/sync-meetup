@@ -173,6 +173,12 @@ const CalendarPage = () => {
           </section>
         )}
       </main>
+
+      <PostEventReflectionDialog
+        event={recapEvent}
+        open={!!recapEvent}
+        onOpenChange={(open) => { if (!open) setRecapEvent(null); }}
+      />
     </div>
   );
 };
