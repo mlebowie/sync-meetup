@@ -143,27 +143,32 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
               </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-2 py-2">
-              {RATING_OPTIONS.map(opt => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => setRating(opt.value)}
-                  className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition ${
-                    rating === opt.value
-                      ? 'border-primary bg-primary/10 ring-1 ring-primary'
-                      : 'border-border hover:bg-secondary'
-                  }`}
-                >
-                  <span className="text-2xl">{opt.emoji}</span>
-                  <span className="min-w-0">
-                    <span className="block text-sm font-semibold text-foreground">{opt.label}</span>
-                    <span className="block text-xs text-muted-foreground">{opt.hint}</span>
-                  </span>
-                  {rating === opt.value && <Check className="h-4 w-4 text-primary ml-auto" />}
-                </button>
-              ))}
+<div className="py-2">
+              <div className="grid grid-cols-3 gap-2">
+                {RATING_OPTIONS.map(opt => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setRating(opt.value)}
+                    className={`relative flex flex-col items-center gap-1.5 p-3 rounded-xl border text-center transition ${
+                      rating === opt.value
+                        ? 'border-primary bg-primary/10 ring-1 ring-primary'
+                        : 'border-border hover:bg-secondary'
+                    }`}
+                  >
+                    <span className="text-2xl leading-none">{opt.emoji}</span>
+                    <span className="text-sm font-semibold text-foreground">{opt.label}</span>
+                    <span className="text-[11px] leading-tight text-muted-foreground">{opt.hint}</span>
+                    {rating === opt.value && (
+                      <span className="absolute top-1.5 right-1.5 h-5 w-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
+                        <Check className="h-3 w-3" />
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
               <Input
+                className="mt-3"
                 value={comment}
                 onChange={e => setComment(e.target.value)}
                 placeholder="Add a one-line note (optional)"
