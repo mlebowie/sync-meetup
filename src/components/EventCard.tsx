@@ -266,17 +266,25 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
         </div>
 
         {/* Actions */}
-        <div className="flex gap-2">
+        <div className="flex gap-2" onMouseLeave={disarmCancel}>
           <Button
-            variant={isAttending ? 'attend' : 'default'}
+            variant={isAttending ? (cancelArmed ? 'destructive' : 'attend') : 'default'}
             className="flex-1"
             onClick={handleAttend}
+            onBlur={() => cancelArmed && disarmCancel()}
           >
             {isAttending ? (
-              <>
-                <Check className="h-4 w-4 mr-1" />
-                Attending
-              </>
+              cancelArmed ? (
+                <>
+                  <X className="h-4 w-4 mr-1" />
+                  Cancel registration?
+                </>
+              ) : (
+                <>
+                  <Check className="h-4 w-4 mr-1" />
+                  Attending
+                </>
+              )
             ) : isFull ? (
               <>
                 <Hourglass className="h-4 w-4 mr-1" />
