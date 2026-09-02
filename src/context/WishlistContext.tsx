@@ -46,9 +46,16 @@ export const WishlistProvider = ({ children, allEvents }: { children: ReactNode;
     new Set(DEMO_SEED_WISHLIST.flatMap(id => [`cap-${id}`, `24h-${id}`]))
   );
 
-  useEffect(() => {
+useEffect(() => {
     window.localStorage.setItem(KEY, JSON.stringify(Array.from(wishlist)));
   }, [wishlist]);
+
+  // Re-seed when a profile is created mid-session (login while providers mounted).
+  useEffect(() => {
+    const onProfileChanged = () => setWishlist(loadInitial());
+    window.addEventListener('sync:profile-changed', onProfileChanged);
+    return () => window.removeEventListener('sync:profile-changed', onProfileChanged);
+  }, []);
 
 // Request browser notification permission once the user actually saves an
   // event themselves (seeded demo items alone shouldn't prompt on page load).

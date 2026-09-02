@@ -66,9 +66,16 @@ export const AttendingProvider = ({ children }: { children: ReactNode }) => {
     window.localStorage.setItem(KEY, JSON.stringify(Array.from(attending)));
   }, [attending]);
 
-  useEffect(() => {
+useEffect(() => {
     window.localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
   }, [prefs]);
+
+  // Re-seed when a profile is created mid-session (login while providers mounted).
+  useEffect(() => {
+    const onProfileChanged = () => setAttendingState(loadSet());
+    window.addEventListener('sync:profile-changed', onProfileChanged);
+    return () => window.removeEventListener('sync:profile-changed', onProfileChanged);
+  }, []);
 
   const toggle = useCallback((eventId: string) => {
     let nextState = false;

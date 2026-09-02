@@ -55,7 +55,8 @@ const Login = () => {
     }
     const existing = getUserProfile();
     const profile = existing ?? { ...DEFAULT_PROFILE, email: email.trim().slice(0, 120) };
-    saveUserProfile(profile);
+saveUserProfile(profile);
+    window.dispatchEvent(new Event('sync:profile-changed'));
     toast({ title: `Welcome back, ${profile.firstName}!`, description: 'Your feed is ready.' });
     navigate('/', { replace: true });
   };
@@ -75,7 +76,8 @@ const Login = () => {
       }
       // Session is set — make sure a local profile exists so the feed works.
       const existing = getUserProfile();
-      if (!existing) saveUserProfile({ ...DEFAULT_PROFILE });
+if (!existing) saveUserProfile({ ...DEFAULT_PROFILE });
+      window.dispatchEvent(new Event('sync:profile-changed'));
       toast({ title: `Welcome, ${getUserProfile()?.firstName ?? 'friend'}!`, description: 'Your feed is ready.' });
       navigate('/', { replace: true });
     } finally {
