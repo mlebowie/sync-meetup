@@ -175,7 +175,20 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
             </span>
           )}
         </div>
-        <h3 className="text-lg font-bold text-foreground mb-1 line-clamp-1 group-hover:text-primary transition-colors">
+<h3
+          role="button"
+          tabIndex={0}
+          aria-label={`View details for ${event.title}`}
+          onClick={(e) => { e.stopPropagation(); setDetailsOpen(true); }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              e.stopPropagation();
+              setDetailsOpen(true);
+            }
+          }}
+          className="text-lg font-bold text-foreground mb-1 line-clamp-1 group-hover:text-primary transition-colors cursor-pointer hover:underline"
+        >
           {event.title}
         </h3>
         {event.organizer && (

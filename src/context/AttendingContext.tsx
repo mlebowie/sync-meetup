@@ -1,8 +1,13 @@
 import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
 import { Event } from '@/types/event';
+import { getUserProfile } from '@/lib/userProfile';
 
 const KEY = 'sync.attending.v1';
 const PREFS_KEY = 'sync.attending.prefs.v1';
+
+/** Demo profile (created at login, no onboarding) starts with a few registered
+ *  Porto events so the calendar shows real content instead of empty states. */
+const DEMO_SEED_ATTENDING = ['8', '21', '14'];
 
 export type ReminderMethod = 'none' | 'sms' | 'email';
 
@@ -37,6 +42,10 @@ const loadSet = (): Set<string> => {
   if (typeof window === 'undefined') return new Set();
   try {
     const raw = window.localStorage.getItem(KEY);
+    const profile = getUserProfile();
+    const isDemo = !!profile && !profile.onboardedAt;
+    // Demo persona with empty/absent storage gets a seeded calendar.
+    if (isDemo && (!raw || raw === '[]')) return new Set(DEMO_SEED_ATTENDING);
     return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
   } catch { return new Set(); }
 };
@@ -60,6 +69,13 @@ export const AttendingProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     window.localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
   }, [prefs]);
+
+  // Re-seed when a profile is created mid-session (login while providers mounted).
+  useEffect(() => {
+    const onProfileChanged = () => setAttendingState(loadSet());
+    window.addEventListener('sync:profile-changed', onProfileChanged);
+    return () => window.removeEventListener('sync:profile-changed', onProfileChanged);
+  }, []);
 
   const toggle = useCallback((eventId: string) => {
     let nextState = false;

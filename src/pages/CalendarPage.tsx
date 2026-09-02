@@ -34,6 +34,13 @@ const toRecapEvent = (h: PastAttendance): Event => ({
   tags: [],
 });
 
+/** Look up a real event photo for a past attendance (by series, then by title). */
+const photoForAttendance = (h: PastAttendance): string | undefined => {
+  const bySeries = mockEvents.find(e => e.seriesId && e.seriesId === h.seriesId);
+  if (bySeries) return bySeries.imageUrl;
+  return mockEvents.find(e => e.title === h.title)?.imageUrl;
+};
+
 const CalendarPage = () => {
   const isDefault = !getUserProfile();
   const { getWishlistedEvents } = useWishlist();
@@ -81,35 +88,45 @@ const CalendarPage = () => {
             </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-3">
-              {attendedEvents.map(h => (
-                <div key={h.eventId} className="p-4 rounded-xl border bg-card hover:shadow-card-hover transition-shadow">
-                  <p className="font-medium text-sm line-clamp-2">{h.title}</p>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
-                    <Calendar className="h-3 w-3" />
-                    {format(h.date, 'EEE, MMM d')}
-                  </div>
-                  <div className="flex items-center gap-2 mt-1.5">
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground font-medium">
-                      {h.category}
-                    </span>
-                    {h.location && (
-                      <span className="text-xs text-muted-foreground flex items-center gap-0.5 truncate">
-                        <MapPin className="h-3 w-3 shrink-0" />
-                        <span className="truncate">{h.location}</span>
-                      </span>
+{attendedEvents.map(h => {
+                const photo = photoForAttendance(h);
+                return (
+                  <div key={h.eventId} className="rounded-xl border bg-card overflow-hidden hover:shadow-card-hover transition-shadow">
+                    {photo && (
+                      <div className="h-32 w-full overflow-hidden">
+                        <img src={photo} alt={h.title} className="h-full w-full object-cover" loading="lazy" />
+                      </div>
                     )}
+                    <div className="p-4">
+                      <p className="font-medium text-sm line-clamp-2">{h.title}</p>
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
+                        <Calendar className="h-3 w-3" />
+                        {format(h.date, 'EEE, MMM d')}
+                      </div>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground font-medium">
+                          {h.category}
+                        </span>
+                        {h.location && (
+                          <span className="text-xs text-muted-foreground flex items-center gap-0.5 truncate">
+                            <MapPin className="h-3 w-3 shrink-0" />
+                            <span className="truncate">{h.location}</span>
+                          </span>
+                        )}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-3 w-full bg-transparent"
+                        onClick={() => setRecapEvent(toRecapEvent(h))}
+                      >
+                        <Camera className="h-3.5 w-3.5 mr-1.5" />
+                        Rate, tag &amp; add photo
+                      </Button>
+                    </div>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="mt-3 w-full bg-transparent"
-                    onClick={() => setRecapEvent(toRecapEvent(h))}
-                  >
-                    <Camera className="h-3.5 w-3.5 mr-1.5" />
-                    Rate, tag &amp; add photo
-                  </Button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>

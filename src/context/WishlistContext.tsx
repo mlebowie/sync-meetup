@@ -1,8 +1,13 @@
 import { createContext, useContext, useEffect, useState, ReactNode, useCallback, useRef } from 'react';
 import { Event } from '@/types/event';
 import { useToast } from '@/hooks/use-toast';
+import { getUserProfile } from '@/lib/userProfile';
 
 const KEY = 'sync.wishlist.v1';
+
+/** Demo profile (created at login, no onboarding) starts with a couple of saved
+ *  Porto events so the calendar's wishlist shows real content. */
+const DEMO_SEED_WISHLIST = ['22', '25'];
 
 interface WishlistContextValue {
   wishlist: Set<string>;
@@ -23,6 +28,10 @@ const loadInitial = (): Set<string> => {
   if (typeof window === 'undefined') return new Set();
   try {
     const raw = window.localStorage.getItem(KEY);
+    const profile = getUserProfile();
+    const isDemo = !!profile && !profile.onboardedAt;
+    // Demo persona with empty/absent storage gets a seeded wishlist.
+    if (isDemo && (!raw || raw === '[]')) return new Set(DEMO_SEED_WISHLIST);
     return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
   } catch {
     return new Set();
@@ -32,15 +41,27 @@ const loadInitial = (): Set<string> => {
 export const WishlistProvider = ({ children, allEvents }: { children: ReactNode; allEvents: Event[] }) => {
   const [wishlist, setWishlist] = useState<Set<string>>(loadInitial);
   const { toast } = useToast();
-  const notifiedRef = useRef<Set<string>>(new Set());
+  // Pre-mark seeded items as notified so the demo seeds don't fire toasts on load.
+  const notifiedRef = useRef<Set<string>>(
+    new Set(DEMO_SEED_WISHLIST.flatMap(id => [`cap-${id}`, `24h-${id}`]))
+  );
 
-  useEffect(() => {
+useEffect(() => {
     window.localStorage.setItem(KEY, JSON.stringify(Array.from(wishlist)));
   }, [wishlist]);
 
-  // Request browser notification permission once when user wishlists something
+  // Re-seed when a profile is created mid-session (login while providers mounted).
   useEffect(() => {
-    if (wishlist.size === 0) return;
+    const onProfileChanged = () => setWishlist(loadInitial());
+    window.addEventListener('sync:profile-changed', onProfileChanged);
+    return () => window.removeEventListener('sync:profile-changed', onProfileChanged);
+  }, []);
+
+// Request browser notification permission once the user actually saves an
+  // event themselves (seeded demo items alone shouldn't prompt on page load).
+  useEffect(() => {
+    const hasUserSaved = Array.from(wishlist).some(id => !DEMO_SEED_WISHLIST.includes(id));
+    if (!hasUserSaved) return;
     if (typeof window === 'undefined' || !('Notification' in window)) return;
     if (Notification.permission === 'default') {
       Notification.requestPermission().catch(() => {});
