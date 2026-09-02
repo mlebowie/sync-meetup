@@ -148,7 +148,7 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
             />
           </button>
         )}
-      </div>
+      </EventPhotoCarousel>
 
       {/* Content */}
       <div className="p-5">
