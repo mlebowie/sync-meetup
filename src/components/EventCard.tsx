@@ -321,13 +321,19 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
 
       <AttendConfirmationDialog event={event} open={confirmOpen} onOpenChange={setConfirmOpen} />
       <WaitlistDialog event={event} open={waitlistOpen} onOpenChange={setWaitlistOpen} />
-
+      <CancelRegistrationDialog
+        event={event}
+        open={cancelOpen}
+        onOpenChange={(o) => { setCancelOpen(o); if (!o) disarmCancel(); }}
+        onConfirm={confirmCancel}
+      />
 
       <EventDetailsModal
         event={event}
         open={detailsOpen}
-        onOpenChange={setDetailsOpen}
+        onOpenChange={(o) => { setDetailsOpen(o); if (!o) disarmCancel(); }}
         isAttending={isAttending}
+        cancelArmed={cancelArmed}
         onAttend={handleAttend}
         onOpenGroupChat={onOpenGroupChat}
         onParticipantClick={onParticipantClick}
