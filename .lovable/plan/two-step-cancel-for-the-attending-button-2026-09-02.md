@@ -14,8 +14,9 @@ Joining an event is unaffected — "Attend" still registers in one click.
 
 ## Where it applies
 
-- Event cards across the homefeed, carousels, Popular & Trending, personalized feed.
-- The event preview modal's sticky "Attending" button (the currently selected element).
+- Event cards across the homefeed, carousels, Popular & Trending, personalized feed, and calendar page
+- The event preview modal's sticky "Attending" button (the currently selected element).  
+
 
 Both surfaces share the same logic so the behaviour is identical.
 
