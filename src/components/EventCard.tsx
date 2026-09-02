@@ -78,7 +78,15 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
     setCancelArmed(false);
   };
 
-  useEffect(() => () => { if (armTimer.current) clearTimeout(armTimer.current); }, []);
+  const cancelAutoChat = () => {
+    if (chatTimer.current) clearTimeout(chatTimer.current);
+    chatTimer.current = null;
+  };
+
+  useEffect(() => () => {
+    if (armTimer.current) clearTimeout(armTimer.current);
+    if (chatTimer.current) clearTimeout(chatTimer.current);
+  }, []);
 
   // Reset the armed state if the user leaves the event (or re-joins elsewhere)
   useEffect(() => { if (!isAttending) disarmCancel(); }, [isAttending]);
@@ -107,10 +115,21 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
     onAttend?.(event.id);
     ensureGroupChat(event.id, seedGroupChat(event));
     setConfirmOpen(true);
+    // Drop the user into the event group chat 10s after registering
+    if (onOpenGroupChat) {
+      cancelAutoChat();
+      chatTimer.current = setTimeout(() => {
+        chatTimer.current = null;
+        setConfirmOpen(false);
+        setDetailsOpen(false);
+        onOpenGroupChat(event);
+      }, 10_000);
+    }
   };
 
   const confirmCancel = () => {
     disarmCancel();
+    cancelAutoChat();
     setCancelOpen(false);
     toggleAttending(event.id);
     onAttend?.(event.id);
