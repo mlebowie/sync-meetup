@@ -1,15 +1,38 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Heart, Bell, Calendar, MapPin, Compass, Sparkles } from 'lucide-react';
+import { ArrowLeft, Heart, Bell, Calendar, MapPin, Compass, Sparkles, Camera } from 'lucide-react';
 import { format } from 'date-fns';
 import Header from '@/components/Header';
 import EventCard from '@/components/EventCard';
 import ComingUpSection from '@/components/ComingUpSection';
+import PostEventReflectionDialog from '@/components/PostEventReflectionDialog';
 import { Button } from '@/components/ui/button';
 import { getUserProfile } from '@/lib/userProfile';
 import { useWishlist } from '@/context/WishlistContext';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
-import { mockEvents } from '@/data/mockData';
+import { mockEvents, mockParticipants } from '@/data/mockData';
 import { getDailyRotatingEvents } from '@/lib/dailyEvents';
+import { Event, PastAttendance } from '@/types/event';
+
+/** Build a minimal Event from a past attendance so the recap dialog can run on it. */
+const toRecapEvent = (h: PastAttendance): Event => ({
+  id: h.eventId,
+  title: h.title,
+  description: '',
+  date: h.date,
+  time: '',
+  location: h.location ?? '',
+  imageUrl: '',
+  source: 'meetup',
+  activityLevel: 'moderate',
+  intensity: 'social',
+  groupSize: 'medium',
+  maxParticipants: 0,
+  currentParticipants: h.coAttendeeIds.length,
+  participants: mockParticipants.filter(p => h.coAttendeeIds.includes(p.id)),
+  category: h.category,
+  tags: [],
+});
 
 const CalendarPage = () => {
   const isDefault = !getUserProfile();
@@ -19,6 +42,7 @@ const CalendarPage = () => {
 
   const { history } = useActivityHistory();
   const attendedEvents = isDefault ? [] : history.slice(0, 3);
+  const [recapEvent, setRecapEvent] = useState<Event | null>(null);
 
   return (
     <div className="min-h-screen bg-background">
