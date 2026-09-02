@@ -99,6 +99,15 @@ const CalendarPage = () => {
                       </span>
                     )}
                   </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-3 w-full bg-transparent"
+                    onClick={() => setRecapEvent(toRecapEvent(h))}
+                  >
+                    <Camera className="h-3.5 w-3.5 mr-1.5" />
+                    Rate, tag &amp; add photo
+                  </Button>
                 </div>
               ))}
             </div>
