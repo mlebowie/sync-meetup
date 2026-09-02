@@ -42,11 +42,11 @@ const loadSet = (): Set<string> => {
   if (typeof window === 'undefined') return new Set();
   try {
     const raw = window.localStorage.getItem(KEY);
-    if (raw) return new Set(JSON.parse(raw) as string[]);
-    // Only seed for the demo persona (profile exists without onboarding).
     const profile = getUserProfile();
-    if (profile && !profile.onboardedAt) return new Set(DEMO_SEED_ATTENDING);
-    return new Set();
+    const isDemo = !!profile && !profile.onboardedAt;
+    // Demo persona with empty/absent storage gets a seeded calendar.
+    if (isDemo && (!raw || raw === '[]')) return new Set(DEMO_SEED_ATTENDING);
+    return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
   } catch { return new Set(); }
 };
 
