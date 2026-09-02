@@ -258,11 +258,15 @@ Just yourself and an open attitude. Anything specific (gear, dress code, food co
           ) : (
             <>
               <Button
-                variant={isAttending ? 'attend' : 'default'}
+                variant={isAttending ? (cancelArmed ? 'destructive' : 'attend') : 'default'}
                 className="flex-1"
                 onClick={onAttend}
               >
-                {isAttending ? (<><Check className="h-4 w-4 mr-1" />Attending</>) : (<>Attend<ArrowRight className="h-4 w-4 ml-1" /></>)}
+                {isAttending
+                  ? (cancelArmed
+                    ? (<><X className="h-4 w-4 mr-1" />Cancel registration?</>)
+                    : (<><Check className="h-4 w-4 mr-1" />Attending</>))
+                  : (<>Attend<ArrowRight className="h-4 w-4 ml-1" /></>)}
               </Button>
               <Button
                 variant="outline"
