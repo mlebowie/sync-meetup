@@ -62,6 +62,7 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
   const [waitlistOpen, setWaitlistOpen] = useState(false);
   const { seriesCount, crossedPathsWith } = useActivityHistory();
   const { isWishlisted, toggle: toggleWishlist } = useWishlist();
+  const { friendScore } = useEventRatings();
   const wishlisted = isWishlisted(event.id);
   const seriesTimes = guest ? 0 : seriesCount(event.seriesId);
   const familiarCount = guest ? 0 : event.participants.filter(p => crossedPathsWith(p.id) > 0).length;
