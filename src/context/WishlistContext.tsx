@@ -39,7 +39,7 @@ const loadInitial = (): Set<string> => {
 };
 
 export const WishlistProvider = ({ children, allEvents }: { children: ReactNode; allEvents: Event[] }) => {
-const [wishlist, setWishlist] = useState<Set<string>>(loadInitial);
+  const [wishlist, setWishlist] = useState<Set<string>>(loadInitial);
   const { toast } = useToast();
   // Pre-mark seeded items as notified so the demo seeds don't fire toasts on load.
   const notifiedRef = useRef<Set<string>>(
