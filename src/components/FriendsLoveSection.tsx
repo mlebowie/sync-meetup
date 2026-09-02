@@ -1,10 +1,13 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { mockEvents } from '@/data/mockData';
 import { useSocial } from '@/context/SocialContext';
 import { Event, Participant } from '@/types/event';
 import ExpandableEventGrid from './ExpandableEventGrid';
+import EventCarousel from './EventCarousel';
+import SectionFilterBar, { SectionFilters, defaultSectionFilters, applySectionFilters } from './SectionFilterBar';
 import { matchesInterests } from '@/lib/userProfile';
 import { Heart, Users } from 'lucide-react';
+
 
 
 interface Props {
