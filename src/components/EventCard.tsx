@@ -64,6 +64,7 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
   const [cancelArmed, setCancelArmed] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const armTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const chatTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { seriesCount, crossedPathsWith } = useActivityHistory();
   const { isWishlisted, toggle: toggleWishlist } = useWishlist();
   const { friendScore } = useEventRatings();
