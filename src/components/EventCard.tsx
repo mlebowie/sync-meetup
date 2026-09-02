@@ -7,6 +7,8 @@ import { format } from 'date-fns';
 import ParticipantAvatars from './ParticipantAvatars';
 import OrganizerPopover from './OrganizerPopover';
 import EventDetailsModal from './EventDetailsModal';
+import EventPhotoCarousel from './EventPhotoCarousel';
+import { useEventRatings } from '@/context/EventRatingContext';
 import AttendConfirmationDialog from './AttendConfirmationDialog';
 import WaitlistDialog from './WaitlistDialog';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
