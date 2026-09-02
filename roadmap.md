@@ -13,3 +13,10 @@
 - [x] Demo profile calendar seeded with registered + wishlisted Porto events so Coming Up / wishlist show real content
 ## Event title → event preview
 - [x] Clicking an event card title opens the same event preview as the "View more" button
+
+## Attending button two-step cancel
+- [x] Clicking "Attending" arms a "Cancel registration?" state; second click opens a confirmation dialog
+- [x] Applies to event cards and the event preview modal
+
+## Ratings pill → testimonials
+- [x] Clicking the "% would bring a friend" pill scrolls to the testimonials section in the event modal
