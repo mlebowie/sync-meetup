@@ -20,3 +20,7 @@
 
 ## Ratings pill → testimonials
 - [x] Clicking the "% would bring a friend" pill scrolls to the testimonials section in the event modal
+
+## Auto-open event group chat
+- [x] Group chat opens automatically 10s after registering
+- [x] Subtext notes the chat disappears 48 hours after the event
