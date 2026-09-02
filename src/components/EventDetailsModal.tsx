@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Event, Participant } from '@/types/event';
-import { Calendar, Clock, MapPin, Users, Star, Check, MessageSquare, Heart, ArrowRight, Quote, Instagram, Linkedin, Mail, Lock } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, Star, Check, MessageSquare, Heart, ArrowRight, Quote, Instagram, Linkedin, Mail, Lock, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { useWishlist } from '@/context/WishlistContext';
 import { cn } from '@/lib/utils';
