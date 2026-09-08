@@ -56,7 +56,9 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
   const navigate = useNavigate();
   const { isAttending: isAttendingFn, toggle: toggleAttending } = useAttending();
   const { ensureGroupChat } = useSocial();
-  const isAttending = isAttendingFn(event.id) || !!event.isAttending;
+  // Single source of truth: the attending store (persisted). The per-event flag
+  // is only an initial hint, so it must not keep the card "Attending" after a cancel.
+  const isAttending = isAttendingFn(event.id);
   const [, setIsHovered] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
