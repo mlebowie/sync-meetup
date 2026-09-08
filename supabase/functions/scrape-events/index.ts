@@ -10,17 +10,24 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 /** Safety limits — one run never does more than this. */
-const MAX_EVENTS_PER_SOURCE = 30;
+const MAX_EVENTS_PER_PAGE = 30;
+const MAX_PAGES_PER_SOURCE = 2;
 const MAX_CLASSIFY_PER_RUN = 40;
 const LEASE_MINUTES = 10;
 
 type SourceId = 'eventbrite' | 'meetup' | 'luma';
 
-const SOURCES: { id: SourceId; url: string }[] = [
-  { id: 'eventbrite', url: 'https://www.eventbrite.com/d/portugal--porto/events/' },
-  { id: 'meetup', url: 'https://www.meetup.com/find/?location=pt--Porto&source=EVENTS' },
-  { id: 'luma', url: 'https://lu.ma/porto' },
-];
+const SOURCE_PAGES: Record<SourceId, string[]> = {
+  eventbrite: [
+    'https://www.eventbrite.com/d/portugal--porto/all-events/',
+    'https://www.eventbrite.com/d/portugal--porto/events/?page=2',
+  ],
+  meetup: [
+    'https://www.meetup.com/find/?location=pt--Porto&source=EVENTS&distance=tenMiles',
+    'https://www.meetup.com/find/?location=pt--Porto&source=EVENTS&categoryId=242',
+  ],
+  luma: [],
+};
 
 const EVENT_SCHEMA = {
   type: 'object',
@@ -33,8 +40,9 @@ const EVENT_SCHEMA = {
           title: { type: 'string' },
           description: { type: 'string' },
           url: { type: 'string' },
-          date: { type: 'string', description: 'Start date in YYYY-MM-DD, or the date text shown' },
-          time: { type: 'string', description: 'Start time as shown, e.g. 19:30' },
+          date_text: { type: 'string' },
+          iso_date: { type: 'string' },
+          time: { type: 'string' },
           venue: { type: 'string' },
           address: { type: 'string' },
           image_url: { type: 'string' },
@@ -42,7 +50,6 @@ const EVENT_SCHEMA = {
           category: { type: 'string' },
           price: { type: 'string' },
           attendees: { type: 'number' },
-          is_recurring: { type: 'boolean' },
         },
         required: ['title', 'url'],
       },
@@ -55,7 +62,8 @@ interface RawEvent {
   title?: string;
   description?: string;
   url?: string;
-  date?: string;
+  date_text?: string;
+  iso_date?: string;
   time?: string;
   venue?: string;
   address?: string;
@@ -64,7 +72,6 @@ interface RawEvent {
   category?: string;
   price?: string;
   attendees?: number;
-  is_recurring?: boolean;
 }
 
 class Denied extends Error {
@@ -73,40 +80,68 @@ class Denied extends Error {
   }
 }
 
-async function firecrawlScrape(url: string): Promise<RawEvent[]> {
-  const res = await fetch(`${GATEWAY}/scrape`, {
+function fcHeaders() {
+  return {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${LOVABLE_API_KEY}`,
+    'X-Connection-Api-Key': `${FIRECRAWL_API_KEY}`,
+  };
+}
+
+async function firecrawl(path: string, body: unknown) {
+  const res = await fetch(`${GATEWAY}${path}`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
-      'X-Connection-Api-Key': `${FIRECRAWL_API_KEY}`,
-    },
-    body: JSON.stringify({
-      url,
-      onlyMainContent: true,
-      waitFor: 3000,
-      formats: [
-        {
-          type: 'json',
-          schema: EVENT_SCHEMA,
-          prompt:
-            'Extract every upcoming public event listed on this page that takes place in or around Porto, Portugal. ' +
-            'Use absolute URLs. Include the cover image URL when present. Skip navigation links and adverts.',
-        },
-      ],
-    }),
+    headers: fcHeaders(),
+    body: JSON.stringify(body),
   });
-
   if (!res.ok) {
-    const body = await res.text();
-    console.error(`Firecrawl ${url} failed [${res.status}]: ${body}`);
-    throw new Denied(res.status, `Firecrawl request failed: ${body.slice(0, 400)}`);
+    const text = await res.text();
+    console.error(`Firecrawl ${path} failed [${res.status}]: ${text}`);
+    throw new Denied(res.status, `Firecrawl ${path} failed: ${text.slice(0, 300)}`);
   }
+  return await res.json();
+}
 
-  const data = await res.json();
+async function scrapeListing(url: string): Promise<RawEvent[]> {
+  const today = new Date().toISOString().slice(0, 10);
+  const data = await firecrawl('/scrape', {
+    url,
+    onlyMainContent: true,
+    waitFor: 5000,
+    formats: [
+      {
+        type: 'json',
+        schema: EVENT_SCHEMA,
+        prompt:
+          `Today is ${today}. Extract every upcoming event listed on this page that happens in or near Porto, Portugal. ` +
+          'For each event give: title, absolute url, date_text exactly as displayed on the card, ' +
+          'iso_date (YYYY-MM-DD resolved from date_text relative to today — never guess a past year), ' +
+          'time (HH:MM 24-hour), venue, address, image_url, organizer, category, price, attendees count, ' +
+          'and a one or two sentence description. Skip navigation links, adverts and anything that is not an event.',
+      },
+    ],
+  });
   const json = data?.json ?? data?.data?.json ?? {};
   const events = Array.isArray(json?.events) ? json.events : [];
-  return events.slice(0, MAX_EVENTS_PER_SOURCE);
+  return events.slice(0, MAX_EVENTS_PER_PAGE);
+}
+
+/** Lu.ma has no Porto city page, so find Porto calendars first, then read them. */
+async function lumaPages(): Promise<string[]> {
+  const data = await firecrawl('/search', {
+    query: 'site:lu.ma Porto Portugal events calendar',
+    limit: 10,
+  });
+  const results: { url?: string }[] = data?.data?.web ?? data?.web ?? [];
+  const urls: string[] = [];
+  for (const r of results) {
+    const url = r?.url;
+    if (!url || !/lu\.ma\//.test(url)) continue;
+    const clean = url.split('?')[0];
+    if (!urls.includes(clean)) urls.push(clean);
+    if (urls.length >= MAX_PAGES_PER_SOURCE) break;
+  }
+  return urls;
 }
 
 function sourceEventId(source: SourceId, raw: RawEvent): string | null {
@@ -114,57 +149,59 @@ function sourceEventId(source: SourceId, raw: RawEvent): string | null {
   if (!url) return null;
   try {
     const u = new URL(url);
-    return `${u.host}${u.pathname}`.replace(/\/$/, '');
+    return `${u.host}${u.pathname}`.replace(/\/$/, '').slice(0, 200);
   } catch {
     return `${source}:${raw.title}`.slice(0, 200);
   }
 }
 
 function parseStart(raw: RawEvent): Date | null {
-  const date = (raw.date ?? '').trim();
-  if (!date) return null;
+  const iso = (raw.iso_date ?? '').trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
   const time = (raw.time ?? '').trim();
-  const iso = /^\d{4}-\d{2}-\d{2}$/.test(date)
-    ? `${date}T${/^\d{1,2}:\d{2}/.test(time) ? time.padStart(5, '0') : '19:00'}:00+01:00`
-    : null;
-  const parsed = new Date(iso ?? `${date} ${time}`);
+  const hhmm = /^(\d{1,2}):(\d{2})/.exec(time);
+  const clock = hhmm ? `${hhmm[1].padStart(2, '0')}:${hhmm[2]}` : '19:00';
+  // Porto is UTC+1 in summer; the small offset drift is acceptable for display.
+  const parsed = new Date(`${iso}T${clock}:00+01:00`);
   if (isNaN(parsed.getTime())) return null;
-  // Ignore anything in the past or absurdly far out.
   const now = Date.now();
   if (parsed.getTime() < now - 6 * 3600_000) return null;
   if (parsed.getTime() > now + 200 * 86400_000) return null;
   return parsed;
 }
 
-const HIGH = ['hike', 'run', 'running', 'trail', 'surf', 'football', 'padel', 'climb', 'bike', 'cycling', 'crossfit', 'swim', 'dance', 'bootcamp', 'volleyball', 'tennis', 'kayak', 'yoga flow'];
-const LOW = ['language exchange', 'book', 'coffee', 'wine', 'tasting', 'talk', 'workshop', 'meditation', 'board game', 'brunch', 'film', 'cinema', 'museum', 'photography walk'];
+const HIGH = ['hike', 'run', 'running', 'trail', 'surf', 'football', 'padel', 'climb', 'bike', 'cycling', 'crossfit', 'swim', 'dance', 'bootcamp', 'volleyball', 'tennis', 'kayak'];
+const LOW = ['language exchange', 'book', 'coffee', 'wine', 'tasting', 'talk', 'workshop', 'meditation', 'board game', 'brunch', 'film', 'cinema', 'museum', 'conference'];
 
 function keywordDerive(raw: RawEvent) {
   const text = `${raw.title ?? ''} ${raw.description ?? ''} ${raw.category ?? ''}`.toLowerCase();
   const high = HIGH.some((k) => text.includes(k));
   const low = !high && LOW.some((k) => text.includes(k));
-  const activity_level = high ? 'high' : low ? 'low' : 'moderate';
-  const intensity = high ? 'energetic' : low ? 'chill' : 'social';
   const attendees = raw.attendees ?? 0;
-  const group_size = attendees > 60 ? 'large' : attendees > 20 ? 'medium' : 'small';
   return {
-    activity_level,
-    intensity,
-    group_size,
-    women_only: /women only|women-only|ladies only/.test(text),
+    activity_level: high ? 'high' : low ? 'low' : 'moderate',
+    intensity: high ? 'energetic' : low ? 'chill' : 'social',
+    group_size: attendees > 60 ? 'large' : attendees > 20 ? 'medium' : 'small',
+    women_only: /women only|women-only|ladies only|só para mulheres/.test(text),
     lgbtq_friendly: /lgbt|queer|pride/.test(text),
-    pet_friendly: /dog|pet friendly|pet-friendly/.test(text),
+    pet_friendly: /dog walk|dog-friendly|pet friendly|pet-friendly/.test(text),
   };
 }
 
-function seriesKey(raw: RawEvent): string | null {
-  if (!raw.is_recurring) return null;
-  return (raw.title ?? '')
+function recurrenceOf(raw: RawEvent): { recurrence: string; series_key: string | null } {
+  const label = `${raw.date_text ?? ''}`.toLowerCase();
+  let recurrence = 'one-off';
+  if (/every two weeks|biweekly|every other/.test(label)) recurrence = 'biweekly';
+  else if (/every week|weekly|every (mon|tue|wed|thu|fri|sat|sun)/.test(label)) recurrence = 'weekly';
+  else if (/every month|monthly/.test(label)) recurrence = 'monthly';
+
+  if (recurrence === 'one-off') return { recurrence, series_key: null };
+  const key = (raw.title ?? '')
     .toLowerCase()
     .replace(/[^a-z0-9 ]/g, '')
-    .replace(/\b(week|weekly|edition|no|nr|#)\s*\d+\b/g, '')
     .replace(/\s+/g, '-')
-    .slice(0, 80) || null;
+    .slice(0, 80);
+  return { recurrence, series_key: key || null };
 }
 
 async function classifyPending(supabase: ReturnType<typeof createClient>) {
@@ -185,7 +222,7 @@ async function classifyPending(supabase: ReturnType<typeof createClient>) {
         {
           role: 'system',
           content:
-            'You label social events. For each event return activity_level (low|moderate|high), ' +
+            'You label social events for a meet-people app. For each event return activity_level (low|moderate|high), ' +
             'intensity (chill|social|energetic) and group_size (small|medium|large). ' +
             'Reply with JSON only: {"labels":[{"id":"...","activity_level":"...","intensity":"...","group_size":"..."}]}',
         },
@@ -196,7 +233,7 @@ async function classifyPending(supabase: ReturnType<typeof createClient>) {
               id: e.id,
               title: e.title,
               category: e.category,
-              description: String(e.description ?? '').slice(0, 400),
+              description: String(e.description ?? '').slice(0, 300),
             })),
           ),
         },
@@ -207,8 +244,7 @@ async function classifyPending(supabase: ReturnType<typeof createClient>) {
   if (!res.ok) {
     const body = await res.text();
     console.error(`AI classification failed [${res.status}]: ${body}`);
-    if (res.status === 402 || res.status === 403) throw new Denied(res.status, body.slice(0, 400));
-    // Keyword values already stored — just leave them unclassified for the next run.
+    if (res.status === 402 || res.status === 403) throw new Denied(res.status, body.slice(0, 300));
     return 0;
   }
 
@@ -263,8 +299,8 @@ Deno.serve(async (req) => {
   }
 
   const paused = latest?.status === 'paused';
-  // While paused we probe a single source only; success clears the pause.
-  const sources = paused ? SOURCES.slice(0, 1) : SOURCES;
+  // While paused, probe a single source only; a clean probe clears the pause.
+  const sourceIds: SourceId[] = paused ? ['eventbrite'] : ['eventbrite', 'meetup', 'luma'];
 
   const { data: run, error: runError } = await supabase
     .from('event_scrape_runs')
@@ -287,59 +323,68 @@ Deno.serve(async (req) => {
   let upserted = 0;
   let pausedReason: string | null = null;
 
-  for (const source of sources) {
+  for (const source of sourceIds) {
     if (pausedReason) break;
+    counts[source] = 0;
     try {
-      const raws = await firecrawlScrape(source.url);
-      let saved = 0;
+      const pages = source === 'luma' ? await lumaPages() : SOURCE_PAGES[source].slice(0, MAX_PAGES_PER_SOURCE);
 
-      for (const raw of raws) {
-        const id = sourceEventId(source.id, raw);
-        const starts = parseStart(raw);
-        if (!id || !raw.title || !starts) continue;
+      for (const page of pages) {
+        if (pausedReason) break;
+        const raws = paused ? (await scrapeListing(page)).slice(0, 5) : await scrapeListing(page);
 
-        const derived = keywordDerive(raw);
-        const row = {
-          source: source.id,
-          source_event_id: id,
-          source_url: raw.url!,
-          title: raw.title.trim().slice(0, 300),
-          description: (raw.description ?? '').slice(0, 4000) || null,
-          starts_at: starts.toISOString(),
-          time_label: raw.time?.trim() || null,
-          venue_name: raw.venue?.trim() || null,
-          location: [raw.venue, raw.address].filter(Boolean).join(', ').slice(0, 300) || 'Porto, Portugal',
-          image_url: raw.image_url?.startsWith('http') ? raw.image_url : null,
-          organizer_name: raw.organizer?.trim() || null,
-          category: raw.category?.trim()?.slice(0, 60) || 'Social',
-          price_label: raw.price?.trim()?.slice(0, 60) || null,
-          attendee_count: typeof raw.attendees === 'number' ? Math.max(0, Math.round(raw.attendees)) : null,
-          capacity: typeof raw.attendees === 'number' ? Math.max(12, Math.round(raw.attendees * 1.4)) : null,
-          recurrence: raw.is_recurring ? 'weekly' : 'one-off',
-          series_key: seriesKey(raw),
-          ...derived,
-          last_seen_at: new Date().toISOString(),
-        };
+        for (const raw of raws) {
+          const id = sourceEventId(source, raw);
+          const starts = parseStart(raw);
+          if (!id || !raw.title || !starts) continue;
 
-        const { error } = await supabase
-          .from('events')
-          .upsert(row, { onConflict: 'source,source_event_id' });
-        if (error) {
-          errors.push(`${source.id}: ${error.message}`);
-        } else {
-          saved++;
-          upserted++;
+          const { recurrence, series_key } = recurrenceOf(raw);
+          const row = {
+            source,
+            source_event_id: id,
+            source_url: raw.url!,
+            title: raw.title.trim().slice(0, 300),
+            description: (raw.description ?? '').slice(0, 4000) || null,
+            starts_at: starts.toISOString(),
+            time_label: raw.time?.trim()?.slice(0, 20) || null,
+            venue_name: raw.venue?.trim()?.slice(0, 200) || null,
+            location:
+              [raw.venue, raw.address].filter(Boolean).join(', ').slice(0, 300) || 'Porto, Portugal',
+            image_url: raw.image_url?.startsWith('http') ? raw.image_url : null,
+            organizer_name: raw.organizer?.trim()?.slice(0, 200) || null,
+            category: raw.category?.trim()?.slice(0, 60) || 'Social',
+            price_label: raw.price?.trim()?.slice(0, 60) || null,
+            attendee_count:
+              typeof raw.attendees === 'number' && raw.attendees > 0 ? Math.round(raw.attendees) : null,
+            capacity:
+              typeof raw.attendees === 'number' && raw.attendees > 0
+                ? Math.max(12, Math.round(raw.attendees * 1.4))
+                : null,
+            recurrence,
+            series_key,
+            ...keywordDerive(raw),
+            last_seen_at: new Date().toISOString(),
+          };
+
+          const { error } = await supabase
+            .from('events')
+            .upsert(row, { onConflict: 'source,source_event_id' });
+          if (error) {
+            errors.push(`${source}: ${error.message}`);
+          } else {
+            counts[source] += 1;
+            upserted += 1;
+          }
         }
       }
-      counts[source.id] = saved;
     } catch (e) {
       const err = e as Denied;
       const status = err.status ?? 0;
-      console.error(`Source ${source.id} failed:`, err.message);
+      console.error(`Source ${source} failed:`, err.message);
       if (status === 402 || status === 403 || status === 429) {
-        pausedReason = `${source.id} returned ${status}: ${err.message}`.slice(0, 500);
+        pausedReason = `${source} returned ${status}: ${err.message}`.slice(0, 500);
       } else {
-        errors.push(`${source.id}: ${err.message}`);
+        errors.push(`${source}: ${err.message}`);
       }
     }
   }
@@ -354,7 +399,7 @@ Deno.serve(async (req) => {
     }
   }
 
-  // Drop events that are over and no longer listed anywhere.
+  // Drop events that are well past and therefore no longer useful.
   await supabase
     .from('events')
     .delete()
