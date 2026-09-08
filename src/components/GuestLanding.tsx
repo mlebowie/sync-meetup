@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { mockEvents } from '@/data/mockData';
+import { useEvents } from '@/context/EventsContext';
 import { ONBOARDING_INTERESTS } from '@/lib/userProfile';
 import { searchEvents } from '@/lib/search';
 import { Event, Participant } from '@/types/event';
@@ -20,6 +20,7 @@ interface Props {
 const SOON_OFFSETS = [120, 165, 210, 255, 300, 330, 345, 360].map(m => m * 60 * 1000);
 
 const GuestLanding = ({ onAttend, onParticipantClick }: Props) => {
+  const { events: mockEvents } = useEvents();
   const [query, setQuery] = useState('');
   const portoEvents: Event[] = useMemo(() => {
     const now = Date.now();

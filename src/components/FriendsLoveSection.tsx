@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { mockEvents } from '@/data/mockData';
+import { useEvents } from '@/context/EventsContext';
 import { useSocial } from '@/context/SocialContext';
 import { Event, Participant } from '@/types/event';
 import ExpandableEventGrid from './ExpandableEventGrid';
@@ -22,6 +22,7 @@ const WEEK_OFFSETS = [1, 3, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16].map(d => d *
 
 
 const FriendsLoveSection = ({ onAttend, onParticipantClick, onOpenGroupChat, interests = [] }: Props) => {
+  const { events: mockEvents } = useEvents();
   const { following } = useSocial();
 
   const events: Event[] = useMemo(() => {

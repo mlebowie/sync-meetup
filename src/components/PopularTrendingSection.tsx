@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Event, Participant } from '@/types/event';
-import { mockEvents } from '@/data/mockData';
+import { useEvents } from '@/context/EventsContext';
 import ExpandableEventGrid from './ExpandableEventGrid';
 import EventCarousel from './EventCarousel';
 import SectionFilterBar, { SectionFilters, defaultSectionFilters, applySectionFilters } from './SectionFilterBar';
@@ -20,6 +20,7 @@ interface Props {
 const TRENDING_OFFSETS = [3, 5, 7, 10, 12, 14, 16, 18, 20, 22].map(d => d * 24 * 60 * 60 * 1000);
 
 const PopularTrendingSection = ({ onAttend, onParticipantClick, onOpenGroupChat, guest = false, interests = [] }: Props) => {
+  const { events: mockEvents } = useEvents();
   const trendingEvents: Event[] = useMemo(() => {
     const now = Date.now();
     const oneOffs = mockEvents

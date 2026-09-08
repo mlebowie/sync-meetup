@@ -8,7 +8,8 @@ import {
 import { Bell, UserPlus, Tag, Star, Ticket } from 'lucide-react';
 import { useAttending } from '@/context/AttendingContext';
 import { useToast } from '@/hooks/use-toast';
-import { mockParticipants, mockEvents } from '@/data/mockData';
+import { mockParticipants } from '@/data/mockData';
+import { useEvents } from '@/context/EventsContext';
 import PostEventReflectionDialog from './PostEventReflectionDialog';
 import { Event } from '@/types/event';
 import { formatDistanceToNow } from 'date-fns';
@@ -49,6 +50,7 @@ interface Props {
 }
 
 const NotificationsPopover = ({ open, onOpenChange }: Props) => {
+  const { events: mockEvents } = useEvents();
   const { attending, setAttending } = useAttending();
   const { toast } = useToast();
   const [reflectEvent, setReflectEvent] = useState<Event | null>(null);
