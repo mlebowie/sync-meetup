@@ -24,14 +24,19 @@ export const useWishlist = () => {
   return ctx;
 };
 
+const SEEDED_KEY = 'sync.wishlist.seeded.v1';
+
 const loadInitial = (): Set<string> => {
   if (typeof window === 'undefined') return new Set();
   try {
     const raw = window.localStorage.getItem(KEY);
     const profile = getUserProfile();
     const isDemo = !!profile && !profile.onboardedAt;
-    // Demo persona with empty/absent storage gets a seeded wishlist.
-    if (isDemo && (!raw || raw === '[]')) return new Set(DEMO_SEED_WISHLIST);
+    // Demo persona gets a seeded wishlist exactly once; later removals stick.
+    if (isDemo && !raw && !window.localStorage.getItem(SEEDED_KEY)) {
+      window.localStorage.setItem(SEEDED_KEY, '1');
+      return new Set(DEMO_SEED_WISHLIST);
+    }
     return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
   } catch {
     return new Set();
