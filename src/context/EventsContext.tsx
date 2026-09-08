@@ -65,5 +65,15 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
     [live, sample, loading, updatedAt, error],
   );
 
+  // Hold rendering until the first fetch settles, so downstream memoised feeds
+  // are computed from the real event list rather than the sample set.
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin" aria-label="Loading events" />
+      </div>
+    );
+  }
+
   return <EventsContext.Provider value={value}>{children}</EventsContext.Provider>;
 };

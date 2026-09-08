@@ -10,8 +10,8 @@ import { Button } from '@/components/ui/button';
 import { getUserProfile } from '@/lib/userProfile';
 import { useWishlist } from '@/context/WishlistContext';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
-import { mockEvents, mockParticipants } from '@/data/mockData';
-import { getDailyRotatingEvents } from '@/lib/dailyEvents';
+import { mockParticipants } from '@/data/mockData';
+import { useEvents } from '@/context/EventsContext';
 import { Event, PastAttendance } from '@/types/event';
 
 /** Build a minimal Event from a past attendance so the recap dialog can run on it. */
@@ -35,7 +35,7 @@ const toRecapEvent = (h: PastAttendance): Event => ({
 });
 
 /** Look up a real event photo for a past attendance (by series, then by title). */
-const photoForAttendance = (h: PastAttendance): string | undefined => {
+const photoForAttendance = (h: PastAttendance, mockEvents: Event[]): string | undefined => {
   const bySeries = mockEvents.find(e => e.seriesId && e.seriesId === h.seriesId);
   if (bySeries) return bySeries.imageUrl;
   return mockEvents.find(e => e.title === h.title)?.imageUrl;
@@ -44,7 +44,8 @@ const photoForAttendance = (h: PastAttendance): string | undefined => {
 const CalendarPage = () => {
   const isDefault = !getUserProfile();
   const { getWishlistedEvents } = useWishlist();
-  const rotatingEvents = getDailyRotatingEvents(mockEvents);
+  const { events: mockEvents } = useEvents();
+  const rotatingEvents = mockEvents;
   const wishlist = getWishlistedEvents(rotatingEvents);
 
   const { history } = useActivityHistory();
@@ -89,7 +90,7 @@ const CalendarPage = () => {
           ) : (
             <div className="grid gap-4 md:grid-cols-3">
 {attendedEvents.map(h => {
-                const photo = photoForAttendance(h);
+                const photo = photoForAttendance(h, mockEvents);
                 return (
                   <div key={h.eventId} className="rounded-xl border bg-card overflow-hidden hover:shadow-card-hover transition-shadow">
                     {photo && (

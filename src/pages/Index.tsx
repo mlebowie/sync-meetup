@@ -15,8 +15,7 @@ import RecommendedCarousel from '@/components/RecommendedCarousel';
 import FriendsLoveSection from '@/components/FriendsLoveSection';
 import UpcomingEventsSection from '@/components/UpcomingEventsSection';
 import PopularTrendingSection from '@/components/PopularTrendingSection';
-import { mockEvents } from '@/data/mockData';
-import { getDailyRotatingEvents } from '@/lib/dailyEvents';
+import { useEvents } from '@/context/EventsContext';
 import { Event, Participant } from '@/types/event';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -34,7 +33,7 @@ const Index = () => {
   const { isAttending: isAttendingFn } = useAttending();
   const profile = getUserProfile();
   const isGuest = !profile;
-const [events, setEvents] = useState<Event[]>(() => getDailyRotatingEvents(mockEvents));
+  const { events } = useEvents();
 
   const [searchParams, setSearchParams] = useSearchParams();
   const { setQuery } = useSearch();
