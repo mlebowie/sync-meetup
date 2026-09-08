@@ -31,6 +31,7 @@ import { useAttending } from '@/context/AttendingContext';
 const Index = () => {
   const { toast } = useToast();
   const { history, tags } = useActivityHistory();
+  const { isAttending: isAttendingFn } = useAttending();
   const profile = getUserProfile();
   const isGuest = !profile;
 const [events, setEvents] = useState<Event[]>(() => getDailyRotatingEvents(mockEvents));
