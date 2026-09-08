@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { useSocial } from '@/context/SocialContext';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
 
-import { mockParticipants, mockEvents } from '@/data/mockData';
+import { mockParticipants } from '@/data/mockData';
+import { useEvents } from '@/context/EventsContext';
 import { Send, MessageCircle, Users, UsersRound, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import EventGroupChatDialog from './EventGroupChatDialog';
@@ -29,6 +30,7 @@ const lastTs = (msgs: { timestamp: Date }[]) =>
   msgs.length ? new Date(msgs[msgs.length - 1].timestamp).getTime() : 0;
 
 const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEventTitle }: Props) => {
+  const { events: mockEvents } = useEvents();
   const { following, isMutual, dms, sendDM, groupChats, crewChats, currentUser } = useSocial();
   const { history, tags } = useActivityHistory();
   const [metFilterOn, setMetFilterOn] = useState(true);

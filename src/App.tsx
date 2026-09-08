@@ -18,6 +18,7 @@ import { AttendingProvider } from "./context/AttendingContext";
 import { SearchProvider } from "./context/SearchContext";
 import { EventMediaProvider } from "./context/EventMediaContext";
 import { EventRatingProvider } from "./context/EventRatingContext";
+import { EventsProvider } from "./context/EventsContext";
 import { mockEvents } from "./data/mockData";
 
 const queryClient = new QueryClient();
@@ -25,6 +26,7 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
+      <EventsProvider>
       <SocialProvider>
         <ActivityHistoryProvider>
           <WishlistProvider allEvents={mockEvents}>
@@ -54,6 +56,7 @@ const App = () => (
           </WishlistProvider>
         </ActivityHistoryProvider>
       </SocialProvider>
+      </EventsProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

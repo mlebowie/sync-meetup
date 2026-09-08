@@ -1,7 +1,6 @@
 import { createContext, useContext, useMemo, useState, ReactNode } from 'react';
 import { Event } from '@/types/event';
-import { mockEvents } from '@/data/mockData';
-import { getDailyRotatingEvents } from '@/lib/dailyEvents';
+import { useEvents } from '@/context/EventsContext';
 import { searchEvents } from '@/lib/search';
 
 interface SearchContextValue {
@@ -22,8 +21,7 @@ export const useSearch = () => useContext(SearchContext);
 export const SearchProvider = ({ children }: { children: ReactNode }) => {
   const [query, setQuery] = useState('');
 
-  // Same deterministic per-day rotation the homepage uses, computed once.
-  const events = useMemo(() => getDailyRotatingEvents(mockEvents), []);
+  const { events } = useEvents();
   const results = useMemo(() => searchEvents(events, query), [events, query]);
 
   return (

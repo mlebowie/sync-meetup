@@ -100,6 +100,10 @@ export interface Event {
   lgbtqFriendly?: boolean;
   petFriendly?: boolean;
   trending?: boolean;
+  /** Link back to the original listing (Eventbrite / Meetup / Lu.ma). */
+  sourceUrl?: string;
+  /** Price as shown on the source page, e.g. "Free" or "€12". */
+  priceLabel?: string;
 }
 
 export interface Interest {

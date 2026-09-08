@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { mockEvents } from '@/data/mockData';
+import { useEvents } from '@/context/EventsContext';
 import { getInterestKeywords, UserProfile } from '@/lib/userProfile';
 import { Event, Participant } from '@/types/event';
 import EventCard from './EventCard';
@@ -18,6 +18,7 @@ interface Props {
 const SOON_OFFSETS = [180, 220, 270, 320, 360].map(m => m * 60 * 1000);
 
 const RecommendedCarousel = ({ profile, onAttend, onParticipantClick, onOpenGroupChat }: Props) => {
+  const { events: mockEvents } = useEvents();
   const [mode, setMode] = useState<'recommended' | 'random'>('recommended');
 
   const recommended: Event[] = useMemo(() => {

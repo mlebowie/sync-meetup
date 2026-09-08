@@ -14,7 +14,156 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      event_scrape_runs: {
+        Row: {
+          created_at: string
+          error_details: string | null
+          events_upserted: number
+          finished_at: string | null
+          id: string
+          lease_until: string | null
+          paused_reason: string | null
+          source_counts: Json
+          started_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          error_details?: string | null
+          events_upserted?: number
+          finished_at?: string | null
+          id?: string
+          lease_until?: string | null
+          paused_reason?: string | null
+          source_counts?: Json
+          started_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          error_details?: string | null
+          events_upserted?: number
+          finished_at?: string | null
+          id?: string
+          lease_until?: string | null
+          paused_reason?: string | null
+          source_counts?: Json
+          started_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      events: {
+        Row: {
+          activity_level: string | null
+          attendee_count: number | null
+          capacity: number | null
+          category: string | null
+          classified: boolean
+          created_at: string
+          description: string | null
+          ends_at: string | null
+          group_size: string | null
+          id: string
+          image_url: string | null
+          intensity: string | null
+          last_seen_at: string
+          lat: number | null
+          lgbtq_friendly: boolean
+          lng: number | null
+          location: string | null
+          organizer_name: string | null
+          organizer_url: string | null
+          pet_friendly: boolean
+          price_label: string | null
+          recurrence: string
+          series_key: string | null
+          source: string
+          source_event_id: string
+          source_url: string
+          starts_at: string
+          tags: string[]
+          time_label: string | null
+          title: string
+          updated_at: string
+          venue_name: string | null
+          women_only: boolean
+        }
+        Insert: {
+          activity_level?: string | null
+          attendee_count?: number | null
+          capacity?: number | null
+          category?: string | null
+          classified?: boolean
+          created_at?: string
+          description?: string | null
+          ends_at?: string | null
+          group_size?: string | null
+          id?: string
+          image_url?: string | null
+          intensity?: string | null
+          last_seen_at?: string
+          lat?: number | null
+          lgbtq_friendly?: boolean
+          lng?: number | null
+          location?: string | null
+          organizer_name?: string | null
+          organizer_url?: string | null
+          pet_friendly?: boolean
+          price_label?: string | null
+          recurrence?: string
+          series_key?: string | null
+          source: string
+          source_event_id: string
+          source_url: string
+          starts_at: string
+          tags?: string[]
+          time_label?: string | null
+          title: string
+          updated_at?: string
+          venue_name?: string | null
+          women_only?: boolean
+        }
+        Update: {
+          activity_level?: string | null
+          attendee_count?: number | null
+          capacity?: number | null
+          category?: string | null
+          classified?: boolean
+          created_at?: string
+          description?: string | null
+          ends_at?: string | null
+          group_size?: string | null
+          id?: string
+          image_url?: string | null
+          intensity?: string | null
+          last_seen_at?: string
+          lat?: number | null
+          lgbtq_friendly?: boolean
+          lng?: number | null
+          location?: string | null
+          organizer_name?: string | null
+          organizer_url?: string | null
+          pet_friendly?: boolean
+          price_label?: string | null
+          recurrence?: string
+          series_key?: string | null
+          source?: string
+          source_event_id?: string
+          source_url?: string
+          starts_at?: string
+          tags?: string[]
+          time_label?: string | null
+          title?: string
+          updated_at?: string
+          venue_name?: string | null
+          women_only?: boolean
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

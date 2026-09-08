@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { mockEvents } from '@/data/mockData';
+import { useEvents } from '@/context/EventsContext';
 import { getInterestKeywords, UserProfile } from '@/lib/userProfile';
 import { Event, GroupSize, Participant } from '@/types/event';
 import ExpandableEventGrid from './ExpandableEventGrid';
@@ -28,6 +28,7 @@ const SOON_OFFSETS = [20, 90, 240, 600, 1200, 1400, 1500, 1600, 1700, 1800, 1900
 
 
 const PersonalizedFeed = ({ profile, onAttend, onParticipantClick, onOpenGroupChat }: Props) => {
+  const { events: mockEvents } = useEvents();
   const [timeWindow, setTimeWindow] = useState<TimeWindow>('day');
   const [groupSize, setGroupSize] = useState<'all' | GroupSize>('all');
   const [locationFilter, setLocationFilter] = useState<string>('all');
