@@ -26,6 +26,7 @@ import { getUserProfile } from '@/lib/userProfile';
 import { getReflectionCandidate } from '@/lib/reflection';
 import { useSearchParams } from 'react-router-dom';
 import { useSearch } from '@/context/SearchContext';
+import { useAttending } from '@/context/AttendingContext';
 
 const Index = () => {
   const { toast } = useToast();
