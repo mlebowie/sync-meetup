@@ -24,3 +24,10 @@
 ## Auto-open event group chat
 - [x] Group chat opens automatically 10s after registering
 - [x] Subtext notes the chat disappears 48 hours after the event
+
+## Real events from Eventbrite, Meetup & Lu.ma
+- [x] Firecrawl-based collector edge function (`scrape-events`)
+- [x] `events` + `event_scrape_runs` tables, AI labelling of activity/intensity/group size
+- [x] Daily automatic refresh (05:20 UTC), keeps yesterday's events if a refresh fails
+- [x] Homefeed, search, carousels, calendar and notifications read real events
+- [x] "View on Eventbrite/Meetup/Lu.ma" link in the event preview
