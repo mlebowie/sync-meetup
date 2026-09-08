@@ -38,14 +38,19 @@ export const useAttending = () => {
   return ctx;
 };
 
+const SEEDED_KEY = 'sync.attending.seeded.v1';
+
 const loadSet = (): Set<string> => {
   if (typeof window === 'undefined') return new Set();
   try {
     const raw = window.localStorage.getItem(KEY);
     const profile = getUserProfile();
     const isDemo = !!profile && !profile.onboardedAt;
-    // Demo persona with empty/absent storage gets a seeded calendar.
-    if (isDemo && (!raw || raw === '[]')) return new Set(DEMO_SEED_ATTENDING);
+    // Demo persona gets a seeded calendar exactly once; later removals stick.
+    if (isDemo && !raw && !window.localStorage.getItem(SEEDED_KEY)) {
+      window.localStorage.setItem(SEEDED_KEY, '1');
+      return new Set(DEMO_SEED_ATTENDING);
+    }
     return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
   } catch { return new Set(); }
 };
