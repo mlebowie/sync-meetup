@@ -228,8 +228,8 @@ const NotificationsPopover = ({ open, onOpenChange }: Props) => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Not now</AlertDialogCancel>
-            <AlertDialogAction onClick={() => setWaitlistStep(2)}>Yes, continue</AlertDialogAction>
+            <Button variant="outline" onClick={() => { setWaitlistStep(0); setWaitlistEvent(null); }}>Not now</Button>
+            <Button onClick={() => setWaitlistStep(2)}>Yes, continue</Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
