@@ -1,10 +1,16 @@
+import { useState } from 'react';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
+import { useEventMedia } from '@/context/EventMediaContext';
 import { mockParticipants } from '@/data/mockData';
+import { PastAttendance } from '@/types/event';
 import { formatDistanceToNow } from 'date-fns';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, Camera } from 'lucide-react';
+import PastEventRecapDialog from './PastEventRecapDialog';
 
 const ActivityFeed = () => {
   const { history, seriesCount } = useActivityHistory();
+  const { photosFor } = useEventMedia();
+  const [recap, setRecap] = useState<PastAttendance | null>(null);
 
   const items = [...history].sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 6);
 
