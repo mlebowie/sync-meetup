@@ -86,6 +86,14 @@ const ActivityFeed = () => {
           </ol>
         </div>
       </div>
+
+      {recap && (
+        <PastEventRecapDialog
+          attendance={recap}
+          open={!!recap}
+          onOpenChange={(o) => !o && setRecap(null)}
+        />
+      )}
     </section>
   );
 };
