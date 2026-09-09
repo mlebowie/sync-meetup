@@ -401,7 +401,9 @@ Deno.serve(async (req) => {
 
         for (const raw of raws) {
           const id = sourceEventId(source, raw);
-          const starts = parseStart(raw);
+          const listed = parseStart(raw);
+          const confirmed = raw.url ? await verifiedStart(raw.url) : null;
+          const starts = confirmed ?? listed;
           if (!id || !raw.title || !starts) continue;
 
           const { recurrence, series_key } = recurrenceOf(raw);
@@ -412,7 +414,10 @@ Deno.serve(async (req) => {
             title: raw.title.trim().slice(0, 300),
             description: (raw.description ?? '').slice(0, 4000) || null,
             starts_at: starts.toISOString(),
-            time_label: raw.time?.trim()?.slice(0, 20) || null,
+            time_label: confirmed
+              ? portoTimeLabel(confirmed)
+              : raw.time?.trim()?.slice(0, 20) || null,
+
             venue_name: raw.venue?.trim()?.slice(0, 200) || null,
             location:
               [raw.venue, raw.address].filter(Boolean).join(', ').slice(0, 300) || 'Porto, Portugal',
