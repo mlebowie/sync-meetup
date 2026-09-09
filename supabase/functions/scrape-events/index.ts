@@ -352,7 +352,7 @@ Deno.serve(async (req) => {
               [raw.venue, raw.address].filter(Boolean).join(', ').slice(0, 300) || 'Porto, Portugal',
             image_url: raw.image_url?.startsWith('http') ? raw.image_url : null,
             organizer_name: raw.organizer?.trim()?.slice(0, 200) || null,
-            category: raw.category?.trim()?.slice(0, 60) || 'Social',
+            category: canonicalCategory(raw),
             price_label: raw.price?.trim()?.slice(0, 60) || null,
             attendee_count:
               typeof raw.attendees === 'number' && raw.attendees > 0 ? Math.round(raw.attendees) : null,
