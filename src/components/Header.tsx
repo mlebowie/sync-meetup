@@ -6,7 +6,7 @@ import NotificationsPopover from './NotificationsPopover';
 import HeaderSearch from './HeaderSearch';
 import { getUserProfile } from '@/lib/userProfile';
 import { useAttending } from '@/context/AttendingContext';
-import syncWordmark from '@/assets/sync-wordmark.png.asset.json';
+import syncWordmark from '@/assets/sync-wordmark-v2.png.asset.json';
 
 
 interface HeaderProps {
