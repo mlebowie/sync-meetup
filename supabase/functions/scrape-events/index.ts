@@ -155,6 +155,14 @@ function sourceEventId(source: SourceId, raw: RawEvent): string | null {
   }
 }
 
+function withinWindow(d: Date): boolean {
+  const now = Date.now();
+  if (isNaN(d.getTime())) return false;
+  if (d.getTime() < now - 6 * 3600_000) return false;
+  if (d.getTime() > now + 200 * 86400_000) return false;
+  return true;
+}
+
 function parseStart(raw: RawEvent): Date | null {
   const iso = (raw.iso_date ?? '').trim();
   if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
@@ -163,12 +171,44 @@ function parseStart(raw: RawEvent): Date | null {
   const clock = hhmm ? `${hhmm[1].padStart(2, '0')}:${hhmm[2]}` : '19:00';
   // Porto is UTC+1 in summer; the small offset drift is acceptable for display.
   const parsed = new Date(`${iso}T${clock}:00+01:00`);
-  if (isNaN(parsed.getTime())) return null;
-  const now = Date.now();
-  if (parsed.getTime() < now - 6 * 3600_000) return null;
-  if (parsed.getTime() > now + 200 * 86400_000) return null;
-  return parsed;
+  return withinWindow(parsed) ? parsed : null;
 }
+
+/**
+ * Listing cards are read by an AI and their dates drift, so the event page's own
+ * schema.org startDate is treated as the truth whenever it is unambiguous.
+ */
+async function verifiedStart(url: string): Promise<Date | null> {
+  try {
+    const res = await fetch(url, {
+      redirect: 'follow',
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!res.ok) return null;
+    const html = await res.text();
+    const found = [...html.matchAll(/"startDate"\s*:\s*"([^"]+)"/g)].map((m) => m[1]);
+    const distinct = [...new Set(found)];
+    // Calendar / listing pages carry many events — only a single date is trustworthy.
+    if (distinct.length !== 1) return null;
+    const parsed = new Date(distinct[0]);
+    return withinWindow(parsed) ? parsed : null;
+  } catch (err) {
+    console.error(`Could not verify date for ${url}: ${err}`);
+    return null;
+  }
+}
+
+/** Wall-clock time in Porto, used for the card's time label. */
+function portoTimeLabel(d: Date): string {
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Lisbon',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(d);
+}
+
 
 const HIGH = ['hike', 'run', 'running', 'trail', 'surf', 'football', 'padel', 'climb', 'bike', 'cycling', 'crossfit', 'swim', 'dance', 'bootcamp', 'volleyball', 'tennis', 'kayak'];
 const LOW = ['language exchange', 'book', 'coffee', 'wine', 'tasting', 'talk', 'workshop', 'meditation', 'board game', 'brunch', 'film', 'cinema', 'museum', 'conference'];
@@ -361,7 +401,9 @@ Deno.serve(async (req) => {
 
         for (const raw of raws) {
           const id = sourceEventId(source, raw);
-          const starts = parseStart(raw);
+          const listed = parseStart(raw);
+          const confirmed = raw.url ? await verifiedStart(raw.url) : null;
+          const starts = confirmed ?? listed;
           if (!id || !raw.title || !starts) continue;
 
           const { recurrence, series_key } = recurrenceOf(raw);
@@ -372,7 +414,10 @@ Deno.serve(async (req) => {
             title: raw.title.trim().slice(0, 300),
             description: (raw.description ?? '').slice(0, 4000) || null,
             starts_at: starts.toISOString(),
-            time_label: raw.time?.trim()?.slice(0, 20) || null,
+            time_label: confirmed
+              ? portoTimeLabel(confirmed)
+              : raw.time?.trim()?.slice(0, 20) || null,
+
             venue_name: raw.venue?.trim()?.slice(0, 200) || null,
             location:
               [raw.venue, raw.address].filter(Boolean).join(', ').slice(0, 300) || 'Porto, Portugal',
