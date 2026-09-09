@@ -33,7 +33,7 @@ const loadInitial = (): Set<string> => {
     const profile = getUserProfile();
     const isDemo = !!profile && !profile.onboardedAt;
     // Demo persona gets a seeded wishlist exactly once; later removals stick.
-    if (isDemo && !raw && !window.localStorage.getItem(SEEDED_KEY)) {
+    if (isDemo && (!raw || raw === '[]') && !window.localStorage.getItem(SEEDED_KEY)) {
       window.localStorage.setItem(SEEDED_KEY, '1');
       return new Set(DEMO_SEED_WISHLIST);
     }
