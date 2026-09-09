@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, ReactNode, useCallback } from 'react';
+import { buildSeedPastEventPhotos } from '@/lib/pastEventPhotos';
 
 export interface EventPhoto {
   id: string;
