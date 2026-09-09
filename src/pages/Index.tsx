@@ -259,7 +259,7 @@ const Index = () => {
             <img src={syncWordmark.url} alt="SYNC" className="h-8 w-auto" />
           </div>
           <p className="text-sm text-muted-foreground">
-            Show up. Same faces. Real friendships.
+            Less searching. More belonging.
           </p>
           <p className="text-xs text-muted-foreground mt-4">
             © 2026 Sync. All rights reserved.
