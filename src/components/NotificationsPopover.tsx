@@ -244,8 +244,8 @@ const NotificationsPopover = ({ open, onOpenChange }: Props) => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setWaitlistStep(1)}>Back</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmWaitlist}>Confirm & register</AlertDialogAction>
+            <Button variant="outline" onClick={() => setWaitlistStep(1)}>Back</Button>
+            <Button onClick={confirmWaitlist}>Confirm &amp; register</Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
