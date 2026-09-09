@@ -32,6 +32,7 @@ const ActivityFeed = () => {
               const seriesIdx = h.seriesId
                 ? items.slice(idx).filter(x => x.seriesId === h.seriesId).length
                 : 0;
+              const photoCount = photosFor(h.eventId).length;
               return (
                 <li key={h.eventId} className="bg-card rounded-xl p-4 shadow-card flex items-start gap-4">
                   <div className="h-10 w-10 rounded-full bg-success/15 text-success flex items-center justify-center shrink-0">
@@ -39,11 +40,28 @@ const ActivityFeed = () => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-semibold text-foreground">{h.title}</span>
+                      <button
+                        type="button"
+                        onClick={() => setRecap(h)}
+                        aria-label={`View recap and photos from ${h.title}`}
+                        className="font-semibold text-foreground text-left hover:text-primary hover:underline underline-offset-2"
+                      >
+                        {h.title}
+                      </button>
                       {h.seriesId && (
                         <span className="px-2 py-0.5 text-[11px] rounded-full bg-primary/10 text-primary font-medium">
                           {ordinal(seriesCount(h.seriesId) - seriesIdx + 1)} time
                         </span>
+                      )}
+                      {photoCount > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setRecap(h)}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] rounded-full border border-border text-muted-foreground hover:text-primary hover:border-primary/40"
+                        >
+                          <Camera className="h-3 w-3" />
+                          {photoCount} photos
+                        </button>
                       )}
                     </div>
                     <p className="text-xs text-muted-foreground mt-0.5">
