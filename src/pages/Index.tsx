@@ -19,6 +19,7 @@ import { useEvents } from '@/context/EventsContext';
 import { Event, Participant } from '@/types/event';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
+import syncWordmark from '@/assets/sync-wordmark-v2.png.asset.json';
 import { MessageCircle, Sparkles } from 'lucide-react';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
 import { getUserProfile } from '@/lib/userProfile';
