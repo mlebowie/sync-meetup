@@ -173,6 +173,32 @@ function parseStart(raw: RawEvent): Date | null {
 const HIGH = ['hike', 'run', 'running', 'trail', 'surf', 'football', 'padel', 'climb', 'bike', 'cycling', 'crossfit', 'swim', 'dance', 'bootcamp', 'volleyball', 'tennis', 'kayak'];
 const LOW = ['language exchange', 'book', 'coffee', 'wine', 'tasting', 'talk', 'workshop', 'meditation', 'board game', 'brunch', 'film', 'cinema', 'museum', 'conference'];
 
+/** SYNC interest labels — event cards and interest filters both rely on these. */
+const CATEGORY_RULES: [RegExp, string][] = [
+  [/pop-?up/, 'Pop-up events'],
+  [/chess|trivia|quiz|board game|boardgame|gaming|video game|poker|dungeons/, 'Games'],
+  [/volunteer|charity|non-?profit|ngo|fundrais|beach clean|clean-?up/, 'Charity & non-profit'],
+  [/language exchange|languages|portuguese class|english class|conversation club|intercambio/, 'Languages'],
+  [/church|faith|bible|christian|muslim|mosque|synagogue|religio/, 'Religion'],
+  [/meditation|breathwork|mindful|spiritual|reiki|astrolog|sound bath|tarot/, 'Spirituality'],
+  [/yoga|pilates|wellness|health|fitness|gym|crossfit|bootcamp|nutrition/, 'Health & fitness'],
+  [/tennis|padel|football|soccer|basketball|volleyball|run club|running|climb|surf|swim|cycling|bike ride|martial arts|sports/, 'Sports'],
+  [/hike|hiking|trail|kayak|nature walk|camping|outdoor|picnic|day trip/, 'Outdoors activities'],
+  [/ ai |artificial intelligence|machine learning|tech|developer|software|coding|data|cyber|security|blockchain|robotic/, 'Tech & AI'],
+  [/concert|live music|dj |salsa|bachata|kizomba|dance|dancing|band|gig|vinyl|jazz/, 'Music & live events'],
+  [/comedy|stand-?up|theatre|theater|improv|art |arts|gallery|exhibition|painting|photograph|writing|film|cinema|book club|poetry/, 'Arts & theatre'],
+  [/dinner|brunch|lunch|food|cooking|wine tasting|tasting|restaurant|supper|bbq|coffee/, 'Dining & cooking'],
+  [/workshop|course|lecture|class|seminar|masterclass|talk|philosophy|learn/, 'Education'],
+  [/founder|startup|entrepreneur|business|career|professional|conference|b2b|freelanc|coworking/, 'Professional development'],
+  [/expat|nomad|international|cultur|heritage|museum|city tour/, 'Cultural exchange'],
+];
+
+function canonicalCategory(raw: RawEvent): string {
+  const blob = ` ${raw.title ?? ''} ${raw.description ?? ''} ${raw.category ?? ''} `.toLowerCase();
+  for (const [re, label] of CATEGORY_RULES) if (re.test(blob)) return label;
+  return 'Social networking';
+}
+
 function keywordDerive(raw: RawEvent) {
   const text = `${raw.title ?? ''} ${raw.description ?? ''} ${raw.category ?? ''}`.toLowerCase();
   const high = HIGH.some((k) => text.includes(k));
