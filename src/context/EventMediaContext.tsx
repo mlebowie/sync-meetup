@@ -23,6 +23,7 @@ interface EventMediaValue {
 }
 
 const KEY = 'sync.eventPhotos.v1';
+const SEEDED_KEY = 'sync.eventPhotos.seeded.v1';
 
 const EventMediaContext = createContext<EventMediaValue | null>(null);
 
@@ -36,7 +37,14 @@ const loadInitial = (): EventPhoto[] => {
   if (typeof window === 'undefined') return [];
   try {
     const raw = window.localStorage.getItem(KEY);
-    return raw ? (JSON.parse(raw) as EventPhoto[]) : [];
+    const stored = raw && raw !== '[]' ? (JSON.parse(raw) as EventPhoto[]) : [];
+    if (stored.length) return stored;
+    // Seed attendee photos for already-attended events, once per browser.
+    if (!window.localStorage.getItem(SEEDED_KEY)) {
+      window.localStorage.setItem(SEEDED_KEY, '1');
+      return buildSeedPastEventPhotos();
+    }
+    return [];
   } catch {
     return [];
   }
