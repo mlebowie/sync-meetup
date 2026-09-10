@@ -13,15 +13,16 @@ const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const MAX_EVENTS_PER_PAGE = 30;
 const MAX_PAGES_PER_SOURCE = 2;
 /** Per-source page budget; Lu.ma needs more pages because each calendar is small. */
-const MAX_PAGES: Record<'eventbrite' | 'meetup' | 'luma', number> = {
+const MAX_PAGES: Record<'eventbrite' | 'meetup' | 'luma' | 'agenda-porto', number> = {
   eventbrite: 5,
   meetup: 6,
   luma: 8,
+  'agenda-porto': 9,
 };
 const MAX_CLASSIFY_PER_RUN = 40;
 const LEASE_MINUTES = 10;
 
-type SourceId = 'eventbrite' | 'meetup' | 'luma';
+type SourceId = 'eventbrite' | 'meetup' | 'luma' | 'agenda-porto';
 
 const SOURCE_PAGES: Record<SourceId, string[]> = {
   eventbrite: [
@@ -48,6 +49,18 @@ const SOURCE_PAGES: Record<SourceId, string[]> = {
     'https://lu.ma/portotech',
     'https://lu.ma/portoweb3',
     'https://lu.ma/wellnessporto',
+  ],
+  // Porto's official city agenda, read through its English section listings.
+  'agenda-porto': [
+    'https://www.agenda-porto.pt/en/calendario/',
+    'https://www.agenda-porto.pt/en/seccao/sports-and-motion/',
+    'https://www.agenda-porto.pt/en/seccao/ao-fresco/',
+    'https://www.agenda-porto.pt/en/seccao/musica-e-clubbing/',
+    'https://www.agenda-porto.pt/en/seccao/art-andamp-exhibitions/',
+    'https://www.agenda-porto.pt/en/seccao/stage/',
+    'https://www.agenda-porto.pt/en/seccao/talks/',
+    'https://www.agenda-porto.pt/en/seccao/film/',
+    'https://www.agenda-porto.pt/en/seccao/families/',
   ],
 };
 
