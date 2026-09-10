@@ -270,6 +270,11 @@ const CATEGORY_RULES: [RegExp, string][] = [
 ];
 
 function canonicalCategory(raw: RawEvent): string {
+  // The title is the strongest signal; only fall back to the blurb when the
+  // title says nothing useful, so a stray word in a long description cannot
+  // hijack the label.
+  const title = ` ${raw.title ?? ''} ${raw.category ?? ''} `.toLowerCase();
+  for (const [re, label] of CATEGORY_RULES) if (re.test(title)) return label;
   const blob = ` ${raw.title ?? ''} ${raw.description ?? ''} ${raw.category ?? ''} `.toLowerCase();
   for (const [re, label] of CATEGORY_RULES) if (re.test(blob)) return label;
   return 'Social networking';
