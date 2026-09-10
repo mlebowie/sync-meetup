@@ -401,8 +401,35 @@ Deno.serve(async (req) => {
   }
 
   const paused = latest?.status === 'paused';
-  // While paused, probe a single source only; a clean probe clears the pause.
-  const sourceIds: SourceId[] = paused ? ['eventbrite'] : ['eventbrite', 'meetup', 'luma'];
+
+  // Optional narrowing so a run can focus on one source (keeps each run inside
+  // the edge runtime's request budget).
+  let requested: string[] = [];
+  try {
+    const body = await req.json();
+    if (Array.isArray(body?.sources)) requested = body.sources.map((s: unknown) => String(s));
+  } catch {
+    // no body — full run
+  }
+  const allSources: SourceId[] = ['eventbrite', 'meetup', 'luma'];
+  const sourceIds: SourceId[] = paused
+    ? ['eventbrite']
+    : requested.length
+      ? allSources.filter((s) => requested.includes(s))
+      : allSources;
+
+  // Runs must finish well inside the edge idle limit, so stop collecting after this.
+  const DEADLINE = Date.now() + 110_000;
+
+  // Events already stored with a future start need no re-verification, which is
+  // the slow part of a run.
+  const { data: knownRows } = await supabase
+    .from('events')
+    .select('source,source_event_id')
+    .gte('starts_at', new Date().toISOString());
+  const known = new Set(
+    (knownRows ?? []).map((r: Record<string, unknown>) => `${r.source}:${r.source_event_id}`),
+  );
 
   const { data: run, error: runError } = await supabase
     .from('event_scrape_runs')
