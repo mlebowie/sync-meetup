@@ -27,6 +27,14 @@ const sourceColors: Record<string, string> = {
   meetup: 'bg-red-700',
   eventbrite: 'bg-orange-700',
   luma: 'bg-purple-700',
+  'agenda-porto': 'bg-teal-800',
+};
+
+const sourceNames: Record<string, string> = {
+  meetup: 'Meetup',
+  eventbrite: 'Eventbrite',
+  luma: 'Lu.ma',
+  'agenda-porto': 'Agenda Porto',
 };
 
 

@@ -158,7 +158,7 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
         {/* Source badge */}
         <div className="absolute top-3 left-3 flex items-center gap-2">
           <span className={`px-2 py-1 rounded-md text-xs font-semibold ${sourceColors[event.source]}`}>
-            {event.source.charAt(0).toUpperCase() + event.source.slice(1)}
+            {sourceLabels[event.source] ?? event.source}
           </span>
           <span className="px-2 py-1 rounded-md text-xs font-medium bg-card/95 text-card-foreground">
             {event.category}
