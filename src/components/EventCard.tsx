@@ -33,10 +33,19 @@ function ordinal(n: number) {
   return n + (s[(v - 20) % 10] || s[v] || s[0]);
 }
 
-const sourceColors = {
+const sourceColors: Record<string, string> = {
   meetup: 'bg-red-700 text-red-50',
   eventbrite: 'bg-orange-700 text-orange-50',
   luma: 'bg-purple-700 text-purple-50',
+  'agenda-porto': 'bg-teal-800 text-teal-50',
+};
+
+/** Display names for each listing site. */
+export const sourceLabels: Record<string, string> = {
+  meetup: 'Meetup',
+  eventbrite: 'Eventbrite',
+  luma: 'Lu.ma',
+  'agenda-porto': 'Agenda Porto',
 };
 
 const activityColors = {
