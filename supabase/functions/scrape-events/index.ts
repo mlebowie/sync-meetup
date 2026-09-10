@@ -330,6 +330,14 @@ function canonicalCategory(raw: RawEvent, source?: SourceId): string {
   return 'Social networking';
 }
 
+/** Every listing is a Porto event, so the city always belongs in the location. */
+function portoLocation(raw: RawEvent): string {
+  const parts = [raw.venue, raw.address].filter(Boolean).join(', ').trim();
+  if (!parts) return 'Porto, Portugal';
+  const withCity = /porto/i.test(parts) ? parts : `${parts}, Porto`;
+  return withCity.slice(0, 300);
+}
+
 /** Agenda Porto marks free entry on the listing itself. */
 function agendaPrice(raw: RawEvent, source?: SourceId): string | null {
   if (source !== 'agenda-porto') return null;
