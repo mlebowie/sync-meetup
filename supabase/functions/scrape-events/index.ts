@@ -448,7 +448,7 @@ Deno.serve(async (req) => {
   } catch {
     // no body — full run
   }
-  const allSources: SourceId[] = ['eventbrite', 'meetup', 'luma'];
+  const allSources: SourceId[] = ['eventbrite', 'meetup', 'luma', 'agenda-porto'];
   const sourceIds: SourceId[] = paused
     ? ['eventbrite']
     : requested.length
