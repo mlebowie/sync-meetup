@@ -258,6 +258,24 @@ function portoTimeLabel(d: Date): string {
   }).format(d);
 }
 
+/** Porto calendar date, used when only the day is trustworthy. */
+function portoDateLabel(d: Date): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Lisbon' }).format(d);
+}
+
+/**
+ * Some listings publish a date without a real start time, which lands on
+ * midnight. Keep the confirmed day but take the clock from the card, falling
+ * back to a sensible evening slot.
+ */
+function withListedClock(confirmed: Date, raw: RawEvent): Date {
+  if (portoTimeLabel(confirmed) !== '00:00') return confirmed;
+  const hhmm = /^(\d{1,2}):(\d{2})/.exec((raw.time ?? '').trim());
+  const clock = hhmm ? `${hhmm[1].padStart(2, '0')}:${hhmm[2]}` : '19:00';
+  const rebuilt = new Date(`${portoDateLabel(confirmed)}T${clock}:00+01:00`);
+  return isNaN(rebuilt.getTime()) ? confirmed : rebuilt;
+}
+
 
 const HIGH = ['hike', 'run', 'running', 'trail', 'surf', 'football', 'padel', 'climb', 'bike', 'cycling', 'crossfit', 'swim', 'dance', 'bootcamp', 'volleyball', 'tennis', 'kayak'];
 const LOW = ['language exchange', 'book', 'coffee', 'wine', 'tasting', 'talk', 'workshop', 'meditation', 'board game', 'brunch', 'film', 'cinema', 'museum', 'conference'];
