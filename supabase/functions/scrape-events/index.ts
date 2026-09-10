@@ -539,6 +539,7 @@ Deno.serve(async (req) => {
             recurrence,
             series_key,
             ...keywordDerive(raw),
+            ...agendaFlags(raw, source),
             last_seen_at: new Date().toISOString(),
           };
 
