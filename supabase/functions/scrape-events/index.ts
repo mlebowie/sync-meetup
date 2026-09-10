@@ -461,11 +461,14 @@ Deno.serve(async (req) => {
         source === 'luma' ? (await lumaPages()).slice(0, budget) : SOURCE_PAGES[source].slice(0, budget);
 
       for (const page of pages) {
-        if (pausedReason) break;
+        if (pausedReason || Date.now() > DEADLINE) break;
         const raws = paused ? (await scrapeListing(page)).slice(0, 5) : await scrapeListing(page);
 
         for (const raw of raws) {
+          if (Date.now() > DEADLINE) break;
           const id = sourceEventId(source, raw);
+          // Already stored and still upcoming: keep it and move on.
+          if (id && known.has(`${source}:${id}`)) continue;
           const listed = parseStart(raw);
           const confirmed = raw.url ? await verifiedStart(raw.url) : null;
           const starts = confirmed ?? listed;
