@@ -27,6 +27,14 @@ const sourceColors: Record<string, string> = {
   meetup: 'bg-red-700',
   eventbrite: 'bg-orange-700',
   luma: 'bg-purple-700',
+  'agenda-porto': 'bg-teal-800',
+};
+
+const sourceNames: Record<string, string> = {
+  meetup: 'Meetup',
+  eventbrite: 'Eventbrite',
+  luma: 'Lu.ma',
+  'agenda-porto': 'Agenda Porto',
 };
 
 
@@ -92,11 +100,11 @@ Just yourself and an open attitude. Anything specific (gear, dress code, food co
                 rel="noopener noreferrer"
                 className={`px-2 py-1 rounded-md text-xs font-semibold text-vivid-foreground hover:underline ${sourceColors[event.source]}`}
               >
-                View on {event.source.charAt(0).toUpperCase() + event.source.slice(1)}
+                View on {sourceNames[event.source] ?? event.source}
               </a>
             ) : (
               <span className={`px-2 py-1 rounded-md text-xs font-semibold text-vivid-foreground ${sourceColors[event.source]}`}>
-                {event.source.charAt(0).toUpperCase() + event.source.slice(1)}
+                {sourceNames[event.source] ?? event.source}
               </span>
             )}
             <span className="px-2 py-1 rounded-md text-xs font-medium bg-white/90 text-foreground">

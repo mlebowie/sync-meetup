@@ -13,15 +13,16 @@ const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const MAX_EVENTS_PER_PAGE = 30;
 const MAX_PAGES_PER_SOURCE = 2;
 /** Per-source page budget; Lu.ma needs more pages because each calendar is small. */
-const MAX_PAGES: Record<'eventbrite' | 'meetup' | 'luma', number> = {
+const MAX_PAGES: Record<'eventbrite' | 'meetup' | 'luma' | 'agenda-porto', number> = {
   eventbrite: 5,
   meetup: 6,
   luma: 8,
+  'agenda-porto': 9,
 };
 const MAX_CLASSIFY_PER_RUN = 40;
 const LEASE_MINUTES = 10;
 
-type SourceId = 'eventbrite' | 'meetup' | 'luma';
+type SourceId = 'eventbrite' | 'meetup' | 'luma' | 'agenda-porto';
 
 const SOURCE_PAGES: Record<SourceId, string[]> = {
   eventbrite: [
@@ -48,6 +49,18 @@ const SOURCE_PAGES: Record<SourceId, string[]> = {
     'https://lu.ma/portotech',
     'https://lu.ma/portoweb3',
     'https://lu.ma/wellnessporto',
+  ],
+  // Porto's official city agenda, read through its English section listings.
+  'agenda-porto': [
+    'https://www.agenda-porto.pt/en/calendario/',
+    'https://www.agenda-porto.pt/en/seccao/sports-and-motion/',
+    'https://www.agenda-porto.pt/en/seccao/ao-fresco/',
+    'https://www.agenda-porto.pt/en/seccao/musica-e-clubbing/',
+    'https://www.agenda-porto.pt/en/seccao/art-andamp-exhibitions/',
+    'https://www.agenda-porto.pt/en/seccao/stage/',
+    'https://www.agenda-porto.pt/en/seccao/talks/',
+    'https://www.agenda-porto.pt/en/seccao/film/',
+    'https://www.agenda-porto.pt/en/seccao/families/',
   ],
 };
 
@@ -245,6 +258,24 @@ function portoTimeLabel(d: Date): string {
   }).format(d);
 }
 
+/** Porto calendar date, used when only the day is trustworthy. */
+function portoDateLabel(d: Date): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Lisbon' }).format(d);
+}
+
+/**
+ * Some listings publish a date without a real start time, which lands on
+ * midnight. Keep the confirmed day but take the clock from the card, falling
+ * back to a sensible evening slot.
+ */
+function withListedClock(confirmed: Date, raw: RawEvent): Date {
+  if (portoTimeLabel(confirmed) !== '00:00') return confirmed;
+  const hhmm = /^(\d{1,2}):(\d{2})/.exec((raw.time ?? '').trim());
+  const clock = hhmm ? `${hhmm[1].padStart(2, '0')}:${hhmm[2]}` : '19:00';
+  const rebuilt = new Date(`${portoDateLabel(confirmed)}T${clock}:00+01:00`);
+  return isNaN(rebuilt.getTime()) ? confirmed : rebuilt;
+}
+
 
 const HIGH = ['hike', 'run', 'running', 'trail', 'surf', 'football', 'padel', 'climb', 'bike', 'cycling', 'crossfit', 'swim', 'dance', 'bootcamp', 'volleyball', 'tennis', 'kayak'];
 const LOW = ['language exchange', 'book', 'coffee', 'wine', 'tasting', 'talk', 'workshop', 'meditation', 'board game', 'brunch', 'film', 'cinema', 'museum', 'conference'];
@@ -269,7 +300,26 @@ const CATEGORY_RULES: [RegExp, string][] = [
   [/expat|nomad|international|cultur|heritage|museum|city tour/, 'Cultural exchange'],
 ];
 
-function canonicalCategory(raw: RawEvent): string {
+/**
+ * Agenda Porto publishes its own section name for every listing, which is a
+ * stronger signal than keywords, so it is mapped straight onto SYNC labels.
+ */
+const AGENDA_SECTION_RULES: [RegExp, string][] = [
+  [/sport|motion|corrida|running|walk|caminhada/, 'Sports'],
+  [/ao fresco|out and about|open air|open-air|outdoor/, 'Outdoors activities'],
+  [/music|clubbing|concert|dj|jazz|ópera|opera/, 'Music & live events'],
+  [/game|jogo/, 'Games'],
+  [/fair|feira|market|pop-?up|party|festa/, 'Pop-up events'],
+  [/talk|lecture|conversa|conferenc/, 'Education'],
+  [/art|exhibition|stage|theatre|theater|dance|circus|film|cinema|performance|literature|comedy/, 'Arts & theatre'],
+  [/famil|kids|criança/, 'Cultural exchange'],
+];
+
+function canonicalCategory(raw: RawEvent, source?: SourceId): string {
+  if (source === 'agenda-porto') {
+    const section = ` ${raw.category ?? ''} `.toLowerCase();
+    for (const [re, label] of AGENDA_SECTION_RULES) if (re.test(section)) return label;
+  }
   // The title is the strongest signal; only fall back to the blurb when the
   // title says nothing useful, so a stray word in a long description cannot
   // hijack the label.
@@ -278,6 +328,28 @@ function canonicalCategory(raw: RawEvent): string {
   const blob = ` ${raw.title ?? ''} ${raw.description ?? ''} ${raw.category ?? ''} `.toLowerCase();
   for (const [re, label] of CATEGORY_RULES) if (re.test(blob)) return label;
   return 'Social networking';
+}
+
+/** Every listing is a Porto event, so the city always belongs in the location. */
+function portoLocation(raw: RawEvent): string {
+  const parts = [raw.venue, raw.address].filter(Boolean).join(', ').trim();
+  if (!parts) return 'Porto, Portugal';
+  const withCity = /porto/i.test(parts) ? parts : `${parts}, Porto`;
+  return withCity.slice(0, 300);
+}
+
+/** Agenda Porto marks free entry on the listing itself. */
+function agendaPrice(raw: RawEvent, source?: SourceId): string | null {
+  if (source !== 'agenda-porto') return null;
+  const text = `${raw.category ?? ''} ${raw.description ?? ''}`.toLowerCase();
+  return /\bfree\b|entrada livre|gratuito/.test(text) ? 'Free' : null;
+}
+
+/** Agenda Porto's own accessibility tags, carried onto the SYNC flags. */
+function agendaFlags(raw: RawEvent, source?: SourceId): Record<string, boolean> {
+  if (source !== 'agenda-porto') return {};
+  const text = `${raw.category ?? ''} ${raw.description ?? ''}`.toLowerCase();
+  return /pets allowed|pet-?friendly|animais/.test(text) ? { pet_friendly: true } : {};
 }
 
 function keywordDerive(raw: RawEvent) {
@@ -416,7 +488,7 @@ Deno.serve(async (req) => {
   } catch {
     // no body — full run
   }
-  const allSources: SourceId[] = ['eventbrite', 'meetup', 'luma'];
+  const allSources: SourceId[] = ['eventbrite', 'meetup', 'luma', 'agenda-porto'];
   const sourceIds: SourceId[] = paused
     ? ['eventbrite']
     : requested.length
@@ -475,7 +547,8 @@ Deno.serve(async (req) => {
           // Already stored and still upcoming: keep it and move on.
           if (id && known.has(`${source}:${id}`)) continue;
           const listed = parseStart(raw);
-          const confirmed = raw.url ? await verifiedStart(raw.url) : null;
+          const verified = raw.url ? await verifiedStart(raw.url) : null;
+          const confirmed = verified ? withListedClock(verified, raw) : null;
           const starts = confirmed ?? listed;
           if (!id || !raw.title || !starts) continue;
 
@@ -492,12 +565,11 @@ Deno.serve(async (req) => {
               : raw.time?.trim()?.slice(0, 20) || null,
 
             venue_name: raw.venue?.trim()?.slice(0, 200) || null,
-            location:
-              [raw.venue, raw.address].filter(Boolean).join(', ').slice(0, 300) || 'Porto, Portugal',
+            location: portoLocation(raw),
             image_url: raw.image_url?.startsWith('http') ? raw.image_url : null,
             organizer_name: raw.organizer?.trim()?.slice(0, 200) || null,
-            category: canonicalCategory(raw),
-            price_label: raw.price?.trim()?.slice(0, 60) || null,
+            category: canonicalCategory(raw, source),
+            price_label: raw.price?.trim()?.slice(0, 60) || agendaPrice(raw, source),
             attendee_count:
               typeof raw.attendees === 'number' && raw.attendees > 0 ? Math.round(raw.attendees) : null,
             capacity:
@@ -507,6 +579,7 @@ Deno.serve(async (req) => {
             recurrence,
             series_key,
             ...keywordDerive(raw),
+            ...agendaFlags(raw, source),
             last_seen_at: new Date().toISOString(),
           };
 

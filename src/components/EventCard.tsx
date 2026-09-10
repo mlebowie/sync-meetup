@@ -33,10 +33,19 @@ function ordinal(n: number) {
   return n + (s[(v - 20) % 10] || s[v] || s[0]);
 }
 
-const sourceColors = {
+const sourceColors: Record<string, string> = {
   meetup: 'bg-red-700 text-red-50',
   eventbrite: 'bg-orange-700 text-orange-50',
   luma: 'bg-purple-700 text-purple-50',
+  'agenda-porto': 'bg-teal-800 text-teal-50',
+};
+
+/** Display names for each listing site. */
+export const sourceLabels: Record<string, string> = {
+  meetup: 'Meetup',
+  eventbrite: 'Eventbrite',
+  luma: 'Lu.ma',
+  'agenda-porto': 'Agenda Porto',
 };
 
 const activityColors = {
@@ -149,7 +158,7 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
         {/* Source badge */}
         <div className="absolute top-3 left-3 flex items-center gap-2">
           <span className={`px-2 py-1 rounded-md text-xs font-semibold ${sourceColors[event.source]}`}>
-            {event.source.charAt(0).toUpperCase() + event.source.slice(1)}
+            {sourceLabels[event.source] ?? event.source}
           </span>
           <span className="px-2 py-1 rounded-md text-xs font-medium bg-card/95 text-card-foreground">
             {event.category}
