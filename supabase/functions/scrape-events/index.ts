@@ -539,7 +539,8 @@ Deno.serve(async (req) => {
           // Already stored and still upcoming: keep it and move on.
           if (id && known.has(`${source}:${id}`)) continue;
           const listed = parseStart(raw);
-          const confirmed = raw.url ? await verifiedStart(raw.url) : null;
+          const verified = raw.url ? await verifiedStart(raw.url) : null;
+          const confirmed = verified ? withListedClock(verified, raw) : null;
           const starts = confirmed ?? listed;
           if (!id || !raw.title || !starts) continue;
 
