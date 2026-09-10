@@ -453,7 +453,7 @@ Deno.serve(async (req) => {
   let pausedReason: string | null = null;
 
   for (const source of sourceIds) {
-    if (pausedReason) break;
+    if (pausedReason || Date.now() > DEADLINE) break;
     counts[source] = 0;
     try {
       const budget = paused ? MAX_PAGES_PER_SOURCE : MAX_PAGES[source];
