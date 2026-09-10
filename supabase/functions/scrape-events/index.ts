@@ -282,7 +282,26 @@ const CATEGORY_RULES: [RegExp, string][] = [
   [/expat|nomad|international|cultur|heritage|museum|city tour/, 'Cultural exchange'],
 ];
 
-function canonicalCategory(raw: RawEvent): string {
+/**
+ * Agenda Porto publishes its own section name for every listing, which is a
+ * stronger signal than keywords, so it is mapped straight onto SYNC labels.
+ */
+const AGENDA_SECTION_RULES: [RegExp, string][] = [
+  [/sport|motion|corrida|running|walk|caminhada/, 'Sports'],
+  [/ao fresco|out and about|open air|open-air|outdoor/, 'Outdoors activities'],
+  [/music|clubbing|concert|dj|jazz|ópera|opera/, 'Music & live events'],
+  [/game|jogo/, 'Games'],
+  [/fair|feira|market|pop-?up|party|festa/, 'Pop-up events'],
+  [/talk|lecture|conversa|conferenc/, 'Education'],
+  [/art|exhibition|stage|theatre|theater|dance|circus|film|cinema|performance|literature|comedy/, 'Arts & theatre'],
+  [/famil|kids|criança/, 'Cultural exchange'],
+];
+
+function canonicalCategory(raw: RawEvent, source?: SourceId): string {
+  if (source === 'agenda-porto') {
+    const section = ` ${raw.category ?? ''} `.toLowerCase();
+    for (const [re, label] of AGENDA_SECTION_RULES) if (re.test(section)) return label;
+  }
   // The title is the strongest signal; only fall back to the blurb when the
   // title says nothing useful, so a stray word in a long description cannot
   // hijack the label.
