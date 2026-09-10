@@ -312,6 +312,20 @@ function canonicalCategory(raw: RawEvent, source?: SourceId): string {
   return 'Social networking';
 }
 
+/** Agenda Porto marks free entry on the listing itself. */
+function agendaPrice(raw: RawEvent, source?: SourceId): string | null {
+  if (source !== 'agenda-porto') return null;
+  const text = `${raw.category ?? ''} ${raw.description ?? ''}`.toLowerCase();
+  return /\bfree\b|entrada livre|gratuito/.test(text) ? 'Free' : null;
+}
+
+/** Agenda Porto's own accessibility tags, carried onto the SYNC flags. */
+function agendaFlags(raw: RawEvent, source?: SourceId): Record<string, boolean> {
+  if (source !== 'agenda-porto') return {};
+  const text = `${raw.category ?? ''} ${raw.description ?? ''}`.toLowerCase();
+  return /pets allowed|pet-?friendly|animais/.test(text) ? { pet_friendly: true } : {};
+}
+
 function keywordDerive(raw: RawEvent) {
   const text = `${raw.title ?? ''} ${raw.description ?? ''} ${raw.category ?? ''}`.toLowerCase();
   const high = HIGH.some((k) => text.includes(k));
