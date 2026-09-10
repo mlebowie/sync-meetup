@@ -12,6 +12,12 @@ const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 /** Safety limits — one run never does more than this. */
 const MAX_EVENTS_PER_PAGE = 30;
 const MAX_PAGES_PER_SOURCE = 2;
+/** Per-source page budget; Lu.ma needs more pages because each calendar is small. */
+const MAX_PAGES: Record<'eventbrite' | 'meetup' | 'luma', number> = {
+  eventbrite: 5,
+  meetup: 6,
+  luma: 8,
+};
 const MAX_CLASSIFY_PER_RUN = 40;
 const LEASE_MINUTES = 10;
 
@@ -21,12 +27,28 @@ const SOURCE_PAGES: Record<SourceId, string[]> = {
   eventbrite: [
     'https://www.eventbrite.com/d/portugal--porto/all-events/',
     'https://www.eventbrite.com/d/portugal--porto/events/?page=2',
+    'https://www.eventbrite.com/d/portugal--porto/sports--fitness--events/',
+    'https://www.eventbrite.com/d/portugal--porto/health--events/',
+    'https://www.eventbrite.com/d/portugal--porto/yoga/',
   ],
   meetup: [
     'https://www.meetup.com/find/?location=pt--Porto&source=EVENTS&distance=tenMiles',
     'https://www.meetup.com/find/?location=pt--Porto&source=EVENTS&categoryId=242',
+    // Sports & fitness
+    'https://www.meetup.com/find/?location=pt--Porto&source=EVENTS&categoryId=436&distance=tenMiles',
+    // Health & wellbeing
+    'https://www.meetup.com/find/?location=pt--Porto&source=EVENTS&categoryId=548&distance=tenMiles',
+    'https://www.meetup.com/find/?location=pt--Porto&source=EVENTS&keywords=yoga&distance=tenMiles',
+    'https://www.meetup.com/find/?location=pt--Porto&source=EVENTS&keywords=running%20hiking%20surf&distance=twentyFiveMiles',
   ],
-  luma: [],
+  // Lu.ma has no city index page, so read known Porto community calendars directly.
+  luma: [
+    'https://lu.ma/porto',
+    'https://lu.ma/portugal',
+    'https://lu.ma/portotech',
+    'https://lu.ma/portoweb3',
+    'https://lu.ma/wellnessporto',
+  ],
 };
 
 const EVENT_SCHEMA = {
@@ -126,22 +148,36 @@ async function scrapeListing(url: string): Promise<RawEvent[]> {
   return events.slice(0, MAX_EVENTS_PER_PAGE);
 }
 
-/** Lu.ma has no Porto city page, so find Porto calendars first, then read them. */
+/**
+ * Lu.ma has no Porto city index, so start from known Porto calendars and top up
+ * with search discovery (tech, wellness, creative communities) until the budget
+ * for the source is used.
+ */
 async function lumaPages(): Promise<string[]> {
-  const data = await firecrawl('/search', {
-    query: 'site:lu.ma Porto Portugal events calendar',
-    limit: 10,
-  });
-  const results: { url?: string }[] = data?.data?.web ?? data?.web ?? [];
-  const urls: string[] = [];
-  for (const r of results) {
-    const url = r?.url;
-    if (!url || !/lu\.ma\//.test(url)) continue;
-    const clean = url.split('?')[0];
-    if (!urls.includes(clean)) urls.push(clean);
-    if (urls.length >= MAX_PAGES_PER_SOURCE) break;
+  const urls: string[] = [...SOURCE_PAGES.luma];
+  const queries = [
+    'site:lu.ma Porto Portugal events calendar',
+    'site:lu.ma Porto yoga wellness OR fitness OR run event',
+  ];
+
+  for (const query of queries) {
+    if (urls.length >= MAX_PAGES.luma) break;
+    try {
+      const data = await firecrawl('/search', { query, limit: 10 });
+      const results: { url?: string }[] = data?.data?.web ?? data?.web ?? [];
+      for (const r of results) {
+        const url = r?.url;
+        if (!url || !/lu\.ma\//.test(url)) continue;
+        const clean = url.split('?')[0];
+        if (!urls.includes(clean)) urls.push(clean);
+        if (urls.length >= MAX_PAGES.luma) break;
+      }
+    } catch (err) {
+      console.error(`Lu.ma discovery failed for "${query}": ${err}`);
+    }
   }
-  return urls;
+
+  return urls.slice(0, MAX_PAGES.luma);
 }
 
 function sourceEventId(source: SourceId, raw: RawEvent): string | null {
@@ -220,10 +256,10 @@ const CATEGORY_RULES: [RegExp, string][] = [
   [/volunteer|charity|non-?profit|ngo|fundrais|beach clean|clean-?up/, 'Charity & non-profit'],
   [/language exchange|languages|portuguese class|english class|conversation club|intercambio/, 'Languages'],
   [/church|faith|bible|christian|muslim|mosque|synagogue|religio/, 'Religion'],
-  [/meditation|breathwork|mindful|spiritual|reiki|astrolog|sound bath|tarot/, 'Spirituality'],
-  [/yoga|pilates|wellness|health|fitness|gym|crossfit|bootcamp|nutrition/, 'Health & fitness'],
-  [/tennis|padel|football|soccer|basketball|volleyball|run club|running|climb|surf|swim|cycling|bike ride|martial arts|sports/, 'Sports'],
-  [/hike|hiking|trail|kayak|nature walk|camping|outdoor|picnic|day trip/, 'Outdoors activities'],
+  [/yoga|pilates|barre|breathwork|ice bath|cold plunge|sauna|massage|wellness|wellbeing|well-being|health|fitness|gym|crossfit|hyrox|bootcamp|nutrition|stretch|mobility|calisthenic|spa/, 'Health & fitness'],
+  [/meditation|mindful|spiritual|reiki|astrolog|sound bath|sound healing|tarot|retreat|chakra|kundalini|ecstatic dance|cacao|shamanic/, 'Spirituality'],
+  [/tennis|padel|paddle tennis|football|soccer|futsal|basketball|volleyball|beach volley|run club|running|marathon|5k|10k|climb|bouldering|surf|surfing|skate|swim|cycling|bike ride|martial arts|jiu-?jitsu|boxing|muay thai|rugby|golf|sports/, 'Sports'],
+  [/hike|hiking|trail|kayak|paddle ?board|sup |nature walk|camping|outdoor|picnic|day trip|birdwatch|forest bathing|sunrise walk|sunset walk/, 'Outdoors activities'],
   [/ ai |artificial intelligence|machine learning|tech|developer|software|coding|data|cyber|security|blockchain|robotic/, 'Tech & AI'],
   [/concert|live music|dj |salsa|bachata|kizomba|dance|dancing|band|gig|vinyl|jazz/, 'Music & live events'],
   [/comedy|stand-?up|theatre|theater|improv|art |arts|gallery|exhibition|painting|photograph|writing|film|cinema|book club|poetry/, 'Arts & theatre'],
@@ -393,7 +429,9 @@ Deno.serve(async (req) => {
     if (pausedReason) break;
     counts[source] = 0;
     try {
-      const pages = source === 'luma' ? await lumaPages() : SOURCE_PAGES[source].slice(0, MAX_PAGES_PER_SOURCE);
+      const budget = paused ? MAX_PAGES_PER_SOURCE : MAX_PAGES[source];
+      const pages =
+        source === 'luma' ? (await lumaPages()).slice(0, budget) : SOURCE_PAGES[source].slice(0, budget);
 
       for (const page of pages) {
         if (pausedReason) break;
