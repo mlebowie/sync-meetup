@@ -212,22 +212,43 @@ function withinWindow(d: Date): boolean {
   return true;
 }
 
+/** Builds an instant from a Porto calendar date + wall clock, honouring DST. */
+function lisbonInstant(dateLabel: string, clock: string): Date {
+  // Guess with UTC, then correct by the zone's real offset on that instant.
+  const guess = new Date(`${dateLabel}T${clock}:00Z`);
+  if (isNaN(guess.getTime())) return guess;
+  const asLisbon = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Lisbon',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(guess);
+  const [gh, gm] = asLisbon.split(':').map(Number);
+  const [th, tm] = clock.split(':').map(Number);
+  let diffMin = (gh * 60 + gm) - (th * 60 + tm);
+  if (diffMin > 720) diffMin -= 1440;
+  if (diffMin < -720) diffMin += 1440;
+  return new Date(guess.getTime() - diffMin * 60_000);
+}
+
 function parseStart(raw: RawEvent): Date | null {
   const iso = (raw.iso_date ?? '').trim();
   if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
   const time = (raw.time ?? '').trim();
   const hhmm = /^(\d{1,2}):(\d{2})/.exec(time);
   const clock = hhmm ? `${hhmm[1].padStart(2, '0')}:${hhmm[2]}` : '19:00';
-  // Porto is UTC+1 in summer; the small offset drift is acceptable for display.
-  const parsed = new Date(`${iso}T${clock}:00+01:00`);
+  const parsed = lisbonInstant(iso, clock);
   return withinWindow(parsed) ? parsed : null;
 }
+
 
 /**
  * Listing cards are read by an AI and their dates drift, so the event page's own
  * schema.org startDate is treated as the truth whenever it is unambiguous.
  */
-async function verifiedStart(url: string): Promise<Date | null> {
+async function verifiedStart(
+  url: string,
+): Promise<{ date: Date; dateOnly: boolean } | null> {
   try {
     const res = await fetch(url, {
       redirect: 'follow',
@@ -240,8 +261,12 @@ async function verifiedStart(url: string): Promise<Date | null> {
     const distinct = [...new Set(found)];
     // Calendar / listing pages carry many events — only a single date is trustworthy.
     if (distinct.length !== 1) return null;
-    const parsed = new Date(distinct[0]);
-    return withinWindow(parsed) ? parsed : null;
+    const value = distinct[0].trim();
+    // "2026-09-11" carries no clock; "2026-09-11T21:00" does.
+    const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(value);
+    const parsed = dateOnly ? lisbonInstant(value, '00:00') : new Date(value);
+    if (!withinWindow(parsed)) return null;
+    return { date: parsed, dateOnly };
   } catch (err) {
     console.error(`Could not verify date for ${url}: ${err}`);
     return null;
@@ -264,17 +289,18 @@ function portoDateLabel(d: Date): string {
 }
 
 /**
- * Some listings publish a date without a real start time, which lands on
- * midnight. Keep the confirmed day but take the clock from the card, falling
- * back to a sensible evening slot.
+ * Some listings publish a date without any start time. Only in that case keep
+ * the confirmed day and take the clock from the card, falling back to a
+ * sensible evening slot. A genuine 00:00 start is left untouched.
  */
-function withListedClock(confirmed: Date, raw: RawEvent): Date {
-  if (portoTimeLabel(confirmed) !== '00:00') return confirmed;
+function withListedClock(verified: { date: Date; dateOnly: boolean }, raw: RawEvent): Date {
+  if (!verified.dateOnly) return verified.date;
   const hhmm = /^(\d{1,2}):(\d{2})/.exec((raw.time ?? '').trim());
   const clock = hhmm ? `${hhmm[1].padStart(2, '0')}:${hhmm[2]}` : '19:00';
-  const rebuilt = new Date(`${portoDateLabel(confirmed)}T${clock}:00+01:00`);
-  return isNaN(rebuilt.getTime()) ? confirmed : rebuilt;
+  const rebuilt = lisbonInstant(portoDateLabel(verified.date), clock);
+  return isNaN(rebuilt.getTime()) ? verified.date : rebuilt;
 }
+
 
 
 const HIGH = ['hike', 'run', 'running', 'trail', 'surf', 'football', 'padel', 'climb', 'bike', 'cycling', 'crossfit', 'swim', 'dance', 'bootcamp', 'volleyball', 'tennis', 'kayak'];
