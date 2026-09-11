@@ -212,16 +212,35 @@ function withinWindow(d: Date): boolean {
   return true;
 }
 
+/** Builds an instant from a Porto calendar date + wall clock, honouring DST. */
+function lisbonInstant(dateLabel: string, clock: string): Date {
+  // Guess with UTC, then correct by the zone's real offset on that instant.
+  const guess = new Date(`${dateLabel}T${clock}:00Z`);
+  if (isNaN(guess.getTime())) return guess;
+  const asLisbon = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Lisbon',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(guess);
+  const [gh, gm] = asLisbon.split(':').map(Number);
+  const [th, tm] = clock.split(':').map(Number);
+  let diffMin = (gh * 60 + gm) - (th * 60 + tm);
+  if (diffMin > 720) diffMin -= 1440;
+  if (diffMin < -720) diffMin += 1440;
+  return new Date(guess.getTime() - diffMin * 60_000);
+}
+
 function parseStart(raw: RawEvent): Date | null {
   const iso = (raw.iso_date ?? '').trim();
   if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
   const time = (raw.time ?? '').trim();
   const hhmm = /^(\d{1,2}):(\d{2})/.exec(time);
   const clock = hhmm ? `${hhmm[1].padStart(2, '0')}:${hhmm[2]}` : '19:00';
-  // Porto is UTC+1 in summer; the small offset drift is acceptable for display.
-  const parsed = new Date(`${iso}T${clock}:00+01:00`);
+  const parsed = lisbonInstant(iso, clock);
   return withinWindow(parsed) ? parsed : null;
 }
+
 
 /**
  * Listing cards are read by an AI and their dates drift, so the event page's own
