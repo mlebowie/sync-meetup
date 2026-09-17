@@ -37,3 +37,6 @@
 - [ ] Translate listing copy only when the event is confirmed to support English
 - [ ] Exclude Portuguese-only and ambiguous non-English events
 - [ ] Refresh and verify existing upcoming events
+
+## Onboarding socialiser profiles
+- [ ] Compare socialiser archetypes with direct interest selection and recommend the strongest onboarding flow
