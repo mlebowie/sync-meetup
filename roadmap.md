@@ -33,10 +33,10 @@
 - [x] "View on Eventbrite/Meetup/Lu.ma" link in the event preview
 
 ## English-language event eligibility
-- [ ] Keep events conducted in English, including multilingual events that support English
-- [ ] Translate listing copy only when the event is confirmed to support English
-- [ ] Exclude Portuguese-only and ambiguous non-English events
+- [x] Keep events conducted in English, including multilingual events that support English
+- [x] Translate listing copy only when the event is confirmed to support English
+- [x] Exclude Portuguese-only and ambiguous non-English events
 - [ ] Refresh and verify existing upcoming events
 
 ## Onboarding socialiser profiles
-- [ ] Compare socialiser archetypes with direct interest selection and recommend the strongest onboarding flow
+- [x] Compare socialiser archetypes with direct interest selection and recommend the strongest onboarding flow
