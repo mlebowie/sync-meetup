@@ -31,3 +31,9 @@
 - [x] Daily automatic refresh (05:20 UTC), keeps yesterday's events if a refresh fails
 - [x] Homefeed, search, carousels, calendar and notifications read real events
 - [x] "View on Eventbrite/Meetup/Lu.ma" link in the event preview
+
+## English-language event eligibility
+- [ ] Keep events conducted in English, including multilingual events that support English
+- [ ] Translate listing copy only when the event is confirmed to support English
+- [ ] Exclude Portuguese-only and ambiguous non-English events
+- [ ] Refresh and verify existing upcoming events

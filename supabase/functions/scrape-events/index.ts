@@ -85,8 +85,11 @@ const EVENT_SCHEMA = {
           category: { type: 'string' },
           price: { type: 'string' },
           attendees: { type: 'number' },
+          event_language: { type: 'string' },
+          english_eligible: { type: 'boolean' },
+          language_evidence: { type: 'string' },
         },
-        required: ['title', 'url'],
+        required: ['title', 'url', 'event_language', 'english_eligible', 'language_evidence'],
       },
     },
   },
@@ -107,6 +110,9 @@ interface RawEvent {
   category?: string;
   price?: string;
   attendees?: number;
+  event_language?: string;
+  english_eligible?: boolean;
+  language_evidence?: string;
 }
 
 class Denied extends Error {
@@ -148,8 +154,15 @@ async function scrapeListing(url: string): Promise<RawEvent[]> {
         type: 'json',
         schema: EVENT_SCHEMA,
         prompt:
-          `Today is ${today}. Extract every upcoming event listed on this page that happens in or near Porto, Portugal. ` +
-          'For each event give: title, absolute url, date_text exactly as displayed on the card, ' +
+          `Today is ${today}. Extract every upcoming event listed on this page that happens in or near Porto, Portugal, including events that are not in English. ` +
+          'For each event determine the language in which attendees will participate from explicit listing evidence. ' +
+          'Set english_eligible=true only when the listing explicitly says the event is in English, supports English or is multilingual with English, ' +
+          'or when no event language is stated and both the source title and description are already written in English. ' +
+          'Set english_eligible=false for Portuguese-only or other non-English-only events. If the language is unstated and the source copy is not English, set it false. ' +
+          'Return event_language and a short language_evidence quote or explanation. Never infer spoken language from the location, organizer or audience. ' +
+          'For eligible events, preserve existing English title and description verbatim. Only when explicit evidence confirms the event supports English, ' +
+          'translate non-English title or description into natural English without summarizing, adding facts or changing proper names. ' +
+          'For each event also give: title, absolute url, date_text exactly as displayed on the card, ' +
           'iso_date (YYYY-MM-DD resolved from date_text relative to today — never guess a past year), ' +
           'time (HH:MM 24-hour), venue, address, image_url, organizer, category, price, attendees count, ' +
           'and a one or two sentence description. Skip navigation links, adverts and anything that is not an event.',
@@ -508,9 +521,11 @@ Deno.serve(async (req) => {
   // Optional narrowing so a run can focus on one source (keeps each run inside
   // the edge runtime's request budget).
   let requested: string[] = [];
+  let refreshExisting = false;
   try {
     const body = await req.json();
     if (Array.isArray(body?.sources)) requested = body.sources.map((s: unknown) => String(s));
+    refreshExisting = body?.refresh_existing === true;
   } catch {
     // no body — full run
   }
@@ -553,6 +568,7 @@ Deno.serve(async (req) => {
   const counts: Record<string, number> = {};
   const errors: string[] = [];
   let upserted = 0;
+  let excluded = 0;
   let pausedReason: string | null = null;
 
   for (const source of sourceIds) {
@@ -571,12 +587,23 @@ Deno.serve(async (req) => {
           if (Date.now() > DEADLINE) break;
           const id = sourceEventId(source, raw);
           // Already stored and still upcoming: keep it and move on.
-          if (id && known.has(`${source}:${id}`)) continue;
+          if (!refreshExisting && id && known.has(`${source}:${id}`)) continue;
+          if (!id) continue;
+          if (raw.english_eligible !== true) {
+            const { error } = await supabase
+              .from('events')
+              .delete()
+              .eq('source', source)
+              .eq('source_event_id', id);
+            if (error) errors.push(`${source}: could not exclude ${id}: ${error.message}`);
+            else excluded += 1;
+            continue;
+          }
           const listed = parseStart(raw);
           const verified = raw.url ? await verifiedStart(raw.url) : null;
           const confirmed = verified ? withListedClock(verified, raw) : null;
           const starts = confirmed ?? listed;
-          if (!id || !raw.title || !starts) continue;
+          if (!raw.title || !starts) continue;
 
           const { recurrence, series_key } = recurrenceOf(raw);
           const row = {
@@ -662,7 +689,7 @@ Deno.serve(async (req) => {
     .eq('id', run.id);
 
   return new Response(
-    JSON.stringify({ ok: !pausedReason, counts, upserted, classified, paused: pausedReason, errors }),
+    JSON.stringify({ ok: !pausedReason, counts, upserted, excluded, classified, paused: pausedReason, errors }),
     { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
   );
 });
