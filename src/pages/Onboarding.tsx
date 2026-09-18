@@ -1,34 +1,74 @@
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Camera, Check, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Camera, Sparkles } from 'lucide-react';
-import { ONBOARDING_INTERESTS, saveUserProfile, clearUserProfile, UserProfile, calculateAge } from '@/lib/userProfile';
+import {
+  INTEREST_GROUPS,
+  ONBOARDING_INTERESTS,
+  SOCIAL_STYLE_DETAILS,
+  SocialPreferences,
+  UserProfile,
+  calculateAge,
+  clearUserProfile,
+  determineSocialStyle,
+  saveUserProfile,
+} from '@/lib/userProfile';
 import { useToast } from '@/hooks/use-toast';
 import { TypeaheadSelect } from '@/components/TypeaheadSelect';
 import { CITIES, CITY_NEIGHBORHOODS, NATIONALITIES } from '@/lib/onboardingData';
+import { cn } from '@/lib/utils';
 
 const fileToDataUrl = (file: File): Promise<string> =>
-  new Promise((res, rej) => {
-    const r = new FileReader();
-    r.onload = () => res(String(r.result));
-r.onerror = rej;
-    r.readAsDataURL(file);
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
   });
 
-// Latest birthdate a user may select — anything after this means they are under 18.
 const maxDob = (() => {
-  const d = new Date();
-  d.setFullYear(d.getFullYear() - 18);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const date = new Date();
+  date.setFullYear(date.getFullYear() - 18);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 })();
+
+const QUESTIONS = [
+  {
+    key: 'planning' as const,
+    prompt: 'How does your perfect weekend start?',
+    options: [
+      { value: 'spontaneous', label: 'Spontaneous & unplanned', detail: 'I decide when the mood strikes' },
+      { value: 'planned', label: 'A solid plan in place', detail: 'I like knowing what is ahead' },
+    ],
+  },
+  {
+    key: 'groupSetting' as const,
+    prompt: "What's the ideal group size for a night out?",
+    options: [
+      { value: 'intimate', label: 'Intimate & cosy', detail: 'Around 3–5 people' },
+      { value: 'lively', label: 'Lively & bustling', detail: 'Around 10+ people' },
+    ],
+  },
+  {
+    key: 'connectionGoal' as const,
+    prompt: 'Walking into a room, you look for…',
+    options: [
+      { value: 'familiar', label: 'Familiar faces', detail: 'People I can catch up with' },
+      { value: 'new-people', label: 'New people', detail: 'Someone new to introduce myself to' },
+    ],
+  },
+] as const;
 
 const Onboarding = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
-  const [photo, setPhoto] = useState<string | undefined>();
+  const [step, setStep] = useState(0);
+  const [answers, setAnswers] = useState<Partial<SocialPreferences>>({});
+  const [interests, setInterests] = useState<string[]>([]);
+  const [photo, setPhoto] = useState<string>();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -37,38 +77,61 @@ const Onboarding = () => {
   const [location, setLocation] = useState('');
   const [neighborhood, setNeighborhood] = useState('');
   const [nationality, setNationality] = useState('');
-  const [interests, setInterests] = useState<string[]>([]);
 
-  const toggleInterest = (id: string) =>
-    setInterests(prev => (prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]));
+  const completePreferences = answers.planning && answers.groupSetting && answers.connectionGoal
+    ? answers as SocialPreferences
+    : undefined;
+  const socialStyle = completePreferences ? determineSocialStyle(completePreferences) : undefined;
+  const styleDetails = socialStyle ? SOCIAL_STYLE_DETAILS[socialStyle] : undefined;
+  const currentQuestion = step < QUESTIONS.length ? QUESTIONS[step] : undefined;
+  const progress = Math.round(((step + 1) / 6) * 100);
 
-  const handlePhoto = async (f?: File) => {
-    if (!f) return;
-    if (f.size > 4 * 1024 * 1024) {
+  const interestsById = useMemo(
+    () => new Map(ONBOARDING_INTERESTS.map(interest => [interest.id, interest])),
+    [],
+  );
+
+  const leaveOnboarding = () => {
+    clearUserProfile();
+    navigate('/', { replace: true });
+  };
+
+  const toggleInterest = (id: string) => {
+    setInterests(previous => {
+      if (previous.includes(id)) return previous.filter(value => value !== id);
+      if (previous.length >= 5) {
+        toast({ title: 'Choose up to five', description: 'Remove one interest before adding another.' });
+        return previous;
+      }
+      return [...previous, id];
+    });
+  };
+
+  const handlePhoto = async (file?: File) => {
+    if (!file) return;
+    if (file.size > 4 * 1024 * 1024) {
       toast({ title: 'Photo too large', description: 'Pick an image under 4MB.', variant: 'destructive' });
       return;
     }
-    setPhoto(await fileToDataUrl(f));
+    setPhoto(await fileToDataUrl(file));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (
-      !photo ||
-      !firstName ||
-      !lastName ||
-      !email ||
-      !password ||
-      !dob ||
-      !location ||
-      !neighborhood ||
-      !nationality ||
-      interests.length === 0
-    ) {
-      toast({ title: 'A few more details', description: 'All fields are required, including at least one interest.' });
+  const next = () => {
+    if (currentQuestion && !answers[currentQuestion.key]) return;
+    if (step === 4 && interests.length < 3) {
+      toast({ title: 'Choose at least three', description: 'Three to five interests help us make useful recommendations.' });
       return;
     }
-if (password.length < 8) {
+    setStep(previous => Math.min(previous + 1, 5));
+  };
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!completePreferences || !socialStyle || !photo || !firstName || !lastName || !email || !password || !dob || !location || !neighborhood || !nationality) {
+      toast({ title: 'A few more details', description: 'Complete every required field to create your profile.' });
+      return;
+    }
+    if (password.length < 8) {
       toast({ title: 'Password too short', description: 'Use at least 8 characters.', variant: 'destructive' });
       return;
     }
@@ -76,6 +139,7 @@ if (password.length < 8) {
       toast({ title: 'You must be at least 18', description: 'SYNC is for adults aged 18 and over.', variant: 'destructive' });
       return;
     }
+
     const profile: UserProfile = {
       firstName: firstName.trim().slice(0, 60),
       lastName: lastName.trim().slice(0, 60),
@@ -86,217 +150,169 @@ if (password.length < 8) {
       nationality: nationality.trim().slice(0, 60),
       photo,
       interests,
+      socialPreferences: completePreferences,
+      socialStyle,
       onboardedAt: new Date().toISOString(),
     };
     saveUserProfile(profile);
-    toast({ title: `Welcome, ${profile.firstName}!`, description: 'Your feed is being personalized.' });
+    toast({ title: `Welcome, ${profile.firstName}!`, description: 'Your recommendations are ready.' });
     navigate('/', { replace: true });
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container max-w-2xl px-4 md:px-6 py-10">
-        <div className="flex items-center justify-between mb-6">
-          <button
-            type="button"
-            onClick={() => { clearUserProfile(); navigate('/', { replace: true }); }}
-            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-            aria-label="Back to guest homepage"
-          >
-            <div className="h-9 w-9 rounded-lg gradient-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">S</span>
-            </div>
-            <span className="text-xl font-bold text-foreground">Sync</span>
-          </button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => { clearUserProfile(); navigate('/', { replace: true }); }}
-          >
-            ← Back to guest view
+    <main className="min-h-screen bg-background">
+      <div className="mx-auto w-full max-w-2xl px-4 py-6 sm:px-6 sm:py-10">
+        <header className="mb-8 flex items-center justify-between">
+          <Button type="button" variant="ghost" size="sm" onClick={leaveOnboarding} className="-ml-3">
+            <ArrowLeft aria-hidden="true" /> Guest view
           </Button>
+          <span className="text-sm font-semibold text-primary">SYNC</span>
+        </header>
+
+        <div className="mb-8" aria-label={`Onboarding progress: ${progress}%`}>
+          <div className="mb-2 flex items-center justify-between text-xs font-semibold text-muted-foreground">
+            <span>{step < 3 ? `Question ${step + 1} of 3` : step === 3 ? 'Your social style' : step === 4 ? 'Your interests' : 'Your profile'}</span>
+            <span>{progress}%</span>
+          </div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
+            <div className="h-full rounded-full bg-primary transition-[width] duration-300 motion-reduce:transition-none" style={{ width: `${progress}%` }} />
+          </div>
         </div>
 
-        <h1 className="text-3xl md:text-4xl font-display font-light text-foreground mb-2">
-          Let's set up your profile
-        </h1>
-        <p className="text-muted-foreground mb-8">
-          A few details so we can match you with events and people who fit.
-        </p>
+        <section className="min-h-[520px]" aria-live="polite">
+          {currentQuestion && (
+            <div className="animate-fade-in">
+              <div className="mb-10 text-center">
+                <p className="mb-2 text-sm font-semibold uppercase text-primary">Find your flow</p>
+                <h1 className="font-display text-3xl font-light text-foreground sm:text-4xl">{currentQuestion.prompt}</h1>
+                <p className="mt-3 text-sm text-muted-foreground">There is no wrong answer — choose what feels most natural.</p>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {currentQuestion.options.map(option => {
+                  const selected = answers[currentQuestion.key] === option.value;
+                  return (
+                    <Button
+                      key={option.value}
+                      type="button"
+                      variant="outline"
+                      onClick={() => setAnswers(previous => ({ ...previous, [currentQuestion.key]: option.value }))}
+                      className={cn(
+                        'h-auto min-h-24 whitespace-normal rounded-lg px-5 py-4 text-left justify-start border-2',
+                        selected ? 'border-primary bg-primary text-primary-foreground hover:bg-primary-hover' : 'border-event-border bg-card hover:border-primary hover:bg-card',
+                      )}
+                      aria-pressed={selected}
+                    >
+                      <span className="flex-1">
+                        <span className="block font-semibold">{option.label}</span>
+                        <span className={cn('mt-1 block text-xs', selected ? 'text-primary-foreground/80' : 'text-muted-foreground')}>{option.detail}</span>
+                      </span>
+                      {selected && <Check className="h-5 w-5" aria-hidden="true" />}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
-        <form onSubmit={handleSubmit} className="bg-card rounded-2xl shadow-card p-6 md:p-8 space-y-7">
-          {/* Photo */}
-          <div className="flex items-center gap-5">
-            <button
-              type="button"
-              onClick={() => fileRef.current?.click()}
-              className="relative h-24 w-24 rounded-full overflow-hidden bg-secondary border-2 border-dashed border-border flex items-center justify-center hover:border-primary transition-colors"
-              aria-label="Upload profile photo"
-            >
-              {photo ? (
-                <img src={photo} alt="Profile" className="h-full w-full object-cover" />
-              ) : (
-                <Camera className="h-7 w-7 text-muted-foreground" />
-              )}
-            </button>
-            <div>
-              <p className="font-semibold text-foreground">
-                Profile photo <span className="text-destructive">*</span>
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Upload a high-resolution photo of you. No avatars allowed.
-              </p>
-              <p className="text-xs text-muted-foreground">PNG or JPG, up to 4MB.</p>
-              <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => fileRef.current?.click()}>
-                {photo ? 'Change photo' : 'Upload photo'}
-              </Button>
-              <input
-                ref={fileRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={e => handlePhoto(e.target.files?.[0])}
-              />
+          {step === 3 && styleDetails && (
+            <div className="animate-fade-in text-center">
+              <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-secondary text-primary">
+                <Sparkles className="h-6 w-6" aria-hidden="true" />
+              </div>
+              <p className="mb-2 text-sm font-semibold uppercase text-primary">Your starting point</p>
+              <h1 className="font-display text-4xl font-light text-foreground">{styleDetails.name}</h1>
+              <p className="mx-auto mt-4 max-w-md text-base leading-relaxed text-muted-foreground">{styleDetails.description}</p>
+              <div className="mx-auto mt-8 max-w-md rounded-lg border border-event-border bg-event-card p-5 text-left">
+                <p className="font-semibold text-foreground">Not a permanent label</p>
+                <p className="mt-1 text-sm text-muted-foreground">Your recommendations will keep adapting as you attend, save, and revisit events.</p>
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Name */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="firstName">First name <span className="text-destructive">*</span></Label>
-              <Input id="firstName" value={firstName} onChange={e => setFirstName(e.target.value)} maxLength={60} required />
+          {step === 4 && (
+            <div className="animate-fade-in">
+              <div className="mb-7 text-center">
+                <p className="mb-2 text-sm font-semibold uppercase text-primary">Make it personal</p>
+                <h1 className="font-display text-3xl font-light text-foreground sm:text-4xl">Choose 3–5 interests</h1>
+                <p className="mt-3 text-sm text-muted-foreground">Your social style shapes the format. These shape what you will do.</p>
+              </div>
+              <div className="space-y-6">
+                {INTEREST_GROUPS.map(group => (
+                  <fieldset key={group.label}>
+                    <legend className="mb-2 text-xs font-semibold uppercase text-muted-foreground">{group.label}</legend>
+                    <div className="flex flex-wrap gap-2">
+                      {group.interestIds.map(id => {
+                        const interest = interestsById.get(id);
+                        if (!interest) return null;
+                        const selected = interests.includes(id);
+                        return (
+                          <Button
+                            key={id}
+                            type="button"
+                            variant={selected ? 'tagActive' : 'tag'}
+                            size="tag"
+                            onClick={() => toggleInterest(id)}
+                            disabled={!selected && interests.length >= 5}
+                            aria-pressed={selected}
+                          >
+                            <span aria-hidden="true">{interest.icon}</span>{interest.label}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  </fieldset>
+                ))}
+              </div>
+              <p className="mt-6 text-center text-sm font-medium text-primary">{interests.length} of 3–5 selected</p>
             </div>
-            <div>
-              <Label htmlFor="lastName">Last name <span className="text-destructive">*</span></Label>
-              <Input id="lastName" value={lastName} onChange={e => setLastName(e.target.value)} maxLength={60} required />
-            </div>
-          </div>
+          )}
 
-          {/* Email + password */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="email">Email address <span className="text-destructive">*</span></Label>
-              <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} maxLength={120} required />
-            </div>
-            <div>
-              <Label htmlFor="password">Password <span className="text-destructive">*</span></Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                minLength={8}
-                autoComplete="new-password"
-                required
-              />
-              <p className="text-xs text-muted-foreground mt-1">At least 8 characters.</p>
-            </div>
-          </div>
+          {step === 5 && (
+            <form id="profile-form" onSubmit={handleSubmit} className="animate-fade-in space-y-7">
+              <div className="text-center">
+                <p className="mb-2 text-sm font-semibold uppercase text-primary">Last step</p>
+                <h1 className="font-display text-3xl font-light text-foreground sm:text-4xl">Create your profile</h1>
+                <p className="mt-3 text-sm text-muted-foreground">Tell people who they will be meeting in Porto.</p>
+              </div>
 
-          {/* DOB */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-<div>
-              <Label htmlFor="dob">Date of birth <span className="text-destructive">*</span></Label>
-              <Input id="dob" type="date" value={dob} onChange={e => setDob(e.target.value)} max={maxDob} required />
-              <p className="text-xs text-muted-foreground mt-1">You must be 18 or older to join.</p>
-            </div>
-          </div>
-
-          {/* Location + neighborhood */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="location">Location (city) <span className="text-destructive">*</span></Label>
-<TypeaheadSelect
-                id="location"
-                value={location}
-                onChange={(v) => {
-                  setLocation(v);
-                  // Reset neighborhood when city changes to one with its own list
-                  if (CITY_NEIGHBORHOODS[v]) setNeighborhood('');
-                }}
-                showChevron
-                placeholder="Select a city"
-                options={CITIES.map(c => ({ value: c, label: c }))}
-                emptyText="No matching cities"
-              />
-            </div>
-            <div>
-              <Label htmlFor="neighborhood">Neighborhood <span className="text-destructive">*</span></Label>
-              {CITY_NEIGHBORHOODS[location] ? (
-                <TypeaheadSelect
-                  id="neighborhood"
-                  value={neighborhood}
-                  onChange={setNeighborhood}
-                  placeholder={`Pick a ${location} neighborhood`}
-                  options={CITY_NEIGHBORHOODS[location].map(n => ({ value: n, label: n }))}
-                  emptyText="No matching neighborhoods"
-                />
-              ) : (
-                <Input
-                  id="neighborhood"
-                  placeholder={location ? 'e.g. Cedofeita' : 'Pick a city first'}
-                  value={neighborhood}
-                  onChange={e => setNeighborhood(e.target.value)}
-                  maxLength={80}
-                  disabled={!location}
-                />
-              )}
-            </div>
-          </div>
-
-          {/* Nationality */}
-          <div>
-            <Label htmlFor="nationality">Nationality <span className="text-destructive">*</span></Label>
-            <TypeaheadSelect
-              id="nationality"
-              value={nationality}
-              onChange={setNationality}
-              placeholder="Type a nationality or country"
-              options={NATIONALITIES.map(n => ({
-                value: n.name,
-                label: n.name,
-                leading: n.flag,
-                sub: n.country,
-                searchText: `${n.country} ${n.code}`,
-              }))}
-              emptyText="No matching nationality"
-            />
-          </div>
-
-          {/* Interests */}
-          <div>
-            <div className="flex items-baseline gap-2 mb-3">
-              <Label className="text-sm font-semibold text-foreground">
-                Pick your interests <span className="text-destructive">*</span>
-              </Label>
-              <span className="text-xs text-muted-foreground">Pick at least one.</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {ONBOARDING_INTERESTS.map(i => (
-                <Button
-                  key={i.id}
-                  type="button"
-                  variant={interests.includes(i.id) ? 'tagActive' : 'tag'}
-                  size="tag"
-                  onClick={() => toggleInterest(i.id)}
-                >
-                  <span className="mr-1">{i.icon}</span>
-                  {i.label}
+              <div className="flex items-center gap-5 rounded-lg border border-border bg-card p-4">
+                <Button type="button" variant="outline" size="icon" onClick={() => fileRef.current?.click()} className="h-20 w-20 shrink-0 overflow-hidden border-dashed" aria-label="Upload profile photo">
+                  {photo ? <img src={photo} alt="Profile preview" className="h-full w-full object-cover" /> : <Camera className="h-6 w-6 text-muted-foreground" />}
                 </Button>
-              ))}
-            </div>
-          </div>
+                <div>
+                  <Label>Profile photo <span className="text-destructive">*</span></Label>
+                  <p className="mt-1 text-sm text-muted-foreground">Upload a high-resolution photo of you. No avatars allowed.</p>
+                  <Button type="button" variant="link" size="sm" className="h-auto px-0" onClick={() => fileRef.current?.click()}>{photo ? 'Change photo' : 'Upload photo'}</Button>
+                  <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={event => handlePhoto(event.target.files?.[0])} />
+                </div>
+              </div>
 
-          <div className="flex justify-end pt-2">
-            <Button type="submit" variant="hero" size="lg">
-              <Sparkles className="h-4 w-4 mr-2" />
-              Submit & enter Sync
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div><Label htmlFor="firstName">First name *</Label><Input id="firstName" value={firstName} onChange={event => setFirstName(event.target.value)} maxLength={60} required /></div>
+                <div><Label htmlFor="lastName">Last name *</Label><Input id="lastName" value={lastName} onChange={event => setLastName(event.target.value)} maxLength={60} required /></div>
+                <div><Label htmlFor="email">Email address *</Label><Input id="email" type="email" value={email} onChange={event => setEmail(event.target.value)} maxLength={120} required /></div>
+                <div><Label htmlFor="password">Password *</Label><Input id="password" type="password" value={password} onChange={event => setPassword(event.target.value)} minLength={8} autoComplete="new-password" required /><p className="mt-1 text-xs text-muted-foreground">At least 8 characters.</p></div>
+                <div><Label htmlFor="dob">Date of birth *</Label><Input id="dob" type="date" value={dob} onChange={event => setDob(event.target.value)} max={maxDob} required /><p className="mt-1 text-xs text-muted-foreground">You must be 18 or older.</p></div>
+                <div><Label htmlFor="nationality">Nationality *</Label><TypeaheadSelect id="nationality" value={nationality} onChange={setNationality} placeholder="Type a nationality" options={NATIONALITIES.map(item => ({ value: item.name, label: item.name, leading: item.flag, sub: item.country, searchText: `${item.country} ${item.code}` }))} emptyText="No matching nationality" /></div>
+                <div><Label htmlFor="location">Location *</Label><TypeaheadSelect id="location" value={location} onChange={value => { setLocation(value); setNeighborhood(''); }} showChevron placeholder="Select a city" options={CITIES.map(city => ({ value: city, label: city }))} emptyText="No matching cities" /></div>
+                <div><Label htmlFor="neighborhood">Neighbourhood *</Label>{CITY_NEIGHBORHOODS[location] ? <TypeaheadSelect id="neighborhood" value={neighborhood} onChange={setNeighborhood} placeholder="Select a neighbourhood" options={CITY_NEIGHBORHOODS[location].map(item => ({ value: item, label: item }))} emptyText="No matching neighbourhoods" /> : <Input id="neighborhood" value={neighborhood} onChange={event => setNeighborhood(event.target.value)} disabled={!location} required />}</div>
+              </div>
+            </form>
+          )}
+        </section>
+
+        <footer className="mt-8 flex items-center gap-3 border-t border-border pt-5">
+          {step > 0 && <Button type="button" variant="ghost" onClick={() => setStep(previous => previous - 1)}><ArrowLeft aria-hidden="true" /> Back</Button>}
+          {step < 5 ? (
+            <Button type="button" size="lg" onClick={next} disabled={Boolean(currentQuestion && !answers[currentQuestion.key])} className="ml-auto rounded-lg">
+              {step === 3 ? 'Choose interests' : step === 4 ? 'Add my details' : 'Continue'}
             </Button>
-          </div>
-        </form>
+          ) : (
+            <Button type="submit" form="profile-form" size="lg" className="ml-auto rounded-lg"><Sparkles aria-hidden="true" /> Finish onboarding</Button>
+          )}
+        </footer>
       </div>
-    </div>
+    </main>
   );
 };
 
