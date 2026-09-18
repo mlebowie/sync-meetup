@@ -40,3 +40,6 @@
 
 ## Onboarding socialiser profiles
 - [x] Compare socialiser archetypes with direct interest selection and recommend the strongest onboarding flow
+- [x] Add a three-question behavioral onboarding flow with a flexible social-style result
+- [x] Group interest choices by category and require 3–5 selections
+- [x] Use social style to rank matching event formats before showing the personalized feed

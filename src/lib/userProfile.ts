@@ -18,6 +18,53 @@ export const ONBOARDING_INTERESTS: { id: string; label: string; icon: string; ke
   { id: 'charity', label: 'Charity & non-profit', icon: '❤️', keywords: ['charity', 'volunteer', 'non-profit'] },
 ];
 
+export const INTEREST_GROUPS: { label: string; interestIds: string[] }[] = [
+  { label: 'Outdoors & movement', interestIds: ['sports', 'outdoors', 'health-wellness'] },
+  { label: 'Food & social', interestIds: ['social-networking', 'dining-cooking', 'popup-events'] },
+  { label: 'Arts & culture', interestIds: ['arts-theatre', 'music-live', 'cultural-exchange', 'games'] },
+  { label: 'Learning & professional', interestIds: ['tech-ai', 'professional', 'education', 'languages'] },
+  { label: 'Community & meaning', interestIds: ['charity', 'religion', 'spirituality'] },
+];
+
+export type SocialStyle =
+  | 'weekend-explorer'
+  | 'community-builder'
+  | 'selective-socialiser'
+  | 'new-in-town-nomad';
+
+export interface SocialPreferences {
+  planning: 'spontaneous' | 'planned';
+  groupSetting: 'intimate' | 'lively';
+  connectionGoal: 'familiar' | 'new-people';
+}
+
+export const SOCIAL_STYLE_DETAILS: Record<SocialStyle, { name: string; description: string }> = {
+  'weekend-explorer': {
+    name: 'The Weekend Explorer',
+    description: 'You like lively plans with room for spontaneity. We’ll prioritise energetic, easy-to-join events.',
+  },
+  'community-builder': {
+    name: 'The Community Builder',
+    description: 'You value familiar faces and plans worth returning to. We’ll prioritise recurring, social events.',
+  },
+  'selective-socialiser': {
+    name: 'The Selective Socialiser',
+    description: 'You prefer considered plans and smaller groups. We’ll prioritise relaxed events with space to connect.',
+  },
+  'new-in-town-nomad': {
+    name: 'The New-in-Town Nomad',
+    description: 'You are open to fresh faces and flexible plans. We’ll prioritise welcoming events built for meeting people.',
+  },
+};
+
+export const determineSocialStyle = (preferences: SocialPreferences): SocialStyle => {
+  if (preferences.planning === 'planned' && preferences.groupSetting === 'intimate') return 'selective-socialiser';
+  if (preferences.planning === 'planned' && preferences.connectionGoal === 'familiar') return 'community-builder';
+  if (preferences.planning === 'spontaneous' && preferences.connectionGoal === 'new-people') return 'new-in-town-nomad';
+  if (preferences.groupSetting === 'lively') return 'weekend-explorer';
+  return preferences.connectionGoal === 'familiar' ? 'community-builder' : 'new-in-town-nomad';
+};
+
 export interface UserProfile {
   firstName: string;
   lastName: string;
@@ -28,6 +75,8 @@ export interface UserProfile {
   nationality: string;
   photo?: string; // data URL
   interests: string[]; // ids from ONBOARDING_INTERESTS
+  socialPreferences?: SocialPreferences;
+  socialStyle?: SocialStyle;
   /** ISO timestamp of account creation — used to ignore seeded demo history. */
   onboardedAt?: string;
 }
@@ -74,6 +123,12 @@ export const DEFAULT_PROFILE: UserProfile = {
   nationality: 'South African',
   photo: '/__l5e/assets-v1/a4f70df6-c027-49e5-a43d-1b0852f12c3e/default-profile.jpg',
   interests: ['social-networking', 'dining-cooking', 'arts-theatre', 'tech-ai', 'music-live', 'education'],
+  socialPreferences: {
+    planning: 'planned',
+    groupSetting: 'lively',
+    connectionGoal: 'familiar',
+  },
+  socialStyle: 'community-builder',
 };
 
 /** True when an event's category/tags match any of the user's selected interests. */

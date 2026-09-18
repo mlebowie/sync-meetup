@@ -26,6 +26,21 @@ const WINDOWS: { value: TimeWindow; label: string; ms: number }[] = [
 // Re-anchor mock event dates so the "happening soon" demo is meaningful.
 const SOON_OFFSETS = [20, 90, 240, 600, 1200, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2100].map(m => m * 60 * 1000);
 
+const socialStyleScore = (event: Event, profile: UserProfile): number => {
+  switch (profile.socialStyle) {
+    case 'weekend-explorer':
+      return (event.intensity === 'energetic' ? 4 : 0) + (event.groupSize !== 'small' ? 2 : 0) + (event.recurrence === 'one-off' ? 1 : 0);
+    case 'community-builder':
+      return (event.recurrence && event.recurrence !== 'one-off' ? 4 : 0) + (event.intensity === 'social' ? 2 : 0);
+    case 'selective-socialiser':
+      return (event.groupSize === 'small' ? 4 : 0) + (event.intensity === 'chill' ? 2 : 0);
+    case 'new-in-town-nomad':
+      return (event.intensity === 'social' ? 3 : 0) + (event.groupSize === 'medium' ? 2 : 0) + (event.category.toLowerCase().includes('social') ? 2 : 0);
+    default:
+      return 0;
+  }
+};
+
 
 const PersonalizedFeed = ({ profile, onAttend, onParticipantClick, onOpenGroupChat }: Props) => {
   const { events: mockEvents } = useEvents();
@@ -39,14 +54,14 @@ const PersonalizedFeed = ({ profile, onAttend, onParticipantClick, onOpenGroupCh
       const blob = [e.category, ...e.tags].join(' ').toLowerCase();
       return keywords.some(k => blob.includes(k));
     });
-    const pool = matches;
+    const pool = [...matches].sort((a, b) => socialStyleScore(b, profile) - socialStyleScore(a, profile));
     const now = Date.now();
     return pool.slice(0, 13).map((e, i) => ({
       ...e,
       date: new Date(now + SOON_OFFSETS[i % SOON_OFFSETS.length]),
     }));
 
-  }, [profile.interests]);
+  }, [mockEvents, profile]);
 
   const locations = useMemo(
     () => Array.from(new Set(personalized.map(e => e.location.split(',').pop()?.trim() || e.location))),
