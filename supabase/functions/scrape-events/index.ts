@@ -188,21 +188,28 @@ async function scrapeListing(url: string): Promise<RawEvent[]> {
   return events.slice(0, MAX_EVENTS_PER_PAGE);
 }
 
-const PORTUGUESE_COPY = /\b(?:a|as|ao|aos|da|das|de|do|dos|e|em|esta|este|com|para|por|uma|um|não|que|seu|sua|evento|conferência|exposição|oficina|concerto|caminhada|crianças|português|portuguesa)\b|[ãõçáéíóúâêôà]/gi;
+// Only tokens that do not exist as ordinary English words. Words shared with
+// English ("a", "e", "as", "do", "de", "em", "no", "os") are deliberately
+// excluded so English listings are never mistaken for Portuguese.
+const PORTUGUESE_COPY =
+  /\b(?:não|são|também|você|nós|uma|umas|duas|das|dos|pelo|pela|isso|este|esta|estes|estas|aquele|aquela|sobre|entre|até|desde|onde|quando|porque|muito|mais|melhor|nosso|nossa|seu|sua|evento|eventos|inscrição|inscrições|gratuito|entrada|bilhete|bilhetes|horário|sábado|domingo|segunda|terça|quarta|quinta|sexta|janeiro|fevereiro|março|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro|conferência|exposição|oficina|palestra|encontro|caminhada|crianças|português|portuguesa|cidade|rua|praça|igreja|museu)\b|[ãõçáéíóúâêôà]/gi;
 const EXPLICIT_ENGLISH = /\b(?:in english|english[- ]speaking|language\s*:\s*english|event language\s*:\s*english|english (?:is )?(?:supported|available)|bilingual|multilingual)\b/i;
 
-function isLikelyEnglish(text: string | undefined): boolean {
+/** Portuguese unless clearly signalled: requires several distinctive markers. */
+function looksPortuguese(text: string | undefined): boolean {
   const value = text?.trim();
   if (!value) return false;
   const matches = value.match(PORTUGUESE_COPY)?.length ?? 0;
+  if (matches === 0) return false;
   const words = value.split(/\s+/).length;
-  return matches < 2 && matches / Math.max(words, 1) < 0.12;
+  return matches >= 3 || matches / Math.max(words, 1) >= 0.15;
 }
 
 function isEnglishEligible(raw: RawEvent): boolean {
   if (raw.english_eligible !== true) return false;
   if (EXPLICIT_ENGLISH.test(`${raw.event_language ?? ''} ${raw.language_evidence ?? ''}`)) return true;
-  return isLikelyEnglish(raw.source_title) && isLikelyEnglish(raw.source_description);
+  // Keep unless the source copy itself is clearly Portuguese.
+  return !looksPortuguese(raw.source_title) && !looksPortuguese(raw.source_description);
 }
 
 /**
