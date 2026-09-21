@@ -70,7 +70,7 @@ export function rowToEvent(row: EventRow): Event {
   const h = hash(row.id);
   const attendees = row.attendee_count ?? 6 + (h % 22);
   const capacity = Math.max(attendees + 1, row.capacity ?? attendees + 4 + (h % 14));
-  const source = (['meetup', 'eventbrite', 'luma', 'agenda-porto'] as const).includes(
+  const source = (['meetup', 'eventbrite', 'luma', 'agenda-porto', 'porto-coffee-week'] as const).includes(
     row.source as 'meetup',
   )
     ? (row.source as Event['source'])

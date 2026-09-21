@@ -1,0 +1,2 @@
+ALTER TABLE public.events DROP CONSTRAINT IF EXISTS events_source_check;
+ALTER TABLE public.events ADD CONSTRAINT events_source_check CHECK (source IN ('eventbrite','meetup','luma','agenda-porto','porto-coffee-week'));

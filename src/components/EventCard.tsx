@@ -38,6 +38,7 @@ const sourceColors: Record<string, string> = {
   eventbrite: 'bg-orange-700 text-orange-50',
   luma: 'bg-purple-700 text-purple-50',
   'agenda-porto': 'bg-teal-800 text-teal-50',
+  'porto-coffee-week': 'bg-amber-900 text-amber-50',
 };
 
 /** Display names for each listing site. */
@@ -46,6 +47,7 @@ export const sourceLabels: Record<string, string> = {
   eventbrite: 'Eventbrite',
   luma: 'Lu.ma',
   'agenda-porto': 'Agenda Porto',
+  'porto-coffee-week': 'Porto Coffee Week',
 };
 
 const activityColors = {

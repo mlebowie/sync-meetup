@@ -81,7 +81,7 @@ export interface Event {
   time: string;
   location: string;
   imageUrl: string;
-  source: 'meetup' | 'eventbrite' | 'luma' | 'agenda-porto';
+  source: 'meetup' | 'eventbrite' | 'luma' | 'agenda-porto' | 'porto-coffee-week';
   activityLevel: ActivityLevel;
   intensity: Intensity;
   groupSize: GroupSize;

@@ -13,16 +13,17 @@ const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const MAX_EVENTS_PER_PAGE = 30;
 const MAX_PAGES_PER_SOURCE = 2;
 /** Per-source page budget; Lu.ma needs more pages because each calendar is small. */
-const MAX_PAGES: Record<'eventbrite' | 'meetup' | 'luma' | 'agenda-porto', number> = {
+const MAX_PAGES: Record<'eventbrite' | 'meetup' | 'luma' | 'agenda-porto' | 'porto-coffee-week', number> = {
   eventbrite: 5,
   meetup: 6,
   luma: 8,
   'agenda-porto': 9,
+  'porto-coffee-week': 3,
 };
 const MAX_CLASSIFY_PER_RUN = 40;
 const LEASE_MINUTES = 10;
 
-type SourceId = 'eventbrite' | 'meetup' | 'luma' | 'agenda-porto';
+type SourceId = 'eventbrite' | 'meetup' | 'luma' | 'agenda-porto' | 'porto-coffee-week';
 
 const SOURCE_PAGES: Record<SourceId, string[]> = {
   eventbrite: [
@@ -61,6 +62,12 @@ const SOURCE_PAGES: Record<SourceId, string[]> = {
     'https://www.agenda-porto.pt/en/seccao/talks/',
     'https://www.agenda-porto.pt/en/seccao/film/',
     'https://www.agenda-porto.pt/en/seccao/families/',
+  ],
+  // Porto Coffee Week's English festival agenda (workshops, championships, market).
+  'porto-coffee-week': [
+    'https://portocoffeeweek.pt/en/coffee-events-porto/',
+    'https://portocoffeeweek.pt/en/coffee-market/',
+    'https://3cket.com/en/event/porto-coffee-week',
   ],
 };
 
@@ -567,7 +574,7 @@ Deno.serve(async (req) => {
   } catch {
     // no body — full run
   }
-  const allSources: SourceId[] = ['eventbrite', 'meetup', 'luma', 'agenda-porto'];
+  const allSources: SourceId[] = ['eventbrite', 'meetup', 'luma', 'agenda-porto', 'porto-coffee-week'];
   const sourceIds: SourceId[] = paused
     ? ['eventbrite']
     : requested.length
