@@ -628,13 +628,15 @@ Deno.serve(async (req) => {
           if (!refreshExisting && id && known.has(`${source}:${id}`)) continue;
           if (!id) continue;
           if (!isEnglishEligible(raw)) {
-            const { error } = await supabase
-              .from('events')
-              .delete()
-              .eq('source', source)
-              .eq('source_event_id', id);
-            if (error) errors.push(`${source}: could not exclude ${id}: ${error.message}`);
-            else excluded += 1;
+            if (known.has(`${source}:${id}`)) {
+              const { error } = await supabase
+                .from('events')
+                .delete()
+                .eq('source', source)
+                .eq('source_event_id', id);
+              if (error) errors.push(`${source}: could not exclude ${id}: ${error.message}`);
+              else excluded += 1;
+            }
             continue;
           }
           const listed = parseStart(raw);
