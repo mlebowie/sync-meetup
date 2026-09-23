@@ -122,6 +122,7 @@ export async function fetchLiveEvents(): Promise<{ events: Event[]; updatedAt: D
   const { data, error } = await supabase
     .from('events')
     .select('*')
+    .eq('review_status', 'approved')
     .gte('starts_at', new Date(Date.now() - 2 * 3600_000).toISOString())
     .order('starts_at', { ascending: true })
     .limit(200);

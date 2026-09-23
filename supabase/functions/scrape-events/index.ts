@@ -588,10 +588,22 @@ Deno.serve(async (req) => {
   // the slow part of a run.
   const { data: knownRows } = await supabase
     .from('events')
-    .select('source,source_event_id')
+    .select('source,source_event_id,review_status')
     .gte('starts_at', new Date().toISOString());
   const known = new Set(
     (knownRows ?? []).map((r: Record<string, unknown>) => `${r.source}:${r.source_event_id}`),
+  );
+  // Curation decisions must survive every later run: rejected listings are never
+  // re-inserted, and reviewed listings keep the wording the curator approved.
+  const rejected = new Set(
+    (knownRows ?? [])
+      .filter((r: Record<string, unknown>) => r.review_status === 'rejected')
+      .map((r: Record<string, unknown>) => `${r.source}:${r.source_event_id}`),
+  );
+  const reviewed = new Set(
+    (knownRows ?? [])
+      .filter((r: Record<string, unknown>) => r.review_status !== 'pending')
+      .map((r: Record<string, unknown>) => `${r.source}:${r.source_event_id}`),
   );
 
   const { data: run, error: runError } = await supabase
@@ -644,6 +656,17 @@ Deno.serve(async (req) => {
               if (error) errors.push(`${source}: could not exclude ${id}: ${error.message}`);
               else excluded += 1;
             }
+            continue;
+          }
+          // A curator already decided on this listing: never resurrect a rejected
+          // one, and never overwrite an approved one's edited wording.
+          if (rejected.has(`${source}:${id}`)) continue;
+          if (reviewed.has(`${source}:${id}`)) {
+            await supabase
+              .from('events')
+              .update({ last_seen_at: new Date().toISOString() })
+              .eq('source', source)
+              .eq('source_event_id', id);
             continue;
           }
           const listed = parseStart(raw);
