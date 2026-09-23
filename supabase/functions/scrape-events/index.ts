@@ -658,6 +658,17 @@ Deno.serve(async (req) => {
             }
             continue;
           }
+          // A curator already decided on this listing: never resurrect a rejected
+          // one, and never overwrite an approved one's edited wording.
+          if (rejected.has(`${source}:${id}`)) continue;
+          if (reviewed.has(`${source}:${id}`)) {
+            await supabase
+              .from('events')
+              .update({ last_seen_at: new Date().toISOString() })
+              .eq('source', source)
+              .eq('source_event_id', id);
+            continue;
+          }
           const listed = parseStart(raw);
           const verified = raw.url ? await verifiedStart(raw.url) : null;
           const confirmed = verified ? withListedClock(verified, raw) : null;
