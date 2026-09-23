@@ -31,3 +31,7 @@ Sending email from your own address needs a domain you own connected to the app.
 - `src/lib/liveEvents.ts` filters `review_status = 'approved'`.
 - New `src/pages/CuratePage.tsx` + route, admin-guarded; counts via a lightweight pending-count query used for the nav badge.
 - New edge function `send-curation-digest`, scheduled with pg_cron at 05:35 UTC, queries pending events and enqueues the digest email through Lovable's email queue.
+
+## Also: the Events / Interests / Community links in the top bar
+
+Yes — hide them. None of the three currently lead anywhere on the homepage: "Events" and "Community" have no matching section at all, and "Interests" points to a section that isn't shown on this page, so all three do nothing when clicked. I'll remove them from the top bar as part of this change and leave room to bring back real links (including "Curate events" for you) once there's more to jump to.
