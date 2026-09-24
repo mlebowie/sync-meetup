@@ -32,17 +32,22 @@ const Header = ({ onOpenMessages }: HeaderProps) => {
 
         </div>
 
-        <nav className="hidden md:flex items-center gap-6">
-          <a href="#events" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            Events
-          </a>
-          <a href="#interests" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            Interests
-          </a>
-          <a href="#community" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            Community
-          </a>
-        </nav>
+        {isAdmin && (
+          <nav className="hidden md:flex items-center gap-6">
+            <Link
+              to="/curate"
+              className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Curate events
+              {pendingCount > 0 && (
+                <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground">
+                  {pendingCount}
+                </span>
+              )}
+            </Link>
+          </nav>
+        )}
+
 
 <div className="flex items-center gap-2">
           <HeaderSearch />
