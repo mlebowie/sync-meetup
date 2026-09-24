@@ -38,6 +38,15 @@
 - [x] Exclude Portuguese-only and ambiguous non-English events
 - [ ] Refresh and verify existing upcoming events
 
+## Daily event curation
+- [x] Review state on collected events (waiting / published / hidden); feed shows published only
+- [x] Admin role + `has_role` check; `/curate` review page with edit, publish, hide, publish-all, source filter
+- [x] Collector never resurrects hidden events and keeps approved wording
+- [x] In-app badge with the number waiting (admins only)
+- [x] Removed the dead Events / Interests / Community links from the top bar
+- [ ] Daily reminder email — blocked: needs a sender domain connected to the app
+- [ ] Grant admin role — blocked: needs Emilie to sign in once so the account exists
+
 ## Onboarding socialiser profiles
 - [x] Compare socialiser archetypes with direct interest selection and recommend the strongest onboarding flow
 - [x] Add a three-question behavioral onboarding flow with a flexible social-style result
