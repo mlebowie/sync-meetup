@@ -45,7 +45,7 @@
 - [x] In-app badge with the number waiting (admins only)
 - [x] Removed the dead Events / Interests / Community links from the top bar
 - [ ] Daily reminder email — blocked: needs a sender domain connected to the app
-- [ ] Grant admin role — blocked: needs Emilie to sign in once so the account exists
+- [x] Grant admin role — Emilie (emiliexw@gmail.com) granted admin in user_roles
 
 ## Onboarding socialiser profiles
 - [x] Compare socialiser archetypes with direct interest selection and recommend the strongest onboarding flow
