@@ -7,6 +7,8 @@ import HeaderSearch from './HeaderSearch';
 import { getUserProfile } from '@/lib/userProfile';
 import { useAttending } from '@/context/AttendingContext';
 import syncWordmark from '@/assets/sync-wordmark-v2.png.asset.json';
+import { useAdmin } from '@/hooks/useAdmin';
+import { supabase } from '@/integrations/supabase/client';
 
 
 interface HeaderProps {
@@ -17,9 +19,27 @@ const Header = ({ onOpenMessages }: HeaderProps) => {
   const [notifOpen, setNotifOpen] = useState(false);
   const [isGuest, setIsGuest] = useState(() => !getUserProfile());
   const { attending } = useAttending();
+  const { isAdmin } = useAdmin();
+  const [pendingCount, setPendingCount] = useState(0);
   useEffect(() => {
     setIsGuest(!getUserProfile());
   }, []);
+
+  // Curators see how many collected events are still waiting for review.
+  useEffect(() => {
+    if (!isAdmin) return;
+    let cancelled = false;
+    supabase
+      .from('events')
+      .select('id', { count: 'exact', head: true })
+      .eq('review_status', 'pending')
+      .then(({ count }) => {
+        if (!cancelled) setPendingCount(count ?? 0);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isAdmin]);
   // Notifications only start once a registered user has signed up for their first event
   const showNotifications = !isGuest && attending.size > 0;
   return (
