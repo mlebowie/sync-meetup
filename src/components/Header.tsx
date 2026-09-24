@@ -7,6 +7,8 @@ import HeaderSearch from './HeaderSearch';
 import { getUserProfile } from '@/lib/userProfile';
 import { useAttending } from '@/context/AttendingContext';
 import syncWordmark from '@/assets/sync-wordmark-v2.png.asset.json';
+import { useAdmin } from '@/hooks/useAdmin';
+import { supabase } from '@/integrations/supabase/client';
 
 
 interface HeaderProps {
@@ -17,9 +19,27 @@ const Header = ({ onOpenMessages }: HeaderProps) => {
   const [notifOpen, setNotifOpen] = useState(false);
   const [isGuest, setIsGuest] = useState(() => !getUserProfile());
   const { attending } = useAttending();
+  const { isAdmin } = useAdmin();
+  const [pendingCount, setPendingCount] = useState(0);
   useEffect(() => {
     setIsGuest(!getUserProfile());
   }, []);
+
+  // Curators see how many collected events are still waiting for review.
+  useEffect(() => {
+    if (!isAdmin) return;
+    let cancelled = false;
+    supabase
+      .from('events')
+      .select('id', { count: 'exact', head: true })
+      .eq('review_status', 'pending')
+      .then(({ count }) => {
+        if (!cancelled) setPendingCount(count ?? 0);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isAdmin]);
   // Notifications only start once a registered user has signed up for their first event
   const showNotifications = !isGuest && attending.size > 0;
   return (
@@ -32,17 +52,22 @@ const Header = ({ onOpenMessages }: HeaderProps) => {
 
         </div>
 
-        <nav className="hidden md:flex items-center gap-6">
-          <a href="#events" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            Events
-          </a>
-          <a href="#interests" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            Interests
-          </a>
-          <a href="#community" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            Community
-          </a>
-        </nav>
+        {isAdmin && (
+          <nav className="hidden md:flex items-center gap-6">
+            <Link
+              to="/curate"
+              className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Curate events
+              {pendingCount > 0 && (
+                <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground">
+                  {pendingCount}
+                </span>
+              )}
+            </Link>
+          </nav>
+        )}
+
 
 <div className="flex items-center gap-2">
           <HeaderSearch />
