@@ -1,6 +1,6 @@
-# Sync: Your Expat Community
+# Sync: Find Your People
 
-I want to create a meetup app called "Sync." It will allow expats to find events exported from other event platforms such as Meetup.com, Eventbrite, and Lu.ma and filter them based on activity level, intensity, and size of group of participants. The user can choose what they are interested in to curate their personal preferences of events to attend, and can choose 'attend' and thus meet the other participants digitally before the physical meetup.
+I want to create a meetup app called "Sync." It will allow expats to find events exported from other event platforms such as Meetup.com, Eventbrite, and Lu.ma and filter them based on activity level, intensity, and size of group of participants. The user can choose what they are interested in to curate their personal preferences of events to attend, and can choose 'attend' and thus meet the other participants digitally before the physical meetup. SYNC is a mobile web app designed to connect users to each other post-event so there are no missed connections. Friendships can be formed organically based on previous event activity and trust is built for both the attendees and the event organizers.
 
 This project was built with [Lovable](https://lovable.dev).
 
