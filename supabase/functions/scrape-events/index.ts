@@ -661,19 +661,41 @@ Deno.serve(async (req) => {
           // A curator already decided on this listing: never resurrect a rejected
           // one, and never overwrite an approved one's edited wording.
           if (rejected.has(`${source}:${id}`)) continue;
-          if (reviewed.has(`${source}:${id}`)) {
-            await supabase
-              .from('events')
-              .update({ last_seen_at: new Date().toISOString() })
-              .eq('source', source)
-              .eq('source_event_id', id);
-            continue;
-          }
           const listed = parseStart(raw);
           const verified = raw.url ? await verifiedStart(raw.url) : null;
           const confirmed = verified ? withListedClock(verified, raw) : null;
           const starts = confirmed ?? listed;
           if (!raw.title || !starts) continue;
+          // A curator already decided on this listing: never overwrite the wording
+          // they approved, but do keep schedule and practical details current so a
+          // moved or repriced event does not stay stale in the feed.
+          if (reviewed.has(`${source}:${id}`)) {
+            const { error } = await supabase
+              .from('events')
+              .update({
+                starts_at: starts.toISOString(),
+                ends_at: null,
+                time_label: confirmed
+                  ? portoTimeLabel(confirmed)
+                  : raw.time?.trim()?.slice(0, 20) || null,
+                venue_name: raw.venue?.trim()?.slice(0, 200) || null,
+                location: portoLocation(raw),
+                image_url: raw.image_url?.startsWith('http') ? raw.image_url : null,
+                organizer_name: raw.organizer?.trim()?.slice(0, 200) || null,
+                price_label: raw.price?.trim()?.slice(0, 60) || agendaPrice(raw, source),
+                attendee_count:
+                  typeof raw.attendees === 'number' && raw.attendees > 0 ? Math.round(raw.attendees) : null,
+                capacity:
+                  typeof raw.attendees === 'number' && raw.attendees > 0
+                    ? Math.max(12, Math.round(raw.attendees * 1.4))
+                    : null,
+                last_seen_at: new Date().toISOString(),
+              })
+              .eq('source', source)
+              .eq('source_event_id', id);
+            if (error) errors.push(`${source}: could not refresh ${id}: ${error.message}`);
+            continue;
+          }
 
           const { recurrence, series_key } = recurrenceOf(raw);
           const row = {
