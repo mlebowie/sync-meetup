@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import syncLogo from '@/assets/sync-logo.png.asset.json';
+import syncLogo from '@/assets/sync-logo.png';
 import { Calendar, MapPin, Clock, Bell, Mail, MessageSquare, X, Check, Eye, Send, CalendarPlus, Share2, Apple, MessageCircle, Link2, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { Event } from '@/types/event';
@@ -31,7 +31,7 @@ const ComingUpSection = ({ allEvents }: Props) => {
   return (
     <section className="mb-10">
       <div className="flex items-center gap-2 mb-4">
-        <img src={syncLogo.url} alt="Sync" className="h-5 w-5" />
+        <img src={syncLogo} alt="Sync" className="h-5 w-5" />
         <h2 className="text-xl font-bold">Coming Up</h2>
         {events.length > 0 && (
           <span className="text-sm text-muted-foreground">({events.length})</span>

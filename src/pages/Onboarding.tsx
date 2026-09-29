@@ -19,6 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { TypeaheadSelect } from '@/components/TypeaheadSelect';
 import { CITIES, CITY_NEIGHBORHOODS, NATIONALITIES } from '@/lib/onboardingData';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
 
 const fileToDataUrl = (file: File): Promise<string> =>
   new Promise((resolve, reject) => {
@@ -77,6 +78,7 @@ const Onboarding = () => {
   const [location, setLocation] = useState('');
   const [neighborhood, setNeighborhood] = useState('');
   const [nationality, setNationality] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   const completePreferences = answers.planning && answers.groupSetting && answers.connectionGoal
     ? answers as SocialPreferences
@@ -125,7 +127,7 @@ const Onboarding = () => {
     setStep(previous => Math.min(previous + 1, 5));
   };
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!completePreferences || !socialStyle || !photo || !firstName || !lastName || !email || !password || !dob || !location || !neighborhood || !nationality) {
       toast({ title: 'A few more details', description: 'Complete every required field to create your profile.' });
@@ -154,8 +156,29 @@ const Onboarding = () => {
       socialStyle,
       onboardedAt: new Date().toISOString(),
     };
+
+    setSubmitting(true);
+    const { data, error } = await supabase.auth.signUp({
+      email: profile.email,
+      password,
+      options: {
+        emailRedirectTo: window.location.origin,
+        data: { first_name: profile.firstName, last_name: profile.lastName },
+      },
+    });
+    setSubmitting(false);
+    if (error) {
+      toast({ title: 'Could not create your account', description: error.message, variant: 'destructive' });
+      return;
+    }
+
     saveUserProfile(profile);
-    toast({ title: `Welcome, ${profile.firstName}!`, description: 'Your recommendations are ready.' });
+    if (!data.session) {
+      // Email confirmation is on: the account exists but needs the link in the inbox.
+      toast({ title: 'Check your email', description: `We sent a confirmation link to ${profile.email}.` });
+    } else {
+      toast({ title: `Welcome, ${profile.firstName}!`, description: 'Your recommendations are ready.' });
+    }
     navigate('/', { replace: true });
   };
 
@@ -308,7 +331,7 @@ const Onboarding = () => {
               {step === 3 ? 'Choose interests' : step === 4 ? 'Add my details' : 'Continue'}
             </Button>
           ) : (
-            <Button type="submit" form="profile-form" size="lg" className="ml-auto rounded-lg"><Sparkles aria-hidden="true" /> Finish onboarding</Button>
+            <Button type="submit" form="profile-form" size="lg" className="ml-auto rounded-lg" disabled={submitting}><Sparkles aria-hidden="true" /> Finish onboarding</Button>
           )}
         </footer>
       </div>

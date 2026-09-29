@@ -47,9 +47,16 @@ on conflict do nothing;
 ```
 
 ## 8. Event collector
-The collector uses Lovable's AI gateway for labelling/translation. Swap `AI_GATEWAY` in `supabase/functions/scrape-events/index.ts` for an OpenAI-compatible endpoint (e.g. `https://api.openai.com/v1/chat/completions`), rename the key to `OPENAI_API_KEY`, and set the model name accordingly. Then:
+The collector (`supabase/functions/scrape-events/index.ts`) calls Firecrawl directly for scraping and any
+OpenAI-compatible chat endpoint for labelling. It reads these secrets:
+
+- `FIRECRAWL_API_KEY`: your key from firecrawl.dev
+- `AI_API_KEY`: key for the AI service
+- `AI_API_URL` (optional): defaults to Google Gemini's OpenAI-compatible endpoint; e.g. `https://api.openai.com/v1/chat/completions` for OpenAI
+- `AI_MODEL` (optional): defaults to `gemini-2.5-flash`
+
 ```bash
-supabase secrets set FIRECRAWL_API_KEY=... OPENAI_API_KEY=...
+supabase secrets set FIRECRAWL_API_KEY=... AI_API_KEY=...
 supabase functions deploy scrape-events
 ```
 Daily scheduling stays off. To re-enable later, schedule it with pg_cron in the SQL editor.

@@ -19,7 +19,7 @@ import { useEvents } from '@/context/EventsContext';
 import { Event, Participant } from '@/types/event';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import syncWordmark from '@/assets/sync-wordmark-v2.png.asset.json';
+import syncWordmark from '@/assets/sync-wordmark-v2.png';
 import { MessageCircle, Sparkles } from 'lucide-react';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
 import { getUserProfile } from '@/lib/userProfile';
@@ -256,7 +256,7 @@ const Index = () => {
       <footer className="bg-secondary/50 py-8 mt-12">
         <div className="container px-4 md:px-6 text-center">
           <div className="flex items-center justify-center mb-4">
-            <img src={syncWordmark.url} alt="SYNC" className="h-8 w-auto" />
+            <img src={syncWordmark} alt="SYNC" className="h-8 w-auto" />
           </div>
           <p className="text-sm text-muted-foreground">
             Less searching. More belonging.

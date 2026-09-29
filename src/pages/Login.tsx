@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { getUserProfile, saveUserProfile, DEFAULT_PROFILE } from '@/lib/userProfile';
 import { LogIn } from 'lucide-react';
-import { lovable } from '@/integrations/lovable';
+import { supabase } from '@/integrations/supabase/client';
 
 type SocialProvider = 'google' | 'apple' | 'microsoft';
 
@@ -46,11 +46,19 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [socialBusy, setSocialBusy] = useState<SocialProvider | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
       toast({ title: 'Missing details', description: 'Email and password are required.' });
+      return;
+    }
+    setSubmitting(true);
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    setSubmitting(false);
+    if (error) {
+      toast({ title: 'Log in failed', description: error.message, variant: 'destructive' });
       return;
     }
     const existing = getUserProfile();
@@ -64,22 +72,14 @@ saveUserProfile(profile);
   const handleSocial = async (provider: SocialProvider) => {
     setSocialBusy(provider);
     try {
-      const result = await lovable.auth.signInWithOAuth(provider, {
-        redirect_uri: window.location.origin,
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: provider === 'microsoft' ? 'azure' : provider,
+        options: { redirectTo: window.location.origin },
       });
-      if (result.error) {
-        toast({ title: 'Sign-in failed', description: result.error.message });
-        return;
+      if (error) {
+        toast({ title: 'Sign-in failed', description: error.message });
       }
-      if (result.redirected) {
-        return; // Full-page redirect — the browser handles it
-      }
-      // Session is set — make sure a local profile exists so the feed works.
-      const existing = getUserProfile();
-if (!existing) saveUserProfile({ ...DEFAULT_PROFILE });
-      window.dispatchEvent(new Event('sync:profile-changed'));
-      toast({ title: `Welcome, ${getUserProfile()?.firstName ?? 'friend'}!`, description: 'Your feed is ready.' });
-      navigate('/', { replace: true });
+      // On success the browser redirects to the provider, then back to the app.
     } finally {
       setSocialBusy(null);
     }
@@ -151,7 +151,7 @@ if (!existing) saveUserProfile({ ...DEFAULT_PROFILE });
                 required
               />
             </div>
-            <Button type="submit" variant="hero" size="lg" className="w-full">
+            <Button type="submit" variant="hero" size="lg" className="w-full" disabled={submitting}>
               <LogIn className="h-4 w-4 mr-2" />
               Log in
             </Button>

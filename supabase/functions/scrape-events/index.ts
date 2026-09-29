@@ -1,11 +1,13 @@
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
-const GATEWAY = 'https://connector-gateway.lovable.dev/firecrawl/v2';
-const AI_GATEWAY = 'https://ai.gateway.lovable.dev/v1/chat/completions';
+const FIRECRAWL_API = 'https://api.firecrawl.dev/v2';
 
-const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 const FIRECRAWL_API_KEY = Deno.env.get('FIRECRAWL_API_KEY');
+/** Any OpenAI-compatible chat completions endpoint. Defaults to Google Gemini. */
+const AI_API_URL = Deno.env.get('AI_API_URL') ?? 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
+const AI_API_KEY = Deno.env.get('AI_API_KEY');
+const AI_MODEL = Deno.env.get('AI_MODEL') ?? 'gemini-2.5-flash';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
@@ -144,13 +146,12 @@ class Denied extends Error {
 function fcHeaders() {
   return {
     'Content-Type': 'application/json',
-    Authorization: `Bearer ${LOVABLE_API_KEY}`,
-    'X-Connection-Api-Key': `${FIRECRAWL_API_KEY}`,
+    Authorization: `Bearer ${FIRECRAWL_API_KEY}`,
   };
 }
 
 async function firecrawl(path: string, body: unknown) {
-  const res = await fetch(`${GATEWAY}${path}`, {
+  const res = await fetch(`${FIRECRAWL_API}${path}`, {
     method: 'POST',
     headers: fcHeaders(),
     body: JSON.stringify(body),
@@ -476,11 +477,11 @@ async function classifyPending(supabase: ReturnType<typeof createClient>) {
 
   if (!pending?.length) return 0;
 
-  const res = await fetch(AI_GATEWAY, {
+  const res = await fetch(AI_API_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${LOVABLE_API_KEY}` },
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${AI_API_KEY}` },
     body: JSON.stringify({
-      model: 'google/gemini-3.8-flash',
+      model: AI_MODEL,
       messages: [
         {
           role: 'system',
@@ -536,7 +537,7 @@ async function classifyPending(supabase: ReturnType<typeof createClient>) {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
-  if (!LOVABLE_API_KEY || !FIRECRAWL_API_KEY) {
+  if (!AI_API_KEY || !FIRECRAWL_API_KEY) {
     return new Response(JSON.stringify({ error: 'Scraper is not configured' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

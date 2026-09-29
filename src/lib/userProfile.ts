@@ -1,3 +1,5 @@
+import defaultProfilePhoto from '@/assets/default-profile.jpg';
+
 export const ONBOARDING_INTERESTS: { id: string; label: string; icon: string; keywords: string[] }[] = [
   { id: 'sports', label: 'Sports', icon: '⚽', keywords: ['running', 'football', 'padel', 'surf', 'climbing', 'sports'] },
   { id: 'social-networking', label: 'Social networking', icon: '🤝', keywords: ['social', 'brunch', 'walk', 'beer', 'networking'] },
@@ -121,7 +123,7 @@ export const DEFAULT_PROFILE: UserProfile = {
   location: 'Porto',
   neighborhood: 'Cedofeita',
   nationality: 'South African',
-  photo: '/__l5e/assets-v1/a4f70df6-c027-49e5-a43d-1b0852f12c3e/default-profile.jpg',
+  photo: defaultProfilePhoto,
   interests: ['social-networking', 'dining-cooking', 'arts-theatre', 'tech-ai', 'music-live', 'education'],
   socialPreferences: {
     planning: 'planned',

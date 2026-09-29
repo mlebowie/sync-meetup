@@ -52,3 +52,11 @@
 - [x] Add a three-question behavioral onboarding flow with a flexible social-style result
 - [x] Group interest choices by category and require 3–5 selections
 - [x] Use social style to rank matching event formats before showing the personalized feed
+
+## ⚠️ Before inviting real users: move user data from the device to Supabase
+Today only events live in Supabase. Profiles, attending, wishlist, ratings, event photos and connections are saved in each person's browser, so users can't see each other and lose everything if they switch device or clear the browser.
+- [ ] Profiles table in Supabase (name, photo, interests, social style) with privacy rules for who sees what (e.g. date of birth)
+- [ ] Attending list in Supabase, so attendees can see who else is going
+- [ ] Connections / follows in Supabase
+- [ ] Wishlist, ratings and event photos in Supabase
+- [ ] Replace the built-in sample people and group chats with real data
