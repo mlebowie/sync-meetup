@@ -545,6 +545,24 @@ Deno.serve(async (req) => {
   }
 
   const supabase = createClient(SUPABASE_URL, SERVICE_ROLE, { auth: { persistSession: false } });
+
+  // --- only admins (or the service role, e.g. a scheduled job) may run it ----
+  const token = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '');
+  let allowed = token !== '' && token === SERVICE_ROLE;
+  if (!allowed && token) {
+    const { data: userData } = await supabase.auth.getUser(token);
+    if (userData.user) {
+      const { data: isAdmin } = await supabase.rpc('has_role', { _user_id: userData.user.id, _role: 'admin' });
+      allowed = isAdmin === true;
+    }
+  }
+  if (!allowed) {
+    return new Response(JSON.stringify({ error: 'Admins only' }), {
+      status: 403,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
   const nowIso = new Date().toISOString();
 
   // --- single-flight lease + paused guard -----------------------------------
