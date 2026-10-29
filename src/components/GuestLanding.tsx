@@ -21,15 +21,29 @@ interface Props {
 const SOON_OFFSETS = [120, 165, 210, 255, 300, 330, 345, 360].map(m => m * 60 * 1000);
 
 const GuestLanding = ({ onAttend, onParticipantClick }: Props) => {
-  const { events: mockEvents } = useEvents();
+  const { events: mockEvents, isLive } = useEvents();
   const [query, setQuery] = useState('');
-  const portoEvents: Event[] = useMemo(() => {
+  // With real collected events: those starting in the next 6 hours, or, if none,
+  // the soonest upcoming ones. Sample events keep their generated timing.
+  const { portoEvents, soonWindow } = useMemo(() => {
     const now = Date.now();
-    return mockEvents
-      .filter(e => e.location.toLowerCase().includes('porto'))
-      .slice(0, 8)
-      .map((e, i) => withSampleDate(e, now + SOON_OFFSETS[i % SOON_OFFSETS.length]));
-  }, [mockEvents]);
+    if (isLive) {
+      const upcoming = mockEvents
+        .filter(e => e.date.getTime() >= now - 30 * 60 * 1000)
+        .sort((a, b) => a.date.getTime() - b.date.getTime());
+      const soon = upcoming.filter(e => e.date.getTime() <= now + 6 * 3600 * 1000);
+      return soon.length
+        ? { portoEvents: soon.slice(0, 8), soonWindow: true }
+        : { portoEvents: upcoming.slice(0, 8), soonWindow: false };
+    }
+    return {
+      portoEvents: mockEvents
+        .filter(e => e.location.toLowerCase().includes('porto'))
+        .slice(0, 8)
+        .map((e, i) => withSampleDate(e, now + SOON_OFFSETS[i % SOON_OFFSETS.length])),
+      soonWindow: true,
+    };
+  }, [mockEvents, isLive]);
 
   const filteredPorto = useMemo(() => searchEvents(portoEvents, query), [portoEvents, query]);
 
@@ -80,7 +94,7 @@ const GuestLanding = ({ onAttend, onParticipantClick }: Props) => {
             <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
               <div>
                 <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-                  Happening in Porto, next 2–6 hours
+                  {soonWindow ? 'Happening in Porto, next few hours' : 'Coming up next in Porto'}
                 </h2>
                 <p className="text-muted-foreground mt-1">
                   Browse what's open right now. Sign up to see familiar faces and personal picks.
