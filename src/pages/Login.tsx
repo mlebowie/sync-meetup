@@ -40,6 +40,8 @@ const SOCIAL_BUTTONS: { provider: SocialProvider; label: string; Icon: () => JSX
   { provider: 'microsoft', label: 'Microsoft', Icon: MicrosoftIcon },
 ];
 
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true';
+
 const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -55,7 +57,7 @@ const Login = () => {
       return;
     }
     setSubmitting(true);
-    const { error } = import.meta.env.VITE_DEMO_MODE === 'true'
+    const { error } = DEMO_MODE
       ? { error: null }
       : await supabase.auth.signInWithPassword({ email: email.trim(), password });
     setSubmitting(false);
@@ -64,6 +66,12 @@ const Login = () => {
       return;
     }
     const existing = getUserProfile();
+    if (DEMO_MODE && !existing) {
+      // Demo profiles live on the device they were created on.
+      toast({ title: 'No profile on this device yet', description: 'Create your profile to get started.' });
+      navigate('/onboarding');
+      return;
+    }
     const profile = existing ?? { ...DEFAULT_PROFILE, email: email.trim().slice(0, 120) };
 saveUserProfile(profile);
     window.dispatchEvent(new Event('sync:profile-changed'));
@@ -101,31 +109,36 @@ saveUserProfile(profile);
         <p className="text-muted-foreground mb-8">Log in to pick up with your crew and upcoming events.</p>
 
         <div className="bg-card rounded-2xl shadow-card p-6 md:p-8 space-y-5">
-          <div className="grid grid-cols-3 gap-2">
-            {SOCIAL_BUTTONS.map(({ provider, label, Icon }) => (
-              <Button
-                key={provider}
-                type="button"
-                variant="outline"
-                className="w-full bg-transparent"
-                disabled={socialBusy !== null}
-                onClick={() => handleSocial(provider)}
-              >
-                {socialBusy === provider ? (
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                ) : (
-                  <Icon />
-                )}
-                <span className="ml-2">{label}</span>
-              </Button>
-            ))}
-          </div>
+          {/* Social sign-in needs Supabase OAuth set up; hidden in demo mode. */}
+          {!DEMO_MODE && (
+            <>
+            <div className="grid grid-cols-3 gap-2">
+              {SOCIAL_BUTTONS.map(({ provider, label, Icon }) => (
+                <Button
+                  key={provider}
+                  type="button"
+                  variant="outline"
+                  className="w-full bg-transparent"
+                  disabled={socialBusy !== null}
+                  onClick={() => handleSocial(provider)}
+                >
+                  {socialBusy === provider ? (
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  ) : (
+                    <Icon />
+                  )}
+                  <span className="ml-2">{label}</span>
+                </Button>
+              ))}
+            </div>
 
-          <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            <span className="h-px flex-1 bg-border" />
-            or continue with email
-            <span className="h-px flex-1 bg-border" />
-          </div>
+            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+              <span className="h-px flex-1 bg-border" />
+              or continue with email
+              <span className="h-px flex-1 bg-border" />
+            </div>
+            </>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
