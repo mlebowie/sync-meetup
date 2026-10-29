@@ -55,7 +55,9 @@ const Login = () => {
       return;
     }
     setSubmitting(true);
-    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    const { error } = import.meta.env.VITE_DEMO_MODE === 'true'
+      ? { error: null }
+      : await supabase.auth.signInWithPassword({ email: email.trim(), password });
     setSubmitting(false);
     if (error) {
       toast({ title: 'Log in failed', description: error.message, variant: 'destructive' });

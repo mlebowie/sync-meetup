@@ -21,11 +21,29 @@ import { CITIES, CITY_NEIGHBORHOODS, NATIONALITIES } from '@/lib/onboardingData'
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 
-const fileToDataUrl = (file: File): Promise<string> =>
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true';
+
+// Phone photos are several MB, and the profile lives in browser storage (about 5MB in total),
+// so shrink the photo to a small JPEG before keeping it.
+const fileToDataUrl = (file: File, maxSize = 600): Promise<string> =>
   new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
     reader.onerror = reject;
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => resolve(String(reader.result));
+      img.onload = () => {
+        const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return resolve(String(reader.result));
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', 0.82));
+      };
+      img.src = String(reader.result);
+    };
     reader.readAsDataURL(file);
   });
 
@@ -111,8 +129,8 @@ const Onboarding = () => {
 
   const handlePhoto = async (file?: File) => {
     if (!file) return;
-    if (file.size > 4 * 1024 * 1024) {
-      toast({ title: 'Photo too large', description: 'Pick an image under 4MB.', variant: 'destructive' });
+    if (file.size > 25 * 1024 * 1024) {
+      toast({ title: 'Photo too large', description: 'Pick an image under 25MB.', variant: 'destructive' });
       return;
     }
     setPhoto(await fileToDataUrl(file));
@@ -156,6 +174,20 @@ const Onboarding = () => {
       socialStyle,
       onboardedAt: new Date().toISOString(),
     };
+
+    if (DEMO_MODE) {
+      // Demo mode: the profile stays on this device and no account is created on the server.
+      try {
+        saveUserProfile(profile);
+      } catch {
+        toast({ title: 'Could not save your profile', description: 'Try a different photo.', variant: 'destructive' });
+        return;
+      }
+      window.dispatchEvent(new Event('sync:profile-changed'));
+      toast({ title: `Welcome, ${profile.firstName}!`, description: 'Your recommendations are ready.' });
+      navigate('/', { replace: true });
+      return;
+    }
 
     setSubmitting(true);
     const { data, error } = await supabase.auth.signUp({
