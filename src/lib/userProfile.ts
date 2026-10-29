@@ -1,5 +1,3 @@
-import defaultProfilePhoto from '@/assets/default-profile.jpg';
-
 export const ONBOARDING_INTERESTS: { id: string; label: string; icon: string; keywords: string[] }[] = [
   { id: 'sports', label: 'Sports', icon: '⚽', keywords: ['running', 'football', 'padel', 'surf', 'climbing', 'sports'] },
   { id: 'social-networking', label: 'Social networking', icon: '🤝', keywords: ['social', 'brunch', 'walk', 'beer', 'networking'] },
@@ -113,24 +111,6 @@ export const calculateAge = (dateOfBirth: string): number => {
   const m = today.getMonth() - birth.getMonth();
   if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
   return age;
-};
-
-export const DEFAULT_PROFILE: UserProfile = {
-  firstName: 'Thandiwe',
-  lastName: 'Nkosi',
-  email: 'thandiwe.nkosi@example.com',
-  dateOfBirth: '1995-08-14',
-  location: 'Porto',
-  neighborhood: 'Cedofeita',
-  nationality: 'South African',
-  photo: defaultProfilePhoto,
-  interests: ['social-networking', 'dining-cooking', 'arts-theatre', 'tech-ai', 'music-live', 'education'],
-  socialPreferences: {
-    planning: 'planned',
-    groupSetting: 'lively',
-    connectionGoal: 'familiar',
-  },
-  socialStyle: 'community-builder',
 };
 
 /** True when an event's category/tags match any of the user's selected interests. */

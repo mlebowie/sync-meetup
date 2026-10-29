@@ -1,18 +1,53 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, MapPin, Clock, Globe, Users, Pencil, LogOut } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Clock, Globe, Users, Pencil, LogOut, UserPlus, LogIn } from 'lucide-react';
 import Header from '@/components/Header';
 import GroupsSection from '@/components/GroupsSection';
 import EditProfileDialog from '@/components/EditProfileDialog';
 import { Button } from '@/components/ui/button';
-import { getUserProfile, saveUserProfile, clearUserProfile, ONBOARDING_INTERESTS, DEFAULT_PROFILE, calculateAge, UserProfile } from '@/lib/userProfile';
+import { getUserProfile, saveUserProfile, clearUserProfile, ONBOARDING_INTERESTS, calculateAge, UserProfile } from '@/lib/userProfile';
 import { useSocial } from '@/context/SocialContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+/** Shown when nobody is signed in: no account exists yet, so nothing personal is displayed. */
+const GuestProfilePrompt = () => (
+  <div className="min-h-screen bg-background">
+    <Header />
+    <main className="container px-4 md:px-6 py-8 max-w-5xl">
+      <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
+        <ArrowLeft className="h-4 w-4" /> Back
+      </Link>
+      <section className="mx-auto max-w-md text-center rounded-2xl border bg-card p-8 shadow-card">
+        <div className="mx-auto mb-5 h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+          <UserPlus className="h-7 w-7 text-primary" />
+        </div>
+        <h1 className="text-2xl font-bold mb-2">Create your SYNC profile</h1>
+        <p className="text-sm text-muted-foreground mb-6">
+          You're not signed in yet. Create an account to save events, see the people you've met
+          and build your crews.
+        </p>
+        <div className="flex flex-col gap-2">
+          <Button variant="hero" size="lg" asChild>
+            <Link to="/onboarding">
+              <UserPlus className="h-4 w-4 mr-2" />
+              Create an account
+            </Link>
+          </Button>
+          <Button variant="outline" size="lg" asChild>
+            <Link to="/login">
+              <LogIn className="h-4 w-4 mr-2" />
+              I already have an account
+            </Link>
+          </Button>
+        </div>
+      </section>
+    </main>
+  </div>
+);
+
 const Profile = () => {
-  const [profile, setProfile] = useState<UserProfile>(() => getUserProfile() ?? DEFAULT_PROFILE);
-  const [isDefault, setIsDefault] = useState<boolean>(() => !getUserProfile());
+  const [profile, setProfile] = useState<UserProfile | null>(() => getUserProfile());
   const [editOpen, setEditOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -29,15 +64,28 @@ const Profile = () => {
     }
     // Clear local guest profile and persisted state
     clearUserProfile();
+    window.dispatchEvent(new Event('sync:profile-changed'));
     toast({ title: 'Signed out', description: 'See you soon!' });
     navigate('/');
   };
 
   const handleSaveProfile = (p: UserProfile) => {
     setProfile(p);
-    setIsDefault(false);
     saveUserProfile(p);
   };
+
+  // React to sign-in / sign-out happening elsewhere (another tab, login page).
+  useEffect(() => {
+    const sync = () => setProfile(getUserProfile());
+    window.addEventListener('sync:profile-changed', sync);
+    window.addEventListener('storage', sync);
+    return () => {
+      window.removeEventListener('sync:profile-changed', sync);
+      window.removeEventListener('storage', sync);
+    };
+  }, []);
+
+  if (!profile) return <GuestProfilePrompt />;
 
 
   const interests = ONBOARDING_INTERESTS.filter(i => profile.interests.includes(i.id));
@@ -64,7 +112,7 @@ const Profile = () => {
               <img src={profile.photo} alt={`${profile.firstName} ${profile.lastName}`} className="h-full w-full object-cover" />
             ) : (
               <div className="h-full w-full flex items-center justify-center text-2xl font-bold text-muted-foreground">
-                {profile.firstName.charAt(0)}{profile.lastName.charAt(0)}
+                {profile.firstName.charAt(0)}{profile.lastName?.charAt(0)}
               </div>
             )}
           </div>
@@ -134,14 +182,6 @@ const Profile = () => {
         </Link>
 
 
-        {/* Default profile hint */}
-        {isDefault && (
-          <div className="mt-10 p-4 rounded-xl border bg-secondary/30 text-center">
-            <p className="text-sm text-muted-foreground">
-              This is a preview profile. <Link to="/onboarding" className="text-primary font-medium hover:underline">Create your own</Link> to unlock a personalized feed.
-            </p>
-          </div>
-        )}
 
         {/* Your crews - from tagged connections & recurring co-attendance */}
         <div className="mt-10 -mx-4 md:-mx-6">

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { getUserProfile, saveUserProfile, DEFAULT_PROFILE } from '@/lib/userProfile';
+import { getUserProfile, saveUserProfile, UserProfile } from '@/lib/userProfile';
 import { LogIn } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -55,17 +55,33 @@ const Login = () => {
       return;
     }
     setSubmitting(true);
-    const { error } = import.meta.env.VITE_DEMO_MODE === 'true'
-      ? { error: null }
+    const isDemo = import.meta.env.VITE_DEMO_MODE === 'true';
+    const { data, error } = isDemo
+      ? { data: { user: null }, error: null }
       : await supabase.auth.signInWithPassword({ email: email.trim(), password });
     setSubmitting(false);
     if (error) {
       toast({ title: 'Log in failed', description: error.message, variant: 'destructive' });
       return;
     }
+    const signedInEmail = (data.user?.email ?? email.trim()).slice(0, 120);
     const existing = getUserProfile();
-    const profile = existing ?? { ...DEFAULT_PROFILE, email: email.trim().slice(0, 120) };
-saveUserProfile(profile);
+    // Reuse the saved profile only if it belongs to this account; never fall back to demo data.
+    const profile: UserProfile =
+      existing && existing.email.toLowerCase() === signedInEmail.toLowerCase()
+        ? existing
+        : {
+            firstName: (data.user?.user_metadata?.first_name as string | undefined) ?? signedInEmail.split('@')[0],
+            lastName: (data.user?.user_metadata?.last_name as string | undefined) ?? '',
+            email: signedInEmail,
+            dateOfBirth: '',
+            location: '',
+            neighborhood: '',
+            nationality: '',
+            interests: [],
+            onboardedAt: new Date().toISOString(),
+          };
+    saveUserProfile(profile);
     window.dispatchEvent(new Event('sync:profile-changed'));
     toast({ title: `Welcome back, ${profile.firstName}!`, description: 'Your feed is ready.' });
     navigate('/', { replace: true });
