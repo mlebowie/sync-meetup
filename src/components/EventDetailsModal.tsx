@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Event, Participant } from '@/types/event';
-import { Calendar, Clock, MapPin, Users, Star, Check, MessageSquare, Heart, ArrowRight, Quote, Instagram, Linkedin, Mail, Lock, X } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, Star, Check, MessageSquare, Heart, ArrowRight, Quote, Instagram, Linkedin, Mail, Lock, X, BadgeCheck } from 'lucide-react';
 import { format } from 'date-fns';
 import { useWishlist } from '@/context/WishlistContext';
 import { cn } from '@/lib/utils';
@@ -109,6 +109,12 @@ Just yourself and an open attitude. Anything specific (gear, dress code, food co
             ) : (
               <span className={`px-2 py-1 rounded-md text-xs font-semibold text-vivid-foreground ${sourceColors[event.source]}`}>
                 {sourceNames[event.source] ?? event.source}
+              </span>
+            )}
+            {event.partner && (
+              <span className="flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold bg-[#C1694F] text-white">
+                <BadgeCheck className="h-3 w-3" aria-hidden="true" />
+                SYNC Partner
               </span>
             )}
             <span className="px-2 py-1 rounded-md text-xs font-medium bg-white/90 text-foreground">

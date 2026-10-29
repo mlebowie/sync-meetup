@@ -68,8 +68,15 @@ function timeLabel(date: Date, raw: string | null): string {
 export function rowToEvent(row: EventRow): Event {
   const date = new Date(row.starts_at);
   const h = hash(row.id);
-  const attendees = row.attendee_count ?? 6 + (h % 22);
-  const capacity = Math.max(attendees + 1, row.capacity ?? attendees + 4 + (h % 14));
+  const soldOut = (row.tags ?? []).includes('sold-out');
+  // Control tags change how the event behaves; they aren't shown as topics.
+  const visibleTags = (row.tags ?? []).filter(t => t !== 'sold-out' && t !== 'sync-partner');
+  const capacity = Math.max(
+    (row.attendee_count ?? 6 + (h % 22)) + 1,
+    row.capacity ?? (row.attendee_count ?? 6 + (h % 22)) + 4 + (h % 14),
+  );
+  // Sold-out events show as full, so the card offers the waitlist instead of registration.
+  const attendees = soldOut ? capacity : row.attendee_count ?? 6 + (h % 22);
   const source = (['meetup', 'eventbrite', 'luma', 'agenda-porto', 'porto-coffee-week', 'expat-girls-porto'] as const).includes(
     row.source as 'meetup',
   )
@@ -92,7 +99,8 @@ export function rowToEvent(row: EventRow): Event {
     currentParticipants: attendees,
     participants: facesFor(row.id),
     category: row.category || 'Social',
-    tags: row.tags?.length ? row.tags : [row.category || 'social'],
+    tags: visibleTags.length ? visibleTags : [row.category || 'social'],
+    partner: (row.tags ?? []).includes('sync-partner'),
     seriesId: row.series_key ?? undefined,
     recurrence: (row.recurrence as Recurrence) ?? 'one-off',
     womenOnly: row.women_only ?? false,

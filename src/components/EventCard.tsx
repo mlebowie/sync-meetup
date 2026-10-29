@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Event, Participant } from '@/types/event';
-import { Calendar, MapPin, Users, Clock, ArrowRight, Check, MessageSquare, Repeat, Heart, TrendingUp, Hourglass, X } from 'lucide-react';
+import { Calendar, MapPin, Users, Clock, ArrowRight, Check, MessageSquare, Repeat, Heart, TrendingUp, Hourglass, X, BadgeCheck } from 'lucide-react';
 import { format } from 'date-fns';
 import ParticipantAvatars from './ParticipantAvatars';
 import OrganizerPopover from './OrganizerPopover';
@@ -164,6 +164,12 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
           <span className={`px-2 py-1 rounded-md text-xs font-semibold ${sourceColors[event.source]}`}>
             {sourceLabels[event.source] ?? event.source}
           </span>
+          {event.partner && (
+            <span className="flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold bg-[#C1694F] text-white">
+              <BadgeCheck className="h-3 w-3" aria-hidden="true" />
+              SYNC Partner
+            </span>
+          )}
           <span className="px-2 py-1 rounded-md text-xs font-medium bg-card/95 text-card-foreground">
             {event.category}
           </span>
