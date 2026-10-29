@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Event, Participant } from '@/types/event';
+import { withSampleDate } from '@/lib/sampleDates';
 import { useEvents } from '@/context/EventsContext';
 import ExpandableEventGrid from './ExpandableEventGrid';
 import EventCarousel from './EventCarousel';
@@ -26,11 +27,8 @@ const PopularTrendingSection = ({ onAttend, onParticipantClick, onOpenGroupChat,
     const oneOffs = mockEvents
       .filter(e => e.recurrence === 'one-off')
       .filter(e => matchesInterests(e, interests));
-    return oneOffs.slice(0, 13).map((e, i) => ({
-      ...e,
-      date: new Date(now + TRENDING_OFFSETS[i % TRENDING_OFFSETS.length]),
-    }));
-  }, [interests]);
+    return oneOffs.slice(0, 13).map((e, i) => withSampleDate(e, now + TRENDING_OFFSETS[i % TRENDING_OFFSETS.length]));
+  }, [mockEvents, interests]);
 
   const [filters, setFilters] = useState<SectionFilters>(defaultSectionFilters);
   const [showAll, setShowAll] = useState(false);

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { withSampleDate } from '@/lib/sampleDates';
 import { useEvents } from '@/context/EventsContext';
 import { getInterestKeywords, UserProfile } from '@/lib/userProfile';
 import { Event, Participant } from '@/types/event';
@@ -43,7 +44,7 @@ const RecommendedCarousel = ({ profile, onAttend, onParticipantClick, onOpenGrou
 
   const source = mode === 'random' ? random : recommended;
   const now = Date.now();
-  const events = source.map((e, i) => ({ ...e, date: new Date(now + SOON_OFFSETS[i % SOON_OFFSETS.length]) }));
+  const events = source.map((e, i) => withSampleDate(e, now + SOON_OFFSETS[i % SOON_OFFSETS.length]));
 
   return (
     <section className="py-8 md:py-12 bg-gradient-to-b from-primary/5 to-transparent">

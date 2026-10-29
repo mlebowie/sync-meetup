@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { withSampleDate } from '@/lib/sampleDates';
 import { useEvents } from '@/context/EventsContext';
 import { useSocial } from '@/context/SocialContext';
 import { Event, Participant } from '@/types/event';
@@ -52,11 +53,8 @@ const FriendsLoveSection = ({ onAttend, onParticipantClick, onOpenGroupChat, int
         .slice(0, 13)
         .map(e => ({ event: e, score: 1, friendsAttending: [] }));
     }
-    return pool.slice(0, 13).map((s, i) => ({
-      ...s.event,
-      date: new Date(Date.now() + WEEK_OFFSETS[i % WEEK_OFFSETS.length]),
-    }));
-  }, [following, interests]);
+    return pool.slice(0, 13).map((s, i) => withSampleDate(s.event, Date.now() + WEEK_OFFSETS[i % WEEK_OFFSETS.length]));
+  }, [mockEvents, following, interests]);
 
   const [filters, setFilters] = useState<SectionFilters>(defaultSectionFilters);
   const [showAll, setShowAll] = useState(false);

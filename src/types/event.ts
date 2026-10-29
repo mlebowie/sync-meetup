@@ -102,6 +102,8 @@ export interface Event {
   trending?: boolean;
   /** Link back to the original listing (Eventbrite / Meetup / Lu.ma). */
   sourceUrl?: string;
+  /** A real collected event; its date must never be replaced with a sample date. */
+  live?: boolean;
   /** Listed by a SYNC partner organisation. */
   partner?: boolean;
   /** Price as shown on the source page, e.g. "Free" or "€12". */

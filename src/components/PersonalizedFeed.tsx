@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { withSampleDate } from '@/lib/sampleDates';
 import { useEvents } from '@/context/EventsContext';
 import { getInterestKeywords, UserProfile } from '@/lib/userProfile';
 import { Event, GroupSize, Participant } from '@/types/event';
@@ -56,10 +57,7 @@ const PersonalizedFeed = ({ profile, onAttend, onParticipantClick, onOpenGroupCh
     });
     const pool = [...matches].sort((a, b) => socialStyleScore(b, profile) - socialStyleScore(a, profile));
     const now = Date.now();
-    return pool.slice(0, 13).map((e, i) => ({
-      ...e,
-      date: new Date(now + SOON_OFFSETS[i % SOON_OFFSETS.length]),
-    }));
+    return pool.slice(0, 13).map((e, i) => withSampleDate(e, now + SOON_OFFSETS[i % SOON_OFFSETS.length]));
 
   }, [mockEvents, profile]);
 

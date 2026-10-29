@@ -101,6 +101,7 @@ export function rowToEvent(row: EventRow): Event {
     category: row.category || 'Social',
     tags: visibleTags.length ? visibleTags : [row.category || 'social'],
     partner: (row.tags ?? []).includes('sync-partner'),
+    live: true,
     seriesId: row.series_key ?? undefined,
     recurrence: (row.recurrence as Recurrence) ?? 'one-off',
     womenOnly: row.women_only ?? false,

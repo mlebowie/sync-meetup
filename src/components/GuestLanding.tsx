@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { withSampleDate } from '@/lib/sampleDates';
 import { useEvents } from '@/context/EventsContext';
 import { ONBOARDING_INTERESTS } from '@/lib/userProfile';
 import { searchEvents } from '@/lib/search';
@@ -27,8 +28,8 @@ const GuestLanding = ({ onAttend, onParticipantClick }: Props) => {
     return mockEvents
       .filter(e => e.location.toLowerCase().includes('porto'))
       .slice(0, 8)
-      .map((e, i) => ({ ...e, date: new Date(now + SOON_OFFSETS[i % SOON_OFFSETS.length]) }));
-  }, []);
+      .map((e, i) => withSampleDate(e, now + SOON_OFFSETS[i % SOON_OFFSETS.length]));
+  }, [mockEvents]);
 
   const filteredPorto = useMemo(() => searchEvents(portoEvents, query), [portoEvents, query]);
 
