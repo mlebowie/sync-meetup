@@ -29,6 +29,7 @@ const sourceColors: Record<string, string> = {
   luma: 'bg-purple-700',
   'agenda-porto': 'bg-teal-800',
   'porto-coffee-week': 'bg-amber-900',
+  'expat-girls-porto': 'bg-rose-800',
 };
 
 const sourceNames: Record<string, string> = {
@@ -37,6 +38,7 @@ const sourceNames: Record<string, string> = {
   luma: 'Lu.ma',
   'agenda-porto': 'Agenda Porto',
   'porto-coffee-week': 'Porto Coffee Week',
+  'expat-girls-porto': 'Expat Girls Porto',
 };
 
 

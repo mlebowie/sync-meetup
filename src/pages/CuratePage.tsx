@@ -46,6 +46,7 @@ const SOURCE_LABELS: Record<string, string> = {
   luma: 'Lu.ma',
   'agenda-porto': 'Agenda Porto',
   'porto-coffee-week': 'Porto Coffee Week',
+  'expat-girls-porto': 'Expat Girls Porto',
 };
 
 const ACTIVITY = ['low', 'moderate', 'high'];

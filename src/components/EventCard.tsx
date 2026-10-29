@@ -39,6 +39,7 @@ const sourceColors: Record<string, string> = {
   luma: 'bg-purple-700 text-purple-50',
   'agenda-porto': 'bg-teal-800 text-teal-50',
   'porto-coffee-week': 'bg-amber-900 text-amber-50',
+  'expat-girls-porto': 'bg-rose-800 text-rose-50',
 };
 
 /** Display names for each listing site. */
@@ -48,6 +49,7 @@ export const sourceLabels: Record<string, string> = {
   luma: 'Lu.ma',
   'agenda-porto': 'Agenda Porto',
   'porto-coffee-week': 'Porto Coffee Week',
+  'expat-girls-porto': 'Expat Girls Porto',
 };
 
 const activityColors = {
