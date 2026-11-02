@@ -14,6 +14,7 @@ WHERE review_status = 'pending'
 -- 2. The collector now takes an optional focus: general, sports, languages or outdoors.
 SELECT cron.unschedule(jobname) FROM cron.job WHERE jobname LIKE 'sync-collect-%';
 DROP FUNCTION IF EXISTS public.run_event_collector(text);
+DROP FUNCTION IF EXISTS public.run_event_collector(text, text);
 
 CREATE OR REPLACE FUNCTION public.run_event_collector(_source text, _focus text DEFAULT 'general')
 RETURNS bigint
