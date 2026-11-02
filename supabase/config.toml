@@ -1,1 +1,10 @@
 project_id = "vjpfecyfzsycazlktajk"
+
+# Deployed automatically by the Supabase GitHub integration on merge to main.
+# Both functions check the caller themselves (admin sign-in or the service role key),
+# so the gateway's JWT check is off; this also keeps them working with Supabase's newer API keys.
+[functions.scrape-events]
+verify_jwt = false
+
+[functions.parse-event]
+verify_jwt = false
