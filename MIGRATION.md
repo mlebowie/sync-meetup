@@ -63,3 +63,36 @@ Daily scheduling stays off. To re-enable later, schedule it with pg_cron in the 
 
 ## 9. Check & host
 `npm install && npm run dev`, sign in, open `/curate`, approve an event, confirm it appears in the feed. Deploy to Vercel/Netlify (build: `npm run build`, output: `dist`, add the three `VITE_` variables).
+
+## 10. Turn the daily collector back on (Nov 2026)
+Collection stopped at the end of September because scheduling was left off during the move. To restart it:
+
+1. **Secrets for the functions** (skip any you already set):
+   ```bash
+   supabase secrets set FIRECRAWL_API_KEY=... AI_API_KEY=...
+   ```
+2. **Deploy both functions and the new migration:**
+   ```bash
+   supabase functions deploy scrape-events
+   supabase functions deploy parse-event
+   supabase db push
+   ```
+   `db push` creates the daily jobs (Lu.ma 05:00, Meetup 05:05, Eventbrite 05:10, Agenda Porto 05:15 UTC; Porto Coffee Week Mondays 05:20) and lets admins add partner events.
+3. **Give the jobs your project address and key**, once, in the SQL editor
+   (Project Settings → API for the service role key; it is stored encrypted in Vault, never in the repo):
+   ```sql
+   select vault.create_secret('https://<your-ref>.supabase.co', 'sync_project_url');
+   select vault.create_secret('<service role key>', 'sync_service_role_key');
+   ```
+4. **Test one run now** instead of waiting for the morning:
+   ```sql
+   select public.run_event_collector('luma');
+   ```
+   After a minute or two, new events appear under **Waiting** on `/curate`. Run history:
+   `select status, source_counts, events_upserted, error_details from event_scrape_runs order by started_at desc limit 5;`
+
+**If a run shows `paused`:** Firecrawl or the AI service refused the request (usually credits or a wrong key). Fix the key or top up, then run step 4 again.
+
+## 11. Partner events (Expat Girls Porto and others)
+On `/curate`, choose **Add partner event**, pick the partner, paste their caption, message or email and the registration link, then **Read details**. Check the draft and either **Add to Waiting** or **Publish now**. Partner events carry the SYNC Partner badge.
+To give a regular partner its own option, add it to `PARTNERS` in `src/components/AddPartnerEventDialog.tsx`.

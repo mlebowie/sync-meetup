@@ -77,7 +77,7 @@ export function rowToEvent(row: EventRow): Event {
   );
   // Sold-out events show as full, so the card offers the waitlist instead of registration.
   const attendees = soldOut ? capacity : row.attendee_count ?? 6 + (h % 22);
-  const source = (['meetup', 'eventbrite', 'luma', 'agenda-porto', 'porto-coffee-week', 'expat-girls-porto'] as const).includes(
+  const source = (['meetup', 'eventbrite', 'luma', 'agenda-porto', 'porto-coffee-week', 'expat-girls-porto', 'partner'] as const).includes(
     row.source as 'meetup',
   )
     ? (row.source as Event['source'])

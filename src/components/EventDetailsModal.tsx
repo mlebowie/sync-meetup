@@ -30,6 +30,7 @@ const sourceColors: Record<string, string> = {
   'agenda-porto': 'bg-teal-800',
   'porto-coffee-week': 'bg-amber-900',
   'expat-girls-porto': 'bg-rose-800',
+  partner: 'bg-stone-700',
 };
 
 const sourceNames: Record<string, string> = {
@@ -39,6 +40,7 @@ const sourceNames: Record<string, string> = {
   'agenda-porto': 'Agenda Porto',
   'porto-coffee-week': 'Porto Coffee Week',
   'expat-girls-porto': 'Expat Girls Porto',
+  partner: 'Partner',
 };
 
 
@@ -104,7 +106,9 @@ Just yourself and an open attitude. Anything specific (gear, dress code, food co
                 rel="noopener noreferrer"
                 className={`px-2 py-1 rounded-md text-xs font-semibold text-vivid-foreground hover:underline ${sourceColors[event.source]}`}
               >
-                View on {sourceNames[event.source] ?? event.source}
+                {event.source === 'partner'
+                  ? 'Register'
+                  : `View on ${sourceNames[event.source] ?? event.source}`}
               </a>
             ) : (
               <span className={`px-2 py-1 rounded-md text-xs font-semibold text-vivid-foreground ${sourceColors[event.source]}`}>

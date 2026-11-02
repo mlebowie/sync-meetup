@@ -15,6 +15,7 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select';
+import AddPartnerEventDialog from '@/components/AddPartnerEventDialog';
 import { Check, X, Pencil, ExternalLink, RotateCcw, Clock, Loader2 } from 'lucide-react';
 
 type ReviewStatus = 'pending' | 'approved' | 'rejected';
@@ -47,6 +48,7 @@ const SOURCE_LABELS: Record<string, string> = {
   'agenda-porto': 'Agenda Porto',
   'porto-coffee-week': 'Porto Coffee Week',
   'expat-girls-porto': 'Expat Girls Porto',
+  partner: 'Partner',
 };
 
 const ACTIVITY = ['low', 'moderate', 'high'];
@@ -182,12 +184,15 @@ const CuratePage = () => {
           <div>
             <h1 className="text-2xl font-bold text-foreground">Curate events</h1>
             <p className="text-sm text-muted-foreground">
-              New events collected each morning wait here until you publish them.
+              New events collected each morning, and partner events you add, wait here until you publish them.
             </p>
           </div>
-          <Button variant="outline" size="sm" asChild>
-            <Link to="/">Back to the feed</Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <AddPartnerEventDialog onAdded={load} />
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/">Back to the feed</Link>
+            </Button>
+          </div>
         </div>
 
         {tab === 'pending' && stale > 0 && (
@@ -259,7 +264,11 @@ const CuratePage = () => {
                     )}
                     <div className="p-4 flex-1 space-y-3">
                       <div className="flex flex-wrap items-center gap-2 text-xs">
-                        <Badge variant="secondary">{SOURCE_LABELS[row.source] ?? row.source}</Badge>
+                        <Badge variant="secondary">
+                          {row.source === 'partner' && row.organizer_name
+                            ? row.organizer_name
+                            : SOURCE_LABELS[row.source] ?? row.source}
+                        </Badge>
                         <span className="text-muted-foreground">{dayLabel(row.starts_at)}</span>
                         {row.price_label && (
                           <span className="text-muted-foreground">· {row.price_label}</span>
