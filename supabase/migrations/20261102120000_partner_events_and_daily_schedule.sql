@@ -26,6 +26,10 @@ GRANT INSERT ON public.events TO authenticated;
 CREATE EXTENSION IF NOT EXISTS pg_cron;
 CREATE EXTENSION IF NOT EXISTS pg_net;
 
+-- The 30 Sept dashboard change created an older version of this function with a
+-- different return type, so it is dropped first rather than replaced in place.
+DROP FUNCTION IF EXISTS public.run_event_collector(text);
+
 CREATE OR REPLACE FUNCTION public.run_event_collector(_source text)
 RETURNS bigint
 LANGUAGE sql
