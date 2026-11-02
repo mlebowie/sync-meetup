@@ -73,6 +73,85 @@ const SOURCE_PAGES: Record<SourceId, string[]> = {
   ],
 };
 
+/**
+ * Themed runs: each focus has its own short page list so a single run stays
+ * inside the edge time limit. Called with { sources: [...], focus: '...' }.
+ */
+type Focus = 'general' | 'sports' | 'languages' | 'outdoors';
+const FOCUSES: Focus[] = ['general', 'sports', 'languages', 'outdoors'];
+
+const THEMED_PAGES: Record<Exclude<Focus, 'general'>, Partial<Record<SourceId, string[]>>> = {
+  // Racket sports first, then other team and court sports.
+  sports: {
+    meetup: [
+      'https://www.meetup.com/find/?location=pt--Porto&source=EVENTS&keywords=padel&distance=twentyFiveMiles',
+      'https://www.meetup.com/find/?location=pt--Porto&source=EVENTS&keywords=tennis&distance=twentyFiveMiles',
+      'https://www.meetup.com/find/?location=pt--Porto&source=EVENTS&keywords=pickleball&distance=twentyFiveMiles',
+      'https://www.meetup.com/find/?location=pt--Porto&source=EVENTS&keywords=football%20volleyball%20basketball&distance=twentyFiveMiles',
+    ],
+    eventbrite: [
+      'https://www.eventbrite.com/d/portugal--porto/padel/',
+      'https://www.eventbrite.com/d/portugal--porto/tennis/',
+      'https://www.eventbrite.com/d/portugal--porto/pickleball/',
+    ],
+  },
+  languages: {
+    meetup: [
+      'https://www.meetup.com/find/?location=pt--Porto&source=EVENTS&keywords=language%20exchange&distance=tenMiles',
+      'https://www.meetup.com/find/?location=pt--Porto&source=EVENTS&keywords=portuguese%20conversation&distance=tenMiles',
+      'https://www.meetup.com/find/?location=pt--Porto&source=EVENTS&keywords=language%20cafe%20tandem&distance=tenMiles',
+    ],
+    eventbrite: [
+      'https://www.eventbrite.com/d/portugal--porto/language-exchange/',
+      'https://www.eventbrite.com/d/portugal--porto/language/',
+    ],
+  },
+  // Guided walks in Porto and short trips from Porto to nearby towns.
+  outdoors: {
+    meetup: [
+      'https://www.meetup.com/find/?location=pt--Porto&source=EVENTS&keywords=guided%20walk%20walking%20tour&distance=twentyFiveMiles',
+      'https://www.meetup.com/find/?location=pt--Porto&source=EVENTS&keywords=day%20trip&distance=fiftyMiles',
+      'https://www.meetup.com/find/?location=pt--Porto&source=EVENTS&keywords=hiking&distance=fiftyMiles',
+    ],
+    eventbrite: [
+      'https://www.eventbrite.com/d/portugal--porto/walking-tour/',
+      'https://www.eventbrite.com/d/portugal--porto/day-trip/',
+      'https://www.eventbrite.com/d/portugal--porto/hiking/',
+    ],
+  },
+};
+
+/** Lu.ma has no city search, so each focus discovers calendars and events by web search. */
+const LUMA_QUERIES: Record<Focus, string[]> = {
+  general: [
+    'site:lu.ma Porto Portugal events calendar',
+    'site:lu.ma Porto yoga wellness OR fitness OR run event',
+  ],
+  sports: ['site:luma.com OR site:lu.ma Porto padel OR tennis OR pickleball'],
+  languages: ['site:luma.com OR site:lu.ma Porto "language exchange" OR "language cafe" OR tandem'],
+  outdoors: ['site:luma.com OR site:lu.ma Porto "walking tour" OR "guided walk" OR "day trip" OR hike'],
+};
+
+/**
+ * Municipalities of Greater Porto, where everyday events count as local. Events
+ * elsewhere are kept only when they are trips that leave from Porto.
+ */
+const GREATER_PORTO =
+  /\b(porto|oporto|vila nova de gaia|gaia|matosinhos|le[cç]a|maia|gondomar|valongo|ermesinde|p[oó]voa de varzim|vila do conde|espinho|trofa|santo tirso|paredes|foz do douro)\b/i;
+const OTHER_CITIES =
+  /\b(lisbo[an]|lisbon|cascais|sintra|oeiras|almada|set[uú]bal|ericeira|coimbra|faro|lagos|algarve|madeira|funchal|a[cç]ores|azores|madrid|barcelona|london|berlin|paris)\b/i;
+const ONLINE = /\b(online|virtual|zoom|google meet|webinar|livestream|live stream|remote)\b/i;
+
+/** Keeps in-person events in Greater Porto, plus trips that depart from Porto. */
+function locationOk(raw: RawEvent): boolean {
+  const place = `${raw.venue ?? ''} ${raw.address ?? ''} ${raw.city ?? ''}`;
+  if (raw.is_online === true || ONLINE.test(place)) return false;
+  if (raw.is_trip_from_porto === true) return true;
+  const city = raw.city?.trim() ?? '';
+  if (city) return GREATER_PORTO.test(city);
+  return !OTHER_CITIES.test(`${place} ${raw.title ?? ''}`);
+}
+
 const EVENT_SCHEMA = {
   type: 'object',
   properties: {
@@ -96,6 +175,9 @@ const EVENT_SCHEMA = {
           category: { type: 'string' },
           price: { type: 'string' },
           attendees: { type: 'number' },
+          city: { type: 'string' },
+          is_online: { type: 'boolean' },
+          is_trip_from_porto: { type: 'boolean' },
           event_language: { type: 'string' },
           english_eligible: { type: 'boolean' },
           language_evidence: { type: 'string' },
@@ -106,6 +188,9 @@ const EVENT_SCHEMA = {
           'source_title',
           'source_description',
           'url',
+          'city',
+          'is_online',
+          'is_trip_from_porto',
           'event_language',
           'english_eligible',
           'language_evidence',
@@ -132,6 +217,9 @@ interface RawEvent {
   category?: string;
   price?: string;
   attendees?: number;
+  city?: string;
+  is_online?: boolean;
+  is_trip_from_porto?: boolean;
   event_language?: string;
   english_eligible?: boolean;
   language_evidence?: string;
@@ -175,7 +263,12 @@ async function scrapeListing(url: string): Promise<RawEvent[]> {
         type: 'json',
         schema: EVENT_SCHEMA,
         prompt:
-          `Today is ${today}. Extract every upcoming event listed on this page that happens in or near Porto, Portugal, including events that are not in English. ` +
+          `Today is ${today}. Extract every upcoming event listed on this page that happens in person in Greater Porto, Portugal ` +
+          '(Porto, Vila Nova de Gaia, Matosinhos, Maia, Gondomar, Valongo, Póvoa de Varzim, Vila do Conde, Espinho), ' +
+          'or that is a trip or excursion departing from Porto to a nearby town (for example Guimarães, Braga, Aveiro or the Douro Valley). ' +
+          'Include events that are not in English. Skip events held in Lisbon or any other city, and skip online-only events. ' +
+          'For each event give city (the town where it takes place, or where a trip departs), is_online (true for online-only or virtual events) ' +
+          'and is_trip_from_porto (true only for trips or excursions that leave from Porto). ' +
           'For each event determine the language in which attendees will participate from explicit listing evidence. ' +
           'Set english_eligible=true only when the listing explicitly says the event is in English, supports English or is multilingual with English, ' +
           'or when no event language is stated and both the source title and description are already written in English. ' +
@@ -225,12 +318,9 @@ function isEnglishEligible(raw: RawEvent): boolean {
  * with search discovery (tech, wellness, creative communities) until the budget
  * for the source is used.
  */
-async function lumaPages(): Promise<string[]> {
-  const urls: string[] = [...SOURCE_PAGES.luma];
-  const queries = [
-    'site:lu.ma Porto Portugal events calendar',
-    'site:lu.ma Porto yoga wellness OR fitness OR run event',
-  ];
+async function lumaPages(focus: Focus = 'general'): Promise<string[]> {
+  const urls: string[] = focus === 'general' ? [...SOURCE_PAGES.luma] : [];
+  const queries = LUMA_QUERIES[focus];
 
   for (const query of queries) {
     if (urls.length >= MAX_PAGES.luma) break;
@@ -239,7 +329,7 @@ async function lumaPages(): Promise<string[]> {
       const results: { url?: string }[] = data?.data?.web ?? data?.web ?? [];
       for (const r of results) {
         const url = r?.url;
-        if (!url || !/lu\.ma\//.test(url)) continue;
+        if (!url || !/(?:lu\.ma|luma\.com)\//.test(url)) continue;
         const clean = url.split('?')[0];
         if (!urls.includes(clean)) urls.push(clean);
         if (urls.length >= MAX_PAGES.luma) break;
@@ -362,7 +452,7 @@ function withListedClock(verified: { date: Date; dateOnly: boolean }, raw: RawEv
 
 
 
-const HIGH = ['hike', 'run', 'running', 'trail', 'surf', 'football', 'padel', 'climb', 'bike', 'cycling', 'crossfit', 'swim', 'dance', 'bootcamp', 'volleyball', 'tennis', 'kayak'];
+const HIGH = ['hike', 'run', 'running', 'trail', 'surf', 'football', 'padel', 'climb', 'bike', 'cycling', 'crossfit', 'swim', 'dance', 'bootcamp', 'volleyball', 'tennis', 'pickleball', 'squash', 'kayak'];
 const LOW = ['language exchange', 'book', 'coffee', 'wine', 'tasting', 'talk', 'workshop', 'meditation', 'board game', 'brunch', 'film', 'cinema', 'museum', 'conference'];
 
 /** SYNC interest labels — event cards and interest filters both rely on these. */
@@ -370,12 +460,12 @@ const CATEGORY_RULES: [RegExp, string][] = [
   [/pop-?up/, 'Pop-up events'],
   [/chess|trivia|quiz|board game|boardgame|gaming|video game|poker|dungeons/, 'Games'],
   [/volunteer|charity|non-?profit|ngo|fundrais|beach clean|clean-?up/, 'Charity & non-profit'],
-  [/language exchange|languages|portuguese class|english class|conversation club|intercambio/, 'Languages'],
+  [/language exchange|language meetup|language caf[eé]|languages|tandem|polyglot|conversation (?:club|practice|exchange)|portuguese (?:class|practice|conversation)|english class|speak portuguese|intercambio/, 'Languages'],
   [/church|faith|bible|christian|muslim|mosque|synagogue|religio/, 'Religion'],
-  [/tennis|padel|football|soccer|futsal|basketball|volleyball|beach volley|run club|running club|jogging|marathon|\b5k\b|\b10k\b|bouldering|climbing|surf|skate|swimming|cycling|bike ride|martial arts|jiu-?jitsu|boxing|muay thai|rugby|golf|\bsports?\b/, 'Sports'],
+  [/tennis|padel|pickleball|squash|badminton|table tennis|ping[- ]?pong|football|soccer|futsal|basketball|volleyball|beach volley|run club|running club|jogging|marathon|\b5k\b|\b10k\b|bouldering|climbing|surf|skate|swimming|cycling|bike ride|martial arts|jiu-?jitsu|boxing|muay thai|rugby|golf|\bsports?\b/, 'Sports'],
   [/yoga|pilates|barre|hyrox|crossfit|bootcamp|calisthenic|nutrition|gym|fitness|wellness|wellbeing|well-?being|ice bath|cold plunge|sauna|spa day/, 'Health & fitness'],
   [/meditation|mindful|spiritual|reiki|astrolog|sound bath|sound healing|kirtan|tarot|retiro|retreat|chakra|kundalini|ecstatic dance|cacao|shamanic|breathwork|cuddle party/, 'Spirituality'],
-  [/hike|hiking|trail|kayak|paddle ?board|nature walk|camping|outdoor|picnic|day trip|birdwatch|forest bathing|sunrise walk|sunset walk|caminhada|walking holiday|camino/, 'Outdoors activities'],
+  [/hike|hiking|trail|kayak|paddle ?board|nature walk|camping|outdoor|picnic|day trip|birdwatch|forest bathing|sunrise walk|sunset walk|caminhada|walking holiday|camino|guided walk|walking tour|walk(?:ing)? group|day trip|excursion|road trip|douro valley|guimar[aã]es|braga|aveiro|viana do castelo|ponte de lima|ger[eê]s|amarante|costa nova/, 'Outdoors activities'],
   [/ ai |artificial intelligence|machine learning|tech|developer|software|coding|data|cyber|security|blockchain|robotic/, 'Tech & AI'],
   [/concert|live music|dj |salsa|bachata|kizomba|dance|dancing|band|gig|vinyl|jazz/, 'Music & live events'],
   [/comedy|stand-?up|theatre|theater|improv|art |arts|gallery|exhibition|painting|photograph|writing|film|cinema|book club|poetry/, 'Arts & theatre'],
@@ -415,11 +505,12 @@ function canonicalCategory(raw: RawEvent, source?: SourceId): string {
   return 'Social networking';
 }
 
-/** Every listing is a Porto event, so the city always belongs in the location. */
+/** Venue and address, always ending with the town (Porto unless stated otherwise). */
 function portoLocation(raw: RawEvent): string {
+  const city = raw.city?.trim() || 'Porto';
   const parts = [raw.venue, raw.address].filter(Boolean).join(', ').trim();
-  if (!parts) return 'Porto, Portugal';
-  const withCity = /porto/i.test(parts) ? parts : `${parts}, Porto`;
+  if (!parts) return `${city}, Portugal`;
+  const withCity = parts.toLowerCase().includes(city.toLowerCase()) ? parts : `${parts}, ${city}`;
   return withCity.slice(0, 300);
 }
 
@@ -586,9 +677,11 @@ Deno.serve(async (req) => {
   // the edge runtime's request budget).
   let requested: string[] = [];
   let refreshExisting = false;
+  let focus: Focus = 'general';
   try {
     const body = await req.json();
     if (Array.isArray(body?.sources)) requested = body.sources.map((s: unknown) => String(s));
+    if (FOCUSES.includes(body?.focus)) focus = body.focus;
     refreshExisting = body?.refresh_existing === true;
   } catch {
     // no body — full run
@@ -653,7 +746,11 @@ Deno.serve(async (req) => {
     try {
       const budget = paused ? MAX_PAGES_PER_SOURCE : MAX_PAGES[source];
       const pages =
-        source === 'luma' ? (await lumaPages()).slice(0, budget) : SOURCE_PAGES[source].slice(0, budget);
+        source === 'luma'
+          ? (await lumaPages(focus)).slice(0, budget)
+          : focus === 'general'
+            ? SOURCE_PAGES[source].slice(0, budget)
+            : (THEMED_PAGES[focus][source] ?? []).slice(0, budget);
 
       for (const page of pages) {
         if (pausedReason || Date.now() > DEADLINE) break;
@@ -665,6 +762,8 @@ Deno.serve(async (req) => {
           // Already stored and still upcoming: keep it and move on.
           if (!refreshExisting && id && known.has(`${source}:${id}`)) continue;
           if (!id) continue;
+          // Lisbon, other cities and online-only events are not for SYNC Porto.
+          if (!locationOk(raw)) continue;
           if (!isEnglishEligible(raw)) {
             if (known.has(`${source}:${id}`)) {
               const { error } = await supabase
