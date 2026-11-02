@@ -45,6 +45,7 @@ interface Draft {
   group_size: string;
   women_only: boolean;
   registration_url: string | null;
+  image_url: string | null;
   warnings: string[];
 }
 
@@ -125,6 +126,7 @@ const AddPartnerEventDialog = ({ onAdded }: Props) => {
       venue_name: draft.venue_name,
       location: draft.location ?? 'Porto',
       organizer_name: organizer,
+      image_url: draft.image_url?.startsWith('http') ? draft.image_url : null,
       category: draft.category,
       price_label: draft.price_label,
       activity_level: draft.activity_level,
@@ -247,6 +249,29 @@ const AddPartnerEventDialog = ({ onAdded }: Props) => {
                 ))}
               </div>
             )}
+            <div className="flex gap-3 items-start">
+              {draft.image_url?.startsWith('http') ? (
+                <img
+                  src={draft.image_url}
+                  alt=""
+                  className="h-20 w-28 rounded-md object-cover border border-border shrink-0"
+                  onError={(e) => (e.currentTarget.style.visibility = 'hidden')}
+                />
+              ) : (
+                <div className="h-20 w-28 rounded-md border border-dashed border-border grid place-items-center text-xs text-muted-foreground shrink-0">
+                  No photo
+                </div>
+              )}
+              <div className="space-y-1.5 flex-1">
+                <Label>Photo link</Label>
+                <Input
+                  type="url"
+                  value={draft.image_url ?? ''}
+                  onChange={(e) => field('image_url', e.target.value || null)}
+                  placeholder="Found automatically from the registration page, or paste an image link"
+                />
+              </div>
+            </div>
             <div className="space-y-1.5">
               <Label>Title</Label>
               <Input value={draft.title} onChange={(e) => field('title', e.target.value)} />
