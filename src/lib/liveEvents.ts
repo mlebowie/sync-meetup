@@ -1,6 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Event, Participant, ActivityLevel, Intensity, GroupSize, Recurrence } from '@/types/event';
-import { mockParticipants } from '@/data/mockData';
+import { mockParticipants, mockWomenParticipantIds } from '@/data/mockData';
 
 export interface EventRow {
   id: string;
@@ -41,11 +41,15 @@ function hash(str: string): number {
   return h;
 }
 
-function facesFor(id: string): Participant[] {
+const womenParticipants = mockParticipants.filter((p) => mockWomenParticipantIds.includes(p.id));
+
+/** Sample attendee faces; women-only events only ever show women. */
+function facesFor(id: string, womenOnly = false): Participant[] {
+  const pool = womenOnly ? womenParticipants : mockParticipants;
   const h = hash(id);
-  const count = 2 + (h % 3);
-  const start = h % mockParticipants.length;
-  return Array.from({ length: count }, (_, i) => mockParticipants[(start + i) % mockParticipants.length]);
+  const count = Math.min(2 + (h % 3), pool.length);
+  const start = h % pool.length;
+  return Array.from({ length: count }, (_, i) => pool[(start + i) % pool.length]);
 }
 
 function timeLabel(date: Date, raw: string | null): string {
@@ -97,7 +101,7 @@ export function rowToEvent(row: EventRow): Event {
     groupSize: (row.group_size as GroupSize) ?? 'medium',
     maxParticipants: capacity,
     currentParticipants: attendees,
-    participants: facesFor(row.id),
+    participants: facesFor(row.id, row.women_only ?? false),
     category: row.category || 'Social',
     tags: visibleTags.length ? visibleTags : [row.category || 'social'],
     partner: (row.tags ?? []).includes('sync-partner'),

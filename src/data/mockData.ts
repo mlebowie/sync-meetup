@@ -133,6 +133,9 @@ export const mockParticipants: Participant[] = [
 ];
 
 
+/** Sample profiles shown on women-only events (Sofia, Nina, Emma, Clara, Priya). */
+export const mockWomenParticipantIds = ['7', '8', '10', '12', '14'];
+
 export const currentUser: Participant = {
   id: 'me',
   name: 'You',
@@ -321,7 +324,7 @@ export const mockEvents: Event[] = [
     groupSize: 'medium',
     maxParticipants: 16,
     currentParticipants: 12,
-    participants: [mockParticipants[1], mockParticipants[3], mockParticipants[0]],
+    participants: [mockParticipants[9], mockParticipants[6], mockParticipants[13]],
     category: 'Social',
     tags: ['brunch', 'recurring'],
     seriesId: 'brunch-club',
@@ -409,7 +412,7 @@ export const mockEvents: Event[] = [
     groupSize: 'medium',
     maxParticipants: 18,
     currentParticipants: 11,
-    participants: [mockParticipants[0], mockParticipants[3]],
+    participants: [mockParticipants[7], mockParticipants[11]],
     category: 'Social',
     tags: ['walk', 'beer'],
     recurrence: 'one-off',
