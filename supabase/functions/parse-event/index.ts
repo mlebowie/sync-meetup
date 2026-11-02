@@ -11,7 +11,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 const AI_API_URL =
   Deno.env.get('AI_API_URL') ?? 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
 const AI_API_KEY = Deno.env.get('AI_API_KEY');
-const AI_MODEL = Deno.env.get('AI_MODEL') ?? 'gemini-2.5-flash';
+const AI_MODEL = Deno.env.get('AI_MODEL') ?? 'gemini-3.5-flash-lite';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 

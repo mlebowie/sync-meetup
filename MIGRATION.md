@@ -53,7 +53,7 @@ OpenAI-compatible chat endpoint for labelling. It reads these secrets:
 - `FIRECRAWL_API_KEY`: your key from firecrawl.dev
 - `AI_API_KEY`: key for the AI service
 - `AI_API_URL` (optional): defaults to Google Gemini's OpenAI-compatible endpoint; e.g. `https://api.openai.com/v1/chat/completions` for OpenAI
-- `AI_MODEL` (optional): defaults to `gemini-2.5-flash`
+- `AI_MODEL` (optional): defaults to `gemini-3.5-flash-lite`
 
 ```bash
 supabase secrets set FIRECRAWL_API_KEY=... AI_API_KEY=...
