@@ -96,3 +96,15 @@ Collection stopped at the end of September because scheduling was left off durin
 ## 11. Partner events (Expat Girls Porto and others)
 On `/curate`, choose **Add partner event**, pick the partner, paste their caption, message or email and the registration link, then **Read details**. Check the draft and either **Add to Waiting** or **Publish now**. Partner events carry the SYNC Partner badge.
 To give a regular partner its own option, add it to `PARTNERS` in `src/components/AddPartnerEventDialog.tsx`.
+
+## 12. Themed searches and location filter (Nov 2026)
+Besides the daily general run, the collector searches three themes on Mondays and Thursdays:
+**sports** (padel, tennis, pickleball and other court sports), **languages** (language exchanges, cafés, tandems)
+and **outdoors** (guided walks, walking tours, hikes and day trips leaving from Porto) on Meetup, Eventbrite and Lu.ma.
+
+Only in-person events in Greater Porto (Porto, Gaia, Matosinhos, Maia, Gondomar, Valongo, Póvoa, Vila do Conde, Espinho)
+are kept, plus trips that depart from Porto. Online-only events and events in Lisbon or other cities are skipped.
+
+Run one theme by hand: `select public.run_event_collector('meetup', 'sports');`
+(themes: `general`, `sports`, `languages`, `outdoors`). Search terms live in `THEMED_PAGES` and `LUMA_QUERIES`
+in `supabase/functions/scrape-events/index.ts`.

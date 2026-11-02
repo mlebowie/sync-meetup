@@ -165,9 +165,21 @@ const CuratePage = () => {
               ? `${email} doesn't have curation access yet.`
               : 'Sign in with the account that has curation access to review new events.'}
           </p>
-          <Button asChild variant="outline">
-            <Link to="/">Back to the feed</Link>
-          </Button>
+          <div className="flex flex-wrap justify-center gap-2">
+            <Button
+              onClick={() =>
+                supabase.auth.signInWithOAuth({
+                  provider: 'google',
+                  options: { redirectTo: `${window.location.origin}/curate` },
+                })
+              }
+            >
+              {email ? 'Switch Google account' : 'Sign in with Google'}
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/">Back to the feed</Link>
+            </Button>
+          </div>
         </div>
       </div>
     );

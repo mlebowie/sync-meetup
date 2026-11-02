@@ -47,8 +47,11 @@ $$;
 
 REVOKE EXECUTE ON FUNCTION public.run_event_collector(text) FROM PUBLIC, anon, authenticated;
 
--- Remove earlier versions of these jobs so the migration can be re-run safely.
+-- Remove earlier versions of these jobs so the migration can be re-run safely,
+-- plus any older schedule that called the collector directly (e.g. from 30 Sept).
 SELECT cron.unschedule(jobname) FROM cron.job WHERE jobname LIKE 'sync-collect-%';
+SELECT cron.unschedule(jobid) FROM cron.job
+WHERE command ILIKE '%scrape-events%' AND coalesce(jobname, '') NOT LIKE 'sync-collect-%';
 
 -- Times are UTC (05:00 UTC = 05:00 Lisbon in winter, 06:00 in summer).
 SELECT cron.schedule('sync-collect-luma',              '0 5 * * *',  $$SELECT public.run_event_collector('luma')$$);
