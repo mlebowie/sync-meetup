@@ -1,6 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Event, Participant, GroupSize, Recurrence } from '@/types/event';
 import { toVibe } from '@/lib/vibe';
+import { normalizeCategory } from '@/lib/categories';
 import { mockParticipants, mockWomenParticipantIds } from '@/data/mockData';
 
 export interface EventRow {
@@ -103,7 +104,7 @@ export function rowToEvent(row: EventRow): Event {
     maxParticipants: capacity,
     currentParticipants: attendees,
     participants: facesFor(row.id, row.women_only ?? false),
-    category: row.category || 'Social',
+    category: normalizeCategory(row.category, row.title),
     tags: visibleTags.length ? visibleTags : [row.category || 'social'],
     partner: (row.tags ?? []).includes('sync-partner'),
     featured: (row.tags ?? []).includes('featured'),
