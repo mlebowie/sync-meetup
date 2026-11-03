@@ -13,6 +13,7 @@ import AttendConfirmationDialog from './AttendConfirmationDialog';
 import CancelRegistrationDialog from './CancelRegistrationDialog';
 import WaitlistDialog from './WaitlistDialog';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
+import { vibeMeta } from '@/lib/vibe';
 import { useWishlist } from '@/context/WishlistContext';
 import { useAttending } from '@/context/AttendingContext';
 import { useSocial } from '@/context/SocialContext';
@@ -54,18 +55,6 @@ export const sourceLabels: Record<string, string> = {
   partner: 'Partner',
 };
 
-const activityColors = {
-  low: 'bg-activity-low text-vivid-foreground',
-  moderate: 'bg-activity-moderate text-vivid-ink',
-  high: 'bg-activity-high text-vivid-foreground',
-};
-
-
-const intensityLabels = {
-  chill: '😌 Chill',
-  social: '💬 Social',
-  energetic: '⚡ Energetic',
-};
 
 const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest = false }: EventCardProps) => {
   const navigate = useNavigate();
@@ -183,14 +172,14 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
           </span>
         </div>
 
-        {/* Activity & Intensity badges */}
+        {/* Vibe badge */}
         <div className="absolute bottom-3 left-3 flex items-center gap-2 flex-wrap">
-          <span className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium ${activityColors[event.activityLevel]}`}>
-            <span className="w-1.5 h-1.5 rounded-full bg-current opacity-80" />
-            {event.activityLevel.charAt(0).toUpperCase() + event.activityLevel.slice(1)}
-          </span>
-          <span className="px-2 py-1 rounded-md text-xs font-medium bg-card/95 text-card-foreground">
-            {intensityLabels[event.intensity]}
+          <span
+            title={vibeMeta(event.vibe).description}
+            className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium ${vibeMeta(event.vibe).color}`}
+          >
+            <span aria-hidden>{vibeMeta(event.vibe).emoji}</span>
+            {vibeMeta(event.vibe).label}
           </span>
           {event.womenOnly && (
             <span className="px-2 py-1 rounded-md text-xs font-medium bg-pink-700 text-pink-50">Women only</span>

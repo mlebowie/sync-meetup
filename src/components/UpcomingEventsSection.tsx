@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Event, Participant, ActivityLevel, Intensity, GroupSize } from '@/types/event';
+import { Event, Participant, Vibe, GroupSize } from '@/types/event';
+import { VIBES } from '@/lib/vibe';
 import { CITY_NEIGHBORHOODS } from '@/lib/onboardingData';
 import { ONBOARDING_INTERESTS, getInterestKeywords, UserProfile } from '@/lib/userProfile';
 import ExpandableEventGrid from './ExpandableEventGrid';
@@ -12,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { TypeaheadSelect } from './TypeaheadSelect';
 import { useSearch } from '@/context/SearchContext';
 import { searchEvents } from '@/lib/search';
-import { Clock, MapPin, Users, Activity, Zap, Ruler, Sparkles, CalendarRange, Heart, HelpCircle, Search, X } from 'lucide-react';
+import { Clock, MapPin, Users, Zap, Ruler, Sparkles, CalendarRange, Heart, HelpCircle, Search, X } from 'lucide-react';
 
 interface Props {
   events: Event[];
@@ -43,9 +44,6 @@ const timeWindows: { value: TimeWindow; label: string }[] = [
   { value: 'week', label: 'Next week' },
 ];
 
-const activityLevels: ActivityLevel[] = ['low', 'moderate', 'high'];
-const intensities: Intensity[] = ['chill', 'social', 'energetic'];
-
 // Group size slider: 0=Any, 1=Small, 2=Medium, 3=Large
 const groupSizeStops: { value: 0 | 1 | 2 | 3; label: string; size: GroupSize | null }[] = [
   { value: 0, label: 'Any', size: null },
@@ -60,8 +58,7 @@ const UpcomingEventsSection = ({ events, profile, onAttend, onParticipantClick, 
 
   const [timeWindow, setTimeWindow] = useState<TimeWindow>('any');
   const [neighborhood, setNeighborhood] = useState<string>('');
-  const [activityLevel, setActivityLevel] = useState<ActivityLevel[]>([]);
-  const [intensity, setIntensity] = useState<Intensity[]>([]);
+  const [vibe, setVibe] = useState<Vibe[]>([]);
   const [groupSizeIdx, setGroupSizeIdx] = useState<number>(0);
   const [ageRange, setAgeRange] = useState<[number, number]>([22, 45]);
   const [maxDistance, setMaxDistance] = useState<number>(15);
@@ -92,7 +89,7 @@ const UpcomingEventsSection = ({ events, profile, onAttend, onParticipantClick, 
     },
     {
       title: 'Choose how the room should feel',
-      body: 'Group size, activity level and intensity set the vibe. Chill coffee for 6, or a high-energy group run for 30 — pick what you actually want to walk into.',
+      body: 'Group size and vibe set how the room feels. A chill coffee for 6, or a lively rooftop for 60 — pick what you actually want to walk into.',
       ref: vibeRef,
     },
     {
@@ -108,7 +105,7 @@ const UpcomingEventsSection = ({ events, profile, onAttend, onParticipantClick, 
   ];
 
   const resetFilters = () => {
-    setTimeWindow('any'); setNeighborhood(''); setActivityLevel([]); setIntensity([]);
+    setTimeWindow('any'); setNeighborhood(''); setVibe([]);
     setGroupSizeIdx(0); setAgeRange([22, 45]); setMaxDistance(15);
     setInterests(profile.interests ?? []); setRecommendMode(false);
     setWomenOnly(false); setLgbtqFriendly(false); setPetFriendly(false);
@@ -143,8 +140,7 @@ const UpcomingEventsSection = ({ events, profile, onAttend, onParticipantClick, 
       const diff = e.date.getTime() - now;
       if (windowMs[timeWindow] !== Infinity && (diff < 0 || diff > windowMs[timeWindow])) return false;
       if (nbq && !e.location.toLowerCase().includes(nbq)) return false;
-      if (activityLevel.length > 0 && !activityLevel.includes(e.activityLevel)) return false;
-      if (intensity.length > 0 && !intensity.includes(e.intensity)) return false;
+      if (vibe.length > 0 && !vibe.includes(e.vibe)) return false;
       if (selectedSize && e.groupSize !== selectedSize) return false;
       const age = eventAvgAge(e.id);
       if (age < ageRange[0] || age > ageRange[1]) return false;
@@ -162,7 +158,7 @@ if (womenOnly && !e.womenOnly) return false;
 
     // Closest to the chosen neighborhood first.
     return [...list].sort((a, b) => eventDistance(a.id) - eventDistance(b.id));
-  }, [events, timeWindow, neighborhood, activityLevel, intensity, groupSizeIdx, ageRange, maxDistance, interests, recommendMode, profile.interests, womenOnly, lgbtqFriendly, petFriendly, query]);
+  }, [events, timeWindow, neighborhood, vibe, groupSizeIdx, ageRange, maxDistance, interests, recommendMode, profile.interests, womenOnly, lgbtqFriendly, petFriendly, query]);
 
   const pill = (active: boolean) =>
     `px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
@@ -244,7 +240,7 @@ if (womenOnly && !e.womenOnly) return false;
             </div>
           </div>
 
-          {/* Vibe: group size + activity + intensity */}
+          {/* How the room feels: group size + vibe */}
           <div ref={vibeRef} className="space-y-6 rounded-xl">
             {/* Group size slider */}
             <div>
@@ -268,33 +264,17 @@ if (womenOnly && !e.womenOnly) return false;
               </div>
             </div>
 
-            {/* Activity level */}
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <Activity className="h-4 w-4 text-primary" />
-                <span className="text-sm font-semibold">Preferred activity level</span>
-              </div>
-              <p className="text-xs text-muted-foreground mb-3">How physical it gets — sitting and talking, or moving the whole time.</p>
-              <div className="flex flex-wrap gap-2">
-                {activityLevels.map(a => (
-                  <button key={a} onClick={() => toggle(a, activityLevel, setActivityLevel)} className={pill(activityLevel.includes(a))}>
-                    {a.charAt(0).toUpperCase() + a.slice(1)}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Intensity */}
+            {/* Vibe */}
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <Zap className="h-4 w-4 text-accent-strong" />
-                <span className="text-sm font-semibold">Preferred intensity</span>
+                <span className="text-sm font-semibold">Preferred vibe</span>
               </div>
-              <p className="text-xs text-muted-foreground mb-3">The social energy in the room, from quiet and chill to loud and lively.</p>
+              <p className="text-xs text-muted-foreground mb-3">The social energy in the room, from relaxed and chill to loud and lively.</p>
               <div className="flex flex-wrap gap-2">
-                {intensities.map(i => (
-                  <button key={i} onClick={() => toggle(i, intensity, setIntensity)} className={pill(intensity.includes(i))}>
-                    {i.charAt(0).toUpperCase() + i.slice(1)}
+                {VIBES.map(v => (
+                  <button key={v.value} title={v.description} onClick={() => toggle(v.value, vibe, setVibe)} className={pill(vibe.includes(v.value))}>
+                    {v.emoji} {v.label}
                   </button>
                 ))}
               </div>

@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
-import { Event, Participant, ActivityLevel, Intensity, GroupSize, Recurrence } from '@/types/event';
+import { Event, Participant, GroupSize, Recurrence } from '@/types/event';
+import { toVibe } from '@/lib/vibe';
 import { mockParticipants, mockWomenParticipantIds } from '@/data/mockData';
 
 export interface EventRow {
@@ -22,8 +23,9 @@ export interface EventRow {
   capacity: number | null;
   recurrence: string | null;
   series_key: string | null;
-  activity_level: string | null;
-  intensity: string | null;
+  vibe?: string | null;
+  /** Legacy social-energy label, used only when vibe is missing. */
+  intensity?: string | null;
   group_size: string | null;
   women_only: boolean | null;
   lgbtq_friendly: boolean | null;
@@ -96,8 +98,7 @@ export function rowToEvent(row: EventRow): Event {
     location: row.location || row.venue_name || 'Porto, Portugal',
     imageUrl: row.image_url || FALLBACK_IMAGE,
     source,
-    activityLevel: (row.activity_level as ActivityLevel) ?? 'moderate',
-    intensity: (row.intensity as Intensity) ?? 'social',
+    vibe: toVibe(row.vibe ?? row.intensity),
     groupSize: (row.group_size as GroupSize) ?? 'medium',
     maxParticipants: capacity,
     currentParticipants: attendees,

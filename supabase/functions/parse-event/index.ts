@@ -145,8 +145,8 @@ Deno.serve(async (req) => {
             `Reply with JSON only:\n` +
             `{"title":string,"description":string,"date":"YYYY-MM-DD"|null,"start_time":"HH:MM"|null,"end_time":"HH:MM"|null,` +
             `"venue_name":string|null,"address":string|null,"price":string|null,"is_free":boolean|null,` +
-            `"category":one of ${JSON.stringify(CATEGORIES)},"activity_level":"low"|"moderate"|"high",` +
-            `"intensity":"chill"|"social"|"energetic","group_size":"small"|"medium"|"large",` +
+            `"category":one of ${JSON.stringify(CATEGORIES)},` +
+            `"vibe":"chill"|"social"|"lively" (social energy, not physical effort),"group_size":"small"|"medium"|"large",` +
             `"women_only":boolean,"language":string|null,"registration_url":string|null,"warnings":string[]}\n` +
             `Use "warnings" for anything the curator should double-check (missing date, ambiguous time, not in Porto, not in English).`,
         },
@@ -194,8 +194,7 @@ Deno.serve(async (req) => {
       location: text(raw.address, 300),
       price_label: price,
       category: oneOf(raw.category, CATEGORIES) ?? 'Social networking',
-      activity_level: oneOf(raw.activity_level, ['low', 'moderate', 'high']) ?? 'moderate',
-      intensity: oneOf(raw.intensity, ['chill', 'social', 'energetic']) ?? 'social',
+      vibe: oneOf(raw.vibe, ['chill', 'social', 'lively']) ?? 'social',
       group_size: oneOf(raw.group_size, ['small', 'medium', 'large']) ?? 'small',
       women_only: raw.women_only === true,
       language: text(raw.language, 40),

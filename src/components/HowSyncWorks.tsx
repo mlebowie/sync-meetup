@@ -11,7 +11,7 @@ const STEPS = [
     icon: SlidersHorizontal,
     step: 'Step 2',
     title: 'Register for the right event',
-    body: 'Filter by activity level, social intensity, age range, recurring series, and inclusivity — pet-friendly, LGBTQI+ friendly, women only.',
+    body: 'Filter by vibe (chill, social or lively), age range, recurring series, and inclusivity — pet-friendly, LGBTQI+ friendly, women only.',
   },
   {
     icon: MessagesSquare,
