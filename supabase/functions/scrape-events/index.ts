@@ -452,8 +452,9 @@ function withListedClock(verified: { date: Date; dateOnly: boolean }, raw: RawEv
 
 
 
-const HIGH = ['hike', 'run', 'running', 'trail', 'surf', 'football', 'padel', 'climb', 'bike', 'cycling', 'crossfit', 'swim', 'dance', 'bootcamp', 'volleyball', 'tennis', 'pickleball', 'squash', 'kayak'];
-const LOW = ['language exchange', 'book', 'coffee', 'wine', 'tasting', 'talk', 'workshop', 'meditation', 'board game', 'brunch', 'film', 'cinema', 'museum', 'conference'];
+/** Vibe = the social energy of the room, not physical effort. Anything unmatched is "social". */
+const LIVELY = ['party', 'rave', 'club night', 'nightlife', 'dj', 'festival', 'karaoke', 'concert', 'live music', 'pub crawl', 'rooftop', 'dance', 'salsa', 'bachata', 'football', 'pickup', 'tournament', 'bootcamp'];
+const CHILL = ['meditation', 'sound bath', 'breathwork', 'yoga', 'book', 'reading', 'film', 'cinema', 'screening', 'museum', 'gallery', 'exhibition', 'comedy', 'talk', 'lecture', 'conference', 'guided walk', 'walking tour', 'tasting', 'sketch', 'pottery'];
 
 /** SYNC interest labels — event cards and interest filters both rely on these. */
 const CATEGORY_RULES: [RegExp, string][] = [
@@ -530,12 +531,11 @@ function agendaFlags(raw: RawEvent, source?: SourceId): Record<string, boolean> 
 
 function keywordDerive(raw: RawEvent) {
   const text = `${raw.title ?? ''} ${raw.description ?? ''} ${raw.category ?? ''}`.toLowerCase();
-  const high = HIGH.some((k) => text.includes(k));
-  const low = !high && LOW.some((k) => text.includes(k));
+  const lively = LIVELY.some((k) => text.includes(k));
+  const chill = !lively && CHILL.some((k) => text.includes(k));
   const attendees = raw.attendees ?? 0;
   return {
-    activity_level: high ? 'high' : low ? 'low' : 'moderate',
-    intensity: high ? 'energetic' : low ? 'chill' : 'social',
+    vibe: lively ? 'lively' : chill ? 'chill' : 'social',
     group_size: attendees > 60 ? 'large' : attendees > 20 ? 'medium' : 'small',
     women_only: /women only|women-only|ladies only|só para mulheres/.test(text),
     lgbtq_friendly: /lgbt|queer|pride/.test(text),
@@ -577,9 +577,10 @@ async function classifyPending(supabase: ReturnType<typeof createClient>) {
         {
           role: 'system',
           content:
-            'You label social events for a meet-people app. For each event return activity_level (low|moderate|high), ' +
-            'intensity (chill|social|energetic) and group_size (small|medium|large). ' +
-            'Reply with JSON only: {"labels":[{"id":"...","activity_level":"...","intensity":"...","group_size":"..."}]}',
+            'You label social events for a meet-people app. For each event return vibe and group_size (small|medium|large). ' +
+            'Vibe is the social energy of the room, not physical effort: chill = relaxed, low-pressure, fine to attend alone and observe; ' +
+            'social = built around conversation and mingling, still easygoing; lively = loud and high energy, crowds, music, momentum. ' +
+            'Reply with JSON only: {"labels":[{"id":"...","vibe":"chill|social|lively","group_size":"..."}]}',
         },
         {
           role: 'user',
@@ -616,8 +617,7 @@ async function classifyPending(supabase: ReturnType<typeof createClient>) {
   for (const label of labels) {
     if (!label?.id) continue;
     const patch: Record<string, unknown> = { classified: true };
-    if (['low', 'moderate', 'high'].includes(label.activity_level)) patch.activity_level = label.activity_level;
-    if (['chill', 'social', 'energetic'].includes(label.intensity)) patch.intensity = label.intensity;
+    if (['chill', 'social', 'lively'].includes(label.vibe)) patch.vibe = label.vibe;
     if (['small', 'medium', 'large'].includes(label.group_size)) patch.group_size = label.group_size;
     const { error } = await supabase.from('events').update(patch).eq('id', label.id);
     if (!error) updated++;

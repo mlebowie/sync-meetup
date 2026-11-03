@@ -92,6 +92,7 @@ export type Database = {
           time_label: string | null
           title: string
           updated_at: string
+          vibe: string
           venue_name: string | null
           women_only: boolean
         }
@@ -130,6 +131,7 @@ export type Database = {
           time_label?: string | null
           title: string
           updated_at?: string
+          vibe?: string
           venue_name?: string | null
           women_only?: boolean
         }
@@ -168,6 +170,7 @@ export type Database = {
           time_label?: string | null
           title?: string
           updated_at?: string
+          vibe?: string
           venue_name?: string | null
           women_only?: boolean
         }

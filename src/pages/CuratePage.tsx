@@ -34,8 +34,7 @@ interface Row {
   organizer_name: string | null;
   category: string | null;
   price_label: string | null;
-  activity_level: string | null;
-  intensity: string | null;
+  vibe: string | null;
   group_size: string | null;
   review_status: ReviewStatus;
   tags: string[] | null;
@@ -52,8 +51,7 @@ const SOURCE_LABELS: Record<string, string> = {
   partner: 'Partner',
 };
 
-const ACTIVITY = ['low', 'moderate', 'high'];
-const INTENSITY = ['chill', 'social', 'energetic'];
+const VIBE = ['chill', 'social', 'lively'];
 const GROUP = ['small', 'medium', 'large'];
 
 const dayLabel = (iso: string) =>
@@ -210,8 +208,7 @@ const CuratePage = () => {
       title: draft.title,
       description: draft.description,
       category: draft.category,
-      activity_level: draft.activity_level,
-      intensity: draft.intensity,
+      vibe: draft.vibe,
       group_size: draft.group_size,
       image_url: draft.image_url?.trim() ? draft.image_url.trim() : null,
     };
@@ -387,7 +384,7 @@ const CuratePage = () => {
                             onChange={(e) => setDraft((d) => ({ ...d, image_url: e.target.value }))}
                             placeholder="Cover image link (https://…)"
                           />
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                             <Input
                               value={draft.category ?? ''}
                               onChange={(e) => setDraft((d) => ({ ...d, category: e.target.value }))}
@@ -395,8 +392,7 @@ const CuratePage = () => {
                             />
                             {(
                               [
-                                ['activity_level', ACTIVITY],
-                                ['intensity', INTENSITY],
+                                ['vibe', VIBE],
                                 ['group_size', GROUP],
                               ] as const
                             ).map(([field, options]) => (
@@ -441,7 +437,7 @@ const CuratePage = () => {
                               .join(' · ')}
                           </p>
                           <div className="flex flex-wrap gap-1.5 text-xs">
-                            {[row.category, row.activity_level, row.intensity, row.group_size]
+                            {[row.category, row.vibe, row.group_size]
                               .filter(Boolean)
                               .map((t) => (
                                 <Badge key={t as string} variant="outline">

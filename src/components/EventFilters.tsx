@@ -1,23 +1,12 @@
 import { Button } from '@/components/ui/button';
-import { FilterState, ActivityLevel, Intensity, GroupSize } from '@/types/event';
-import { Zap, Users, Activity, MapPin, Heart } from 'lucide-react';
+import { FilterState, Vibe, GroupSize } from '@/types/event';
+import { Zap, Users, MapPin, Heart } from 'lucide-react';
+import { VIBES } from '@/lib/vibe';
 
 interface EventFiltersProps {
   filters: FilterState;
   onFiltersChange: (filters: FilterState) => void;
 }
-
-const activityLevels: { value: ActivityLevel; label: string; color: string }[] = [
-  { value: 'low', label: 'Low', color: 'bg-activity-low' },
-  { value: 'moderate', label: 'Moderate', color: 'bg-activity-moderate' },
-  { value: 'high', label: 'High', color: 'bg-activity-high' },
-];
-
-const intensities: { value: Intensity; label: string; color: string }[] = [
-  { value: 'chill', label: 'Chill', color: 'bg-intensity-chill' },
-  { value: 'social', label: 'Social', color: 'bg-intensity-social' },
-  { value: 'energetic', label: 'Energetic', color: 'bg-intensity-energetic' },
-];
 
 const groupSizes: { value: GroupSize; label: string; range: string }[] = [
   { value: 'small', label: 'Small', range: '2-12' },
@@ -30,18 +19,11 @@ const locations: { value: string; label: string }[] = [
 ];
 
 const EventFilters = ({ filters, onFiltersChange }: EventFiltersProps) => {
-  const toggleActivityLevel = (value: ActivityLevel) => {
-    const newValues = filters.activityLevel.includes(value)
-      ? filters.activityLevel.filter(v => v !== value)
-      : [...filters.activityLevel, value];
-    onFiltersChange({ ...filters, activityLevel: newValues });
-  };
-
-  const toggleIntensity = (value: Intensity) => {
-    const newValues = filters.intensity.includes(value)
-      ? filters.intensity.filter(v => v !== value)
-      : [...filters.intensity, value];
-    onFiltersChange({ ...filters, intensity: newValues });
+  const toggleVibe = (value: Vibe) => {
+    const newValues = filters.vibe.includes(value)
+      ? filters.vibe.filter(v => v !== value)
+      : [...filters.vibe, value];
+    onFiltersChange({ ...filters, vibe: newValues });
   };
 
   const toggleGroupSize = (value: GroupSize) => {
@@ -65,48 +47,26 @@ const EventFilters = ({ filters, onFiltersChange }: EventFiltersProps) => {
   return (
     <div className="bg-card rounded-2xl shadow-card p-5">
       <div className="grid grid-cols-1 gap-5">
-        {/* Activity Level */}
+        {/* Vibe */}
         <div>
-          <div className="flex items-center gap-2 mb-3">
-            <Activity className="h-4 w-4 text-primary" />
-            <span className="text-sm font-semibold text-foreground">Activity Level</span>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {activityLevels.map(({ value, label, color }) => (
-              <button
-                key={value}
-                onClick={() => toggleActivityLevel(value)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-                  filters.activityLevel.includes(value)
-                    ? 'bg-primary text-primary-foreground shadow-button'
-                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                }`}
-              >
-                <span className={`w-2 h-2 rounded-full ${color}`} />
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Intensity */}
-        <div>
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-2 mb-1">
             <Zap className="h-4 w-4 text-accent-strong" />
-            <span className="text-sm font-semibold text-foreground">Intensity</span>
+            <span className="text-sm font-semibold text-foreground">Vibe</span>
           </div>
+          <p className="text-xs text-muted-foreground mb-3">The social energy in the room.</p>
           <div className="flex flex-wrap gap-2">
-            {intensities.map(({ value, label, color }) => (
+            {VIBES.map(({ value, label, emoji, description }) => (
               <button
                 key={value}
-                onClick={() => toggleIntensity(value)}
+                title={description}
+                onClick={() => toggleVibe(value)}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-                  filters.intensity.includes(value)
+                  filters.vibe.includes(value)
                     ? 'bg-primary text-primary-foreground shadow-button'
                     : 'bg-muted text-muted-foreground hover:bg-muted/80'
                 }`}
               >
-                <span className={`w-2 h-2 rounded-full ${color}`} />
+                <span aria-hidden>{emoji}</span>
                 {label}
               </button>
             ))}

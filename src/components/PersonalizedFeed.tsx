@@ -30,13 +30,13 @@ const SOON_OFFSETS = [20, 90, 240, 600, 1200, 1400, 1500, 1600, 1700, 1800, 1900
 const socialStyleScore = (event: Event, profile: UserProfile): number => {
   switch (profile.socialStyle) {
     case 'weekend-explorer':
-      return (event.intensity === 'energetic' ? 4 : 0) + (event.groupSize !== 'small' ? 2 : 0) + (event.recurrence === 'one-off' ? 1 : 0);
+      return (event.vibe === 'lively' ? 4 : 0) + (event.groupSize !== 'small' ? 2 : 0) + (event.recurrence === 'one-off' ? 1 : 0);
     case 'community-builder':
-      return (event.recurrence && event.recurrence !== 'one-off' ? 4 : 0) + (event.intensity === 'social' ? 2 : 0);
+      return (event.recurrence && event.recurrence !== 'one-off' ? 4 : 0) + (event.vibe === 'social' ? 2 : 0);
     case 'selective-socialiser':
-      return (event.groupSize === 'small' ? 4 : 0) + (event.intensity === 'chill' ? 2 : 0);
+      return (event.groupSize === 'small' ? 4 : 0) + (event.vibe === 'chill' ? 2 : 0);
     case 'new-in-town-nomad':
-      return (event.intensity === 'social' ? 3 : 0) + (event.groupSize === 'medium' ? 2 : 0) + (event.category.toLowerCase().includes('social') ? 2 : 0);
+      return (event.vibe === 'social' ? 3 : 0) + (event.groupSize === 'medium' ? 2 : 0) + (event.category.toLowerCase().includes('social') ? 2 : 0);
     default:
       return 0;
   }

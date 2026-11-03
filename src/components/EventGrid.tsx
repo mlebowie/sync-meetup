@@ -15,15 +15,8 @@ const EventGrid = ({ events, filters, onAttend, onParticipantClick, onOpenGroupC
   const { following } = useSocial();
   const filteredEvents = useMemo(() => {
     return events.filter(event => {
-      // Filter by activity level
-      if (filters.activityLevel.length > 0 && 
-          !filters.activityLevel.includes(event.activityLevel)) {
-        return false;
-      }
-
-      // Filter by intensity
-      if (filters.intensity.length > 0 && 
-          !filters.intensity.includes(event.intensity)) {
+      // Filter by vibe (social energy)
+      if (filters.vibe.length > 0 && !filters.vibe.includes(event.vibe)) {
         return false;
       }
 

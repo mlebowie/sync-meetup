@@ -67,15 +67,10 @@ export default {
           foreground: "hsl(var(--event-card-foreground))",
         },
 
-        activity: {
-          low: "hsl(var(--activity-low))",
-          moderate: "hsl(var(--activity-moderate))",
-          high: "hsl(var(--activity-high))",
-        },
-        intensity: {
-          chill: "hsl(var(--intensity-chill))",
-          social: "hsl(var(--intensity-social))",
-          energetic: "hsl(var(--intensity-energetic))",
+        vibe: {
+          chill: "hsl(var(--vibe-chill))",
+          social: "hsl(var(--vibe-social))",
+          lively: "hsl(var(--vibe-lively))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",

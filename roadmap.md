@@ -27,7 +27,7 @@
 
 ## Real events from Eventbrite, Meetup & Lu.ma
 - [x] Firecrawl-based collector edge function (`scrape-events`)
-- [x] `events` + `event_scrape_runs` tables, AI labelling of activity/intensity/group size
+- [x] `events` + `event_scrape_runs` tables, AI labelling of vibe/group size (activity level + intensity merged into one Vibe field, Nov 2026)
 - [x] Daily automatic refresh (05:20 UTC), keeps yesterday's events if a refresh fails
 - [x] Homefeed, search, carousels, calendar and notifications read real events
 - [x] "View on Eventbrite/Meetup/Lu.ma" link in the event preview

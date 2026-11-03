@@ -5,24 +5,13 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { interests } from '@/data/mockData';
-import { FilterState, ActivityLevel, Intensity, GroupSize } from '@/types/event';
+import { FilterState, Vibe, GroupSize } from '@/types/event';
+import { VIBES } from '@/lib/vibe';
 import { Sparkles } from 'lucide-react';
 
 interface IntakeFormProps {
   onSubmit: (filters: FilterState, interestIds: string[]) => void;
 }
-
-const activityLevels: { value: ActivityLevel; label: string }[] = [
-  { value: 'low', label: 'Low' },
-  { value: 'moderate', label: 'Moderate' },
-  { value: 'high', label: 'High' },
-];
-
-const intensities: { value: Intensity; label: string }[] = [
-  { value: 'chill', label: 'Chill' },
-  { value: 'social', label: 'Social' },
-  { value: 'energetic', label: 'Energetic' },
-];
 
 const groupSizeMap: GroupSize[] = ['small', 'medium', 'large'];
 const groupSizeLabels = ['Small (2-12)', 'Medium (12-25)', 'Large (25+)'];
@@ -33,8 +22,7 @@ const IntakeForm = ({ onSubmit }: IntakeFormProps) => {
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [neighborhood, setNeighborhood] = useState('');
   const [distance, setDistance] = useState('');
-  const [activityLevel, setActivityLevel] = useState<ActivityLevel[]>([]);
-  const [intensity, setIntensity] = useState<Intensity[]>([]);
+  const [vibe, setVibe] = useState<Vibe[]>([]);
   const [groupSizeIdx, setGroupSizeIdx] = useState<number[]>([1]);
 
   const toggle = <T,>(arr: T[], val: T, setter: (v: T[]) => void) => {
@@ -48,8 +36,7 @@ const IntakeForm = ({ onSubmit }: IntakeFormProps) => {
     e.preventDefault();
     onSubmit(
       {
-        activityLevel,
-        intensity,
+        vibe,
         groupSize: [groupSizeMap[groupSizeIdx[0]]],
         interests: selectedInterests,
         location: [],
@@ -130,41 +117,23 @@ const IntakeForm = ({ onSubmit }: IntakeFormProps) => {
             </div>
           </div>
 
-          {/* Activity Level */}
+          {/* Vibe */}
           <div>
-            <Label className="text-sm font-semibold text-foreground mb-3 block">
-              Preferred activity level
+            <Label className="text-sm font-semibold text-foreground mb-1 block">
+              Preferred vibe
             </Label>
+            <p className="text-xs text-muted-foreground mb-3">The social energy in the room, from relaxed to loud.</p>
             <div className="flex flex-wrap gap-2">
-              {activityLevels.map(({ value, label }) => (
+              {VIBES.map(({ value, label, emoji, description }) => (
                 <Button
                   key={value}
                   type="button"
-                  variant={activityLevel.includes(value) ? 'tagActive' : 'tag'}
+                  title={description}
+                  variant={vibe.includes(value) ? 'tagActive' : 'tag'}
                   size="tag"
-                  onClick={() => toggle(activityLevel, value, setActivityLevel)}
+                  onClick={() => toggle(vibe, value, setVibe)}
                 >
-                  {label}
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          {/* Intensity */}
-          <div>
-            <Label className="text-sm font-semibold text-foreground mb-3 block">
-              Preferred intensity
-            </Label>
-            <div className="flex flex-wrap gap-2">
-              {intensities.map(({ value, label }) => (
-                <Button
-                  key={value}
-                  type="button"
-                  variant={intensity.includes(value) ? 'tagActive' : 'tag'}
-                  size="tag"
-                  onClick={() => toggle(intensity, value, setIntensity)}
-                >
-                  {label}
+                  {emoji} {label}
                 </Button>
               ))}
             </div>

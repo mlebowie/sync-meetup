@@ -1,5 +1,5 @@
-export type ActivityLevel = 'low' | 'moderate' | 'high';
-export type Intensity = 'chill' | 'social' | 'energetic';
+/** The social energy of an event: chill → social → lively. */
+export type Vibe = 'chill' | 'social' | 'lively';
 export type GroupSize = 'small' | 'medium' | 'large';
 export type Recurrence = 'weekly' | 'biweekly' | 'monthly' | 'one-off';
 
@@ -82,8 +82,7 @@ export interface Event {
   location: string;
   imageUrl: string;
   source: 'meetup' | 'eventbrite' | 'luma' | 'agenda-porto' | 'porto-coffee-week' | 'expat-girls-porto' | 'partner';
-  activityLevel: ActivityLevel;
-  intensity: Intensity;
+  vibe: Vibe;
   groupSize: GroupSize;
   maxParticipants: number;
   currentParticipants: number;
@@ -120,8 +119,7 @@ export interface Interest {
 }
 
 export interface FilterState {
-  activityLevel: ActivityLevel[];
-  intensity: Intensity[];
+  vibe: Vibe[];
   groupSize: GroupSize[];
   interests: string[];
   location: string[];

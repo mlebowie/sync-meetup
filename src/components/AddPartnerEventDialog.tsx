@@ -42,8 +42,7 @@ interface Draft {
   location: string | null;
   price_label: string | null;
   category: string;
-  activity_level: string;
-  intensity: string;
+  vibe: string;
   group_size: string;
   women_only: boolean;
   registration_url: string | null;
@@ -138,8 +137,7 @@ const AddPartnerEventDialog = ({ onAdded }: Props) => {
       organizer_name: organizer,
       category: draft.category,
       price_label: draft.price_label,
-      activity_level: draft.activity_level,
-      intensity: draft.intensity,
+      vibe: draft.vibe,
       group_size: draft.group_size,
       women_only: draft.women_only || chosen.source === 'expat-girls-porto',
       tags: featured ? ['sync-partner', 'featured'] : ['sync-partner'],
