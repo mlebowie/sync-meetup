@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { lisbonToIso } from '@/lib/lisbonTime';
+import { EVENT_CATEGORIES } from '@/lib/categories';
 import { AlertTriangle, Loader2, Plus, Sparkles } from 'lucide-react';
 
 /** Partners whose events are pasted in by hand. Add new partners here. */
@@ -26,11 +27,7 @@ const PARTNERS: { value: string; label: string; source: 'expat-girls-porto' | 'p
   { value: 'other', label: 'Other partner…', source: 'partner' },
 ];
 
-const CATEGORIES = [
-  'Sports', 'Health & fitness', 'Spirituality', 'Outdoors activities', 'Social networking',
-  'Cultural exchange', 'Languages', 'Professional development', 'Tech & AI', 'Music & live events',
-  'Arts & theatre', 'Dining & cooking', 'Education', 'Games', 'Charity & non-profit', 'Pop-up events',
-];
+const CATEGORIES = EVENT_CATEGORIES;
 
 interface Draft {
   title: string;

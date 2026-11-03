@@ -456,7 +456,7 @@ function withListedClock(verified: { date: Date; dateOnly: boolean }, raw: RawEv
 const LIVELY = ['party', 'rave', 'club night', 'nightlife', 'dj', 'festival', 'karaoke', 'concert', 'live music', 'pub crawl', 'rooftop', 'dance', 'salsa', 'bachata', 'football', 'pickup', 'tournament', 'bootcamp'];
 const CHILL = ['meditation', 'sound bath', 'breathwork', 'yoga', 'book', 'reading', 'film', 'cinema', 'screening', 'museum', 'gallery', 'exhibition', 'comedy', 'talk', 'lecture', 'conference', 'guided walk', 'walking tour', 'tasting', 'sketch', 'pottery'];
 
-/** SYNC interest labels — event cards and interest filters both rely on these. */
+/** SYNC interest labels — must match the onboarding interests (src/lib/userProfile.ts); src/test/categories.test.ts checks this. */
 const CATEGORY_RULES: [RegExp, string][] = [
   [/pop-?up/, 'Pop-up events'],
   [/chess|trivia|quiz|board game|boardgame|gaming|video game|poker|dungeons/, 'Games'],
@@ -464,7 +464,7 @@ const CATEGORY_RULES: [RegExp, string][] = [
   [/language exchange|language meetup|language caf[eé]|languages|tandem|polyglot|conversation (?:club|practice|exchange)|portuguese (?:class|practice|conversation)|english class|speak portuguese|intercambio/, 'Languages'],
   [/church|faith|bible|christian|muslim|mosque|synagogue|religio/, 'Religion'],
   [/tennis|padel|pickleball|squash|badminton|table tennis|ping[- ]?pong|football|soccer|futsal|basketball|volleyball|beach volley|run club|running club|jogging|marathon|\b5k\b|\b10k\b|bouldering|climbing|surf|skate|swimming|cycling|bike ride|martial arts|jiu-?jitsu|boxing|muay thai|rugby|golf|\bsports?\b/, 'Sports'],
-  [/yoga|pilates|barre|hyrox|crossfit|bootcamp|calisthenic|nutrition|gym|fitness|wellness|wellbeing|well-?being|ice bath|cold plunge|sauna|spa day/, 'Health & fitness'],
+  [/yoga|pilates|barre|hyrox|crossfit|bootcamp|calisthenic|nutrition|gym|fitness|wellness|wellbeing|well-?being|ice bath|cold plunge|sauna|spa day/, 'Health & wellness'],
   [/meditation|mindful|spiritual|reiki|astrolog|sound bath|sound healing|kirtan|tarot|retiro|retreat|chakra|kundalini|ecstatic dance|cacao|shamanic|breathwork|cuddle party/, 'Spirituality'],
   [/hike|hiking|trail|kayak|paddle ?board|nature walk|camping|outdoor|picnic|day trip|birdwatch|forest bathing|sunrise walk|sunset walk|caminhada|walking holiday|camino|guided walk|walking tour|walk(?:ing)? group|day trip|excursion|road trip|douro valley|guimar[aã]es|braga|aveiro|viana do castelo|ponte de lima|ger[eê]s|amarante|costa nova/, 'Outdoors activities'],
   [/ ai |artificial intelligence|machine learning|tech|developer|software|coding|data|cyber|security|blockchain|robotic/, 'Tech & AI'],

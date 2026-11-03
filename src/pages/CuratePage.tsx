@@ -15,6 +15,7 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select';
+import { EVENT_CATEGORIES, normalizeCategory } from '@/lib/categories';
 import AddPartnerEventDialog from '@/components/AddPartnerEventDialog';
 import { Check, X, Pencil, ExternalLink, RotateCcw, Clock, Loader2, Star, ImagePlus, Link2 } from 'lucide-react';
 
@@ -52,6 +53,7 @@ const SOURCE_LABELS: Record<string, string> = {
 };
 
 const VIBE = ['chill', 'social', 'lively'];
+
 const GROUP = ['small', 'medium', 'large'];
 
 const dayLabel = (iso: string) =>
@@ -385,11 +387,21 @@ const CuratePage = () => {
                             placeholder="Cover image link (https://…)"
                           />
                           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                            <Input
+                            <Select
                               value={draft.category ?? ''}
-                              onChange={(e) => setDraft((d) => ({ ...d, category: e.target.value }))}
-                              placeholder="Category"
-                            />
+                              onValueChange={(v) => setDraft((d) => ({ ...d, category: v }))}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Category" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {EVENT_CATEGORIES.map((c) => (
+                                  <SelectItem key={c} value={c}>
+                                    {c}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                             {(
                               [
                                 ['vibe', VIBE],
@@ -526,7 +538,7 @@ const CuratePage = () => {
                             variant="ghost"
                             onClick={() => {
                               setEditing(row.id);
-                              setDraft(row);
+                              setDraft({ ...row, category: normalizeCategory(row.category, row.title) });
                             }}
                           >
                             <Pencil className="h-4 w-4 mr-1" /> Edit

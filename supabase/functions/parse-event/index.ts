@@ -15,8 +15,9 @@ const AI_MODEL = Deno.env.get('AI_MODEL') ?? 'gemini-3.5-flash-lite';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
+/** Must match the onboarding interests (src/lib/userProfile.ts); src/test/categories.test.ts checks this. */
 const CATEGORIES = [
-  'Sports', 'Health & fitness', 'Spirituality', 'Outdoors activities', 'Social networking',
+  'Sports', 'Health & wellness', 'Spirituality', 'Religion', 'Outdoors activities', 'Social networking',
   'Cultural exchange', 'Languages', 'Professional development', 'Tech & AI', 'Music & live events',
   'Arts & theatre', 'Dining & cooking', 'Education', 'Games', 'Charity & non-profit', 'Pop-up events',
 ];

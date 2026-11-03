@@ -104,7 +104,11 @@ export const clearUserProfile = () => {
 };
 
 export const getInterestKeywords = (interestIds: string[]): string[] =>
-  interestIds.flatMap(id => ONBOARDING_INTERESTS.find(i => i.id === id)?.keywords ?? []);
+  interestIds.flatMap(id => {
+    const interest = ONBOARDING_INTERESTS.find(i => i.id === id);
+    // The label itself is the event category, so it always matches its own filter.
+    return interest ? [interest.label, ...interest.keywords] : [];
+  });
 
 export const calculateAge = (dateOfBirth: string): number => {
   const birth = new Date(dateOfBirth);
