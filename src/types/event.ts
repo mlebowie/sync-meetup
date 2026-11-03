@@ -106,6 +106,8 @@ export interface Event {
   live?: boolean;
   /** Listed by a SYNC partner organisation. */
   partner?: boolean;
+  /** Pinned to the Featured spotlight at the top of the feed. */
+  featured?: boolean;
   /** Price as shown on the source page, e.g. "Free" or "€12". */
   priceLabel?: string;
 }

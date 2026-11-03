@@ -74,7 +74,7 @@ export function rowToEvent(row: EventRow): Event {
   const h = hash(row.id);
   const soldOut = (row.tags ?? []).includes('sold-out');
   // Control tags change how the event behaves; they aren't shown as topics.
-  const visibleTags = (row.tags ?? []).filter(t => t !== 'sold-out' && t !== 'sync-partner');
+  const visibleTags = (row.tags ?? []).filter(t => t !== 'sold-out' && t !== 'sync-partner' && t !== 'featured');
   const capacity = Math.max(
     (row.attendee_count ?? 6 + (h % 22)) + 1,
     row.capacity ?? (row.attendee_count ?? 6 + (h % 22)) + 4 + (h % 14),
@@ -105,6 +105,7 @@ export function rowToEvent(row: EventRow): Event {
     category: row.category || 'Social',
     tags: visibleTags.length ? visibleTags : [row.category || 'social'],
     partner: (row.tags ?? []).includes('sync-partner'),
+    featured: (row.tags ?? []).includes('featured'),
     live: true,
     seriesId: row.series_key ?? undefined,
     recurrence: (row.recurrence as Recurrence) ?? 'one-off',

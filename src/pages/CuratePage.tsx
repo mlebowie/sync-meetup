@@ -16,7 +16,7 @@ import {
   SelectItem,
 } from '@/components/ui/select';
 import AddPartnerEventDialog from '@/components/AddPartnerEventDialog';
-import { Check, X, Pencil, ExternalLink, RotateCcw, Clock, Loader2 } from 'lucide-react';
+import { Check, X, Pencil, ExternalLink, RotateCcw, Clock, Loader2, Star } from 'lucide-react';
 
 type ReviewStatus = 'pending' | 'approved' | 'rejected';
 
@@ -38,6 +38,7 @@ interface Row {
   intensity: string | null;
   group_size: string | null;
   review_status: ReviewStatus;
+  tags: string[] | null;
   created_at: string;
 }
 
@@ -124,6 +125,23 @@ const CuratePage = () => {
             ? `${ids.length} event${ids.length > 1 ? 's' : ''} hidden`
             : 'Moved back to review',
     });
+  };
+
+  const toggleFeatured = async (row: Row) => {
+    const tags = row.tags ?? [];
+    const on = !tags.includes('featured');
+    const next = on
+      ? Array.from(new Set([...tags, 'featured', 'sync-partner']))
+      : tags.filter((t) => t !== 'featured');
+    setBusy(row.id);
+    const { error } = await supabase.from('events').update({ tags: next }).eq('id', row.id);
+    setBusy(null);
+    if (error) {
+      toast({ title: 'Update failed', description: error.message });
+      return;
+    }
+    setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, tags: next } : r)));
+    toast({ title: on ? 'Featured on SYNC' : 'No longer featured' });
   };
 
   const saveEdit = async (id: string) => {
@@ -395,6 +413,17 @@ const CuratePage = () => {
                             onClick={() => setStatus([row.id], 'pending')}
                           >
                             <RotateCcw className="h-4 w-4 mr-1" /> Back to review
+                          </Button>
+                        )}
+                        {tab !== 'rejected' && (
+                          <Button
+                            size="sm"
+                            variant={row.tags?.includes('featured') ? 'secondary' : 'ghost'}
+                            disabled={busy === row.id}
+                            onClick={() => toggleFeatured(row)}
+                          >
+                            <Star className="h-4 w-4 mr-1" />
+                            {row.tags?.includes('featured') ? 'Featured' : 'Feature'}
                           </Button>
                         )}
                         {!isEditing && (

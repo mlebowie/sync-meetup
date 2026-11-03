@@ -9,6 +9,7 @@ import { searchEvents } from '@/lib/search';
 import { Event, Participant } from '@/types/event';
 import EventCard from './EventCard';
 import PopularTrendingSection from './PopularTrendingSection';
+import FeaturedPartnerSection from './FeaturedPartnerSection';
 import { Users, Globe2, Sparkles, Clock, ArrowRight, Search, X } from 'lucide-react';
 
 interface Props {
@@ -79,6 +80,13 @@ const GuestLanding = ({ onAttend, onParticipantClick }: Props) => {
           </div>
         </div>
       </section>
+
+      {/* Featured partner events */}
+      <FeaturedPartnerSection
+        onAttend={onAttend}
+        onParticipantClick={onParticipantClick}
+        guest
+      />
 
       {/* Popular & Trending — one-time events */}
       <PopularTrendingSection

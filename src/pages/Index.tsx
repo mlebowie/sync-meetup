@@ -15,6 +15,7 @@ import RecommendedCarousel from '@/components/RecommendedCarousel';
 import FriendsLoveSection from '@/components/FriendsLoveSection';
 import UpcomingEventsSection from '@/components/UpcomingEventsSection';
 import PopularTrendingSection from '@/components/PopularTrendingSection';
+import FeaturedPartnerSection from '@/components/FeaturedPartnerSection';
 import { useEvents } from '@/context/EventsContext';
 import { Event, Participant } from '@/types/event';
 import { useToast } from '@/hooks/use-toast';
@@ -179,7 +180,14 @@ const Index = () => {
             </section>
           )}
 
-{/* 2) Recommended for you */}
+{/* Featured partner events, pinned from /curate */}
+          <FeaturedPartnerSection
+            onAttend={handleAttend}
+            onParticipantClick={handleParticipantClick}
+            onOpenGroupChat={handleOpenGroupChat}
+          />
+
+          {/* 2) Recommended for you */}
           <RecommendedCarousel
             profile={profile!}
             onAttend={handleAttend}
