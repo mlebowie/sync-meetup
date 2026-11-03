@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import {
   Dialog,
   DialogContent,
@@ -21,6 +22,7 @@ import { AlertTriangle, Loader2, Plus, Sparkles } from 'lucide-react';
 /** Partners whose events are pasted in by hand. Add new partners here. */
 const PARTNERS: { value: string; label: string; source: 'expat-girls-porto' | 'partner' }[] = [
   { value: 'expat-girls-porto', label: 'Expat Girls Porto', source: 'expat-girls-porto' },
+  { value: 'workin-matosinhos', label: 'SYNC × Workin Matosinhos', source: 'partner' },
   { value: 'other', label: 'Other partner…', source: 'partner' },
 ];
 
@@ -66,13 +68,18 @@ const AddPartnerEventDialog = ({ onAdded }: Props) => {
   const [busy, setBusy] = useState<'reading' | 'saving' | null>(null);
 
   const chosen = PARTNERS.find((p) => p.value === partner) ?? PARTNERS[0];
-  const organizer = chosen.source === 'partner' ? partnerName.trim() : chosen.label;
+  const isOther = chosen.value === 'other';
+  const organizer = isOther ? partnerName.trim() : chosen.label;
+  const [featured, setFeatured] = useState(false);
+  const [imageUrl, setImageUrl] = useState('');
 
   const reset = () => {
     setPasted('');
     setLink('');
     setDraft(null);
     setBusy(null);
+    setFeatured(false);
+    setImageUrl('');
   };
 
   const read = async () => {
@@ -106,7 +113,7 @@ const AddPartnerEventDialog = ({ onAdded }: Props) => {
       toast({ title: 'Add the registration link', description: 'It becomes the button people tap to sign up.' });
       return;
     }
-    if (chosen.source === 'partner' && !organizer) {
+    if (isOther && !organizer) {
       toast({ title: 'Name the partner', description: 'It is shown as the organiser on the event.' });
       return;
     }
@@ -123,6 +130,7 @@ const AddPartnerEventDialog = ({ onAdded }: Props) => {
       ends_at: draft.end_time ? lisbonToIso(draft.date, draft.end_time) : null,
       time_label: draft.end_time ? `${draft.start_time}–${draft.end_time}` : draft.start_time,
       venue_name: draft.venue_name,
+      image_url: /^https?:\/\//.test(imageUrl.trim()) ? imageUrl.trim() : null,
       location: draft.location ?? 'Porto',
       organizer_name: organizer,
       category: draft.category,
@@ -131,7 +139,7 @@ const AddPartnerEventDialog = ({ onAdded }: Props) => {
       intensity: draft.intensity,
       group_size: draft.group_size,
       women_only: draft.women_only || chosen.source === 'expat-girls-porto',
-      tags: ['sync-partner'],
+      tags: featured ? ['sync-partner', 'featured'] : ['sync-partner'],
       classified: true,
       review_status: status,
       reviewed_at: status === 'approved' ? new Date().toISOString() : null,
@@ -193,7 +201,7 @@ const AddPartnerEventDialog = ({ onAdded }: Props) => {
                   </SelectContent>
                 </Select>
               </div>
-              {chosen.source === 'partner' && (
+              {isOther && (
                 <div className="space-y-1.5">
                   <Label htmlFor="partner-name">Partner name</Label>
                   <Input
@@ -313,6 +321,23 @@ const AddPartnerEventDialog = ({ onAdded }: Props) => {
                 value={draft.registration_url ?? ''}
                 onChange={(e) => field('registration_url', e.target.value || null)}
               />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="image-url">Cover image link (optional)</Label>
+              <Input
+                id="image-url"
+                type="url"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                placeholder="https://… (right-click the event cover → Copy image address)"
+              />
+            </div>
+            <div className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
+              <div>
+                <Label htmlFor="featured">Feature on SYNC</Label>
+                <p className="text-xs text-muted-foreground">Pins it to the Featured spotlight at the top of the feed.</p>
+              </div>
+              <Switch id="featured" checked={featured} onCheckedChange={setFeatured} />
             </div>
             <div className="space-y-1.5">
               <Label>Description</Label>
