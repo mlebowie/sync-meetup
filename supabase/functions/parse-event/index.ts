@@ -24,6 +24,75 @@ const CATEGORIES = [
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
+/** True for hosts an admin could not mean to fetch (localhost, private ranges). */
+const isPrivateHost = (host: string) =>
+  /^(localhost|0\.0\.0\.0|127\.|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.|\[?::1\]?$|\[?f[cd])/i.test(host) ||
+  host.endsWith('.local') ||
+  host.endsWith('.internal');
+
+const decodeEntities = (s: string) =>
+  s.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&#x2F;/gi, '/');
+
+/**
+ * Finds the image a page shows in link previews (og:image, then twitter:image,
+ * then image_src). Returns null rather than failing: the photo is a nice-to-have.
+ */
+async function findShareImage(pageUrl: string): Promise<string | null> {
+  let url: URL;
+  try {
+    url = new URL(pageUrl);
+  } catch {
+    return null;
+  }
+  if (!/^https?:$/.test(url.protocol) || isPrivateHost(url.hostname)) return null;
+
+  try {
+    const res = await fetch(url.toString(), {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; SYNC-event-preview/1.0)',
+        Accept: 'text/html,application/xhtml+xml',
+      },
+      redirect: 'follow',
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok || !(res.headers.get('content-type') ?? '').includes('html')) return null;
+    // The share image lives in <head>, so the first 300 KB is plenty.
+    const html = (await res.text()).slice(0, 300_000);
+
+    const metaTags = html.match(/<meta\b[^>]*>/gi) ?? [];
+    const attr = (tag: string, name: string) =>
+      tag.match(new RegExp(`\\b${name}\\s*=\\s*(["'])(.*?)\\1`, 'i'))?.[2] ?? null;
+    const metaContent = (key: string) => {
+      for (const tag of metaTags) {
+        const k = attr(tag, 'property') ?? attr(tag, 'name');
+        if (k && k.toLowerCase() === key) {
+          const c = attr(tag, 'content');
+          if (c) return c;
+        }
+      }
+      return null;
+    };
+
+    const linkSrc = html.match(/<link\b[^>]*rel\s*=\s*["']image_src["'][^>]*>/i)?.[0];
+    const found =
+      metaContent('og:image:secure_url') ??
+      metaContent('og:image') ??
+      metaContent('og:image:url') ??
+      metaContent('twitter:image') ??
+      metaContent('twitter:image:src') ??
+      (linkSrc ? attr(linkSrc, 'href') : null);
+    if (!found) return null;
+
+    const image = new URL(decodeEntities(found.trim()), res.url || url.toString());
+    if (!/^https?:$/.test(image.protocol)) return null;
+    image.protocol = 'https:';
+    return image.toString();
+  } catch (e) {
+    console.warn(`parse-event: no share image for ${pageUrl}: ${(e as Error).message}`);
+    return null;
+  }
+}
+
 const oneOf = (v: unknown, options: string[]) => (typeof v === 'string' && options.includes(v) ? v : null);
 const text = (v: unknown, max: number) => (typeof v === 'string' && v.trim() ? v.trim().slice(0, max) : null);
 
@@ -40,12 +109,21 @@ Deno.serve(async (req) => {
     : { data: false };
   if (isAdmin !== true) return json({ error: 'Admins only' }, 403);
 
-  let body: { text?: string; url?: string; organizer?: string } = {};
+  let body: { text?: string; url?: string; organizer?: string; imageOnly?: boolean } = {};
   try {
     body = await req.json();
   } catch {
     return json({ error: 'Send JSON with a "text" field' }, 400);
   }
+  // Photo lookup only, for events already in SYNC (the Curate "Use photo from link" button).
+  if (body.imageOnly) {
+    if (!body.url) return json({ error: 'Send the event link' }, 400);
+    return json({ image_url: await findShareImage(body.url) });
+  }
+
+  // Start reading the link's share image while the AI drafts the event.
+  const imageLookup = body.url ? findShareImage(body.url) : Promise.resolve(null);
+
   const pasted = String(body.text ?? '').trim().slice(0, 8000);
   if (pasted.length < 10) return json({ error: 'Paste the event details first' }, 400);
 
@@ -103,6 +181,7 @@ Deno.serve(async (req) => {
     typeof raw.start_time === 'string' && /^\d{2}:\d{2}$/.test(raw.start_time) ? raw.start_time : null;
   const endTime = typeof raw.end_time === 'string' && /^\d{2}:\d{2}$/.test(raw.end_time) ? raw.end_time : null;
   const price = text(raw.price, 60) ?? (raw.is_free === true ? 'Free' : null);
+  const imageUrl = await imageLookup;
 
   return json({
     draft: {
@@ -121,6 +200,7 @@ Deno.serve(async (req) => {
       women_only: raw.women_only === true,
       language: text(raw.language, 40),
       registration_url: text(body.url, 500) ?? text(raw.registration_url, 500),
+      image_url: imageUrl,
       warnings: Array.isArray(raw.warnings) ? raw.warnings.map(String).slice(0, 6) : [],
     },
   });
