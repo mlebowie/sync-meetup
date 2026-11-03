@@ -47,6 +47,7 @@ interface Draft {
   group_size: string;
   women_only: boolean;
   registration_url: string | null;
+  image_url?: string | null;
   warnings: string[];
 }
 
@@ -99,7 +100,9 @@ const AddPartnerEventDialog = ({ onAdded }: Props) => {
       toast({ title: 'Could not read the event', description: message });
       return;
     }
-    setDraft(data.draft as Draft);
+    const next = data.draft as Draft;
+    setDraft(next);
+    if (next.image_url && !imageUrl.trim()) setImageUrl(next.image_url);
   };
 
   const save = async (status: 'pending' | 'approved') => {
@@ -323,13 +326,22 @@ const AddPartnerEventDialog = ({ onAdded }: Props) => {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="image-url">Cover image link (optional)</Label>
+              <Label htmlFor="image-url">Cover image</Label>
+              {/^https?:\/\//.test(imageUrl.trim()) && (
+                <img
+                  src={imageUrl.trim()}
+                  alt="Cover preview"
+                  className="h-32 w-full rounded-lg object-cover border border-border"
+                  onError={(e) => (e.currentTarget.style.display = 'none')}
+                  onLoad={(e) => (e.currentTarget.style.display = '')}
+                />
+              )}
               <Input
                 id="image-url"
                 type="url"
                 value={imageUrl}
                 onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="https://… (right-click the event cover → Copy image address)"
+                placeholder="Found from the link automatically, or paste an image address"
               />
             </div>
             <div className="flex items-center justify-between rounded-lg border border-border px-4 py-3">

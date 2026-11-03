@@ -16,7 +16,7 @@ import {
   SelectItem,
 } from '@/components/ui/select';
 import AddPartnerEventDialog from '@/components/AddPartnerEventDialog';
-import { Check, X, Pencil, ExternalLink, RotateCcw, Clock, Loader2, Star, ImagePlus } from 'lucide-react';
+import { Check, X, Pencil, ExternalLink, RotateCcw, Clock, Loader2, Star, ImagePlus, Link2 } from 'lucide-react';
 
 type ReviewStatus = 'pending' | 'approved' | 'rejected';
 
@@ -178,6 +178,30 @@ const CuratePage = () => {
     }
     setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, image_url: imageUrl } : r)));
     toast({ title: 'Photo added' });
+  };
+
+  const photoFromLink = async (row: Row) => {
+    setBusy(row.id);
+    const { data, error } = await supabase.functions.invoke('parse-event', {
+      body: { url: row.source_url, imageOnly: true },
+    });
+    const imageUrl: string | null = data?.image_url ?? null;
+    if (error || !imageUrl) {
+      setBusy(null);
+      toast({
+        title: 'No photo found on that page',
+        description: error ? error.message : 'Try Add photo to upload one instead.',
+      });
+      return;
+    }
+    const { error: saveError } = await supabase.from('events').update({ image_url: imageUrl }).eq('id', row.id);
+    setBusy(null);
+    if (saveError) {
+      toast({ title: 'Could not save the photo', description: saveError.message });
+      return;
+    }
+    setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, image_url: imageUrl } : r)));
+    toast({ title: 'Photo added from the event page' });
   };
 
   const saveEdit = async (id: string) => {
@@ -467,6 +491,16 @@ const CuratePage = () => {
                           >
                             <Star className="h-4 w-4 mr-1" />
                             {row.tags?.includes('featured') ? 'Featured' : 'Feature'}
+                          </Button>
+                        )}
+                        {!row.image_url && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            disabled={busy === row.id}
+                            onClick={() => photoFromLink(row)}
+                          >
+                            <Link2 className="h-4 w-4 mr-1" /> Use photo from link
                           </Button>
                         )}
                         <Button size="sm" variant="ghost" asChild disabled={busy === row.id}>
