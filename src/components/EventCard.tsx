@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Event, Participant } from '@/types/event';
-import { Calendar, MapPin, Users, Clock, ArrowRight, Check, MessageSquare, Repeat, Heart, TrendingUp, Hourglass, X, BadgeCheck, Star } from 'lucide-react';
+import { Calendar, MapPin, Users, Clock, ArrowRight, Check, MessageSquare, Repeat, Heart, TrendingUp, Hourglass, X, BadgeCheck } from 'lucide-react';
 import { format } from 'date-fns';
 import ParticipantAvatars from './ParticipantAvatars';
 import OrganizerPopover from './OrganizerPopover';
@@ -45,6 +45,9 @@ const sourceColors: Record<string, string> = {
 };
 
 /** Display names for each listing site. */
+/** Sources that never get their own pill (partner listings are labelled SYNC Partner). */
+const HIDDEN_SOURCES = new Set<string>(['partner', 'expat-girls-porto']);
+
 export const sourceLabels: Record<string, string> = {
   meetup: 'Meetup',
   eventbrite: 'Eventbrite',
@@ -150,30 +153,28 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
     >
       {/* Image / attendee photo carousel */}
       <EventPhotoCarousel eventId={event.id} fallbackUrl={event.imageUrl} alt={event.title}>
-        {/* Source badge */}
-        <div className="absolute top-3 left-3 flex items-center gap-2">
-          <span className={`px-2 py-1 rounded-md text-xs font-semibold ${sourceColors[event.source]}`}>
-            {sourceLabels[event.source] ?? event.source}
-          </span>
-          {event.partner && (
-            <span className="flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold bg-[#C1694F] text-white">
-              <BadgeCheck className="h-3 w-3" aria-hidden="true" />
-              SYNC Partner
+        {/* Top pills: one line only. Partner events show a single SYNC Partner pill
+            instead of their source; the category truncates if space runs out. */}
+        <div className="absolute top-3 left-3 right-14 flex items-center gap-2 flex-nowrap overflow-hidden">
+          {event.partner || HIDDEN_SOURCES.has(event.source) ? (
+            event.partner && (
+              <span className="shrink-0 whitespace-nowrap flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold bg-[#C1694F] text-white">
+                <BadgeCheck className="h-3 w-3" aria-hidden="true" />
+                SYNC Partner
+              </span>
+            )
+          ) : (
+            <span className={`shrink-0 whitespace-nowrap px-2 py-1 rounded-md text-xs font-semibold ${sourceColors[event.source]}`}>
+              {sourceLabels[event.source] ?? event.source}
             </span>
           )}
-          {event.featured && (
-            <span className="flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold bg-[#FCEBCA] text-[#7a3a26]">
-              <Star className="h-3 w-3" aria-hidden="true" />
-              Featured
-            </span>
-          )}
-          <span className="px-2 py-1 rounded-md text-xs font-medium bg-card/95 text-card-foreground">
+          <span className="min-w-0 truncate whitespace-nowrap px-2 py-1 rounded-md text-xs font-medium bg-card/95 text-card-foreground">
             {event.category}
           </span>
         </div>
 
         {/* Vibe badge */}
-        <div className="absolute bottom-3 left-3 flex items-center gap-2 flex-wrap">
+        <div className="absolute bottom-3 left-3 right-3 flex items-center gap-2 flex-nowrap overflow-hidden [&>span]:shrink-0 [&>span]:whitespace-nowrap">
           <span
             title={vibeMeta(event.vibe).description}
             className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium ${vibeMeta(event.vibe).color}`}

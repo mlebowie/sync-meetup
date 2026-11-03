@@ -27,7 +27,9 @@ const ExpandableEventGrid = ({
   const topRef = useRef<HTMLDivElement>(null);
   const [visibleCount, setVisibleCount] = useState(initialCount);
 
-  const shown = events.slice(0, visibleCount);
+  // Featured events lead every list they appear in (stable sort keeps the rest in order).
+  const ordered = [...events].sort((a, b) => Number(!!b.featured) - Number(!!a.featured));
+  const shown = ordered.slice(0, visibleCount);
   const remaining = Math.max(events.length - shown.length, 0);
   const isExpanded = visibleCount > initialCount;
   const hasMore = remaining > 0;
