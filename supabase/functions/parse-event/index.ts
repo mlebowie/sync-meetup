@@ -27,6 +27,34 @@ const json = (body: unknown, status = 200) =>
 const oneOf = (v: unknown, options: string[]) => (typeof v === 'string' && options.includes(v) ? v : null);
 const text = (v: unknown, max: number) => (typeof v === 'string' && v.trim() ? v.trim().slice(0, max) : null);
 
+/**
+ * The photo a page shows when its link is shared (og:image / twitter:image),
+ * or the first image in its schema.org event data. Null when none is found.
+ */
+async function sharePhoto(pageUrl: string | undefined): Promise<string | null> {
+  if (!pageUrl || !/^https?:\/\//.test(pageUrl)) return null;
+  try {
+    const res = await fetch(pageUrl, {
+      redirect: 'follow',
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; SYNC-event-reader)' },
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!res.ok) return null;
+    const html = (await res.text()).slice(0, 500_000);
+    const meta = (name: string) =>
+      html.match(new RegExp(`<meta[^>]+(?:property|name)=["']${name}["'][^>]*content=["']([^"']+)["']`, 'i'))?.[1] ??
+      html.match(new RegExp(`<meta[^>]+content=["']([^"']+)["'][^>]*(?:property|name)=["']${name}["']`, 'i'))?.[1];
+    const found =
+      meta('og:image:secure_url') ?? meta('og:image') ?? meta('twitter:image') ??
+      html.match(/"image"\s*:\s*(?:\[\s*)?"([^"]+)"/)?.[1];
+    if (!found) return null;
+    const url = new URL(found.replace(/&amp;/g, '&'), res.url || pageUrl).toString();
+    return url.startsWith('http') ? url.slice(0, 1000) : null;
+  } catch {
+    return null;
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   if (!AI_API_KEY) return json({ error: 'AI_API_KEY is not set for this project' }, 500);
@@ -50,6 +78,9 @@ Deno.serve(async (req) => {
   if (pasted.length < 10) return json({ error: 'Paste the event details first' }, 400);
 
   const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Lisbon' });
+
+  // Look for the event photo while the AI reads the text.
+  const photo = sharePhoto(body.url?.trim());
 
   const res = await fetch(AI_API_URL, {
     method: 'POST',
@@ -121,6 +152,7 @@ Deno.serve(async (req) => {
       women_only: raw.women_only === true,
       language: text(raw.language, 40),
       registration_url: text(body.url, 500) ?? text(raw.registration_url, 500),
+      image_url: await photo,
       warnings: Array.isArray(raw.warnings) ? raw.warnings.map(String).slice(0, 6) : [],
     },
   });

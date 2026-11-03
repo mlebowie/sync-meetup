@@ -153,6 +153,7 @@ const CuratePage = () => {
       activity_level: draft.activity_level,
       intensity: draft.intensity,
       group_size: draft.group_size,
+      image_url: draft.image_url?.startsWith('http') ? draft.image_url : null,
     };
     const { error } = await supabase.from('events').update(patch).eq('id', id);
     setBusy(null);
@@ -319,6 +320,12 @@ const CuratePage = () => {
                               setDraft((d) => ({ ...d, description: e.target.value }))
                             }
                             placeholder="Description"
+                          />
+                          <Input
+                            type="url"
+                            value={draft.image_url ?? ''}
+                            onChange={(e) => setDraft((d) => ({ ...d, image_url: e.target.value }))}
+                            placeholder="Photo link (https://…)"
                           />
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                             <Input
