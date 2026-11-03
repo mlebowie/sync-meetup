@@ -16,7 +16,7 @@ import {
   SelectItem,
 } from '@/components/ui/select';
 import AddPartnerEventDialog from '@/components/AddPartnerEventDialog';
-import { Check, X, Pencil, ExternalLink, RotateCcw, Clock, Loader2, Star } from 'lucide-react';
+import { Check, X, Pencil, ExternalLink, RotateCcw, Clock, Loader2, Star, ImagePlus } from 'lucide-react';
 
 type ReviewStatus = 'pending' | 'approved' | 'rejected';
 
@@ -144,6 +144,42 @@ const CuratePage = () => {
     toast({ title: on ? 'Featured on SYNC' : 'No longer featured' });
   };
 
+  const uploadPhoto = async (row: Row, file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast({ title: 'Choose an image file', description: 'JPG, PNG, WebP or GIF.' });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: 'That photo is over 5 MB', description: 'Try a smaller or compressed version.' });
+      return;
+    }
+    setBusy(row.id);
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    const path = `${row.id}/${Date.now()}.${ext}`;
+    const { error: uploadError } = await supabase.storage
+      .from('event-images')
+      .upload(path, file, { contentType: file.type, upsert: true });
+    if (uploadError) {
+      setBusy(null);
+      toast({
+        title: 'Could not upload the photo',
+        description: /bucket/i.test(uploadError.message)
+          ? 'The photo storage is not set up yet. Run the event images migration in Supabase first.'
+          : uploadError.message,
+      });
+      return;
+    }
+    const imageUrl = supabase.storage.from('event-images').getPublicUrl(path).data.publicUrl;
+    const { error } = await supabase.from('events').update({ image_url: imageUrl }).eq('id', row.id);
+    setBusy(null);
+    if (error) {
+      toast({ title: 'Could not save the photo', description: error.message });
+      return;
+    }
+    setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, image_url: imageUrl } : r)));
+    toast({ title: 'Photo added' });
+  };
+
   const saveEdit = async (id: string) => {
     setBusy(id);
     const patch = {
@@ -153,6 +189,7 @@ const CuratePage = () => {
       activity_level: draft.activity_level,
       intensity: draft.intensity,
       group_size: draft.group_size,
+      image_url: draft.image_url?.trim() ? draft.image_url.trim() : null,
     };
     const { error } = await supabase.from('events').update(patch).eq('id', id);
     setBusy(null);
@@ -320,6 +357,12 @@ const CuratePage = () => {
                             }
                             placeholder="Description"
                           />
+                          <Input
+                            type="url"
+                            value={draft.image_url ?? ''}
+                            onChange={(e) => setDraft((d) => ({ ...d, image_url: e.target.value }))}
+                            placeholder="Cover image link (https://…)"
+                          />
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                             <Input
                               value={draft.category ?? ''}
@@ -426,6 +469,27 @@ const CuratePage = () => {
                             {row.tags?.includes('featured') ? 'Featured' : 'Feature'}
                           </Button>
                         )}
+                        <Button size="sm" variant="ghost" asChild disabled={busy === row.id}>
+                          <label className="cursor-pointer">
+                            {busy === row.id ? (
+                              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                            ) : (
+                              <ImagePlus className="h-4 w-4 mr-1" />
+                            )}
+                            {row.image_url ? 'Change photo' : 'Add photo'}
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp,image/gif"
+                              className="sr-only"
+                              disabled={busy === row.id}
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                e.target.value = '';
+                                if (file) uploadPhoto(row, file);
+                              }}
+                            />
+                          </label>
+                        </Button>
                         {!isEditing && (
                           <Button
                             size="sm"
