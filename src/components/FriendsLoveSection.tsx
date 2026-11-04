@@ -5,7 +5,6 @@ import { useSocial } from '@/context/SocialContext';
 import { Event, Participant } from '@/types/event';
 import ExpandableEventGrid from './ExpandableEventGrid';
 import EventCarousel from './EventCarousel';
-import SectionFilterBar, { SectionFilters, defaultSectionFilters, applySectionFilters } from './SectionFilterBar';
 import { matchesInterests } from '@/lib/userProfile';
 import { Heart, Users } from 'lucide-react';
 
@@ -56,9 +55,9 @@ const FriendsLoveSection = ({ onAttend, onParticipantClick, onOpenGroupChat, int
     return pool.slice(0, 13).map((s, i) => withSampleDate(s.event, Date.now() + WEEK_OFFSETS[i % WEEK_OFFSETS.length]));
   }, [mockEvents, following, interests]);
 
-  const [filters, setFilters] = useState<SectionFilters>(defaultSectionFilters);
+  // Driven by people, not topics, so the feed's filter bar doesn't apply here.
   const [showAll, setShowAll] = useState(false);
-  const visible = useMemo(() => applySectionFilters(events, filters), [events, filters]);
+  const visible = events;
 
   if (events.length === 0) return null;
 
@@ -92,10 +91,8 @@ const FriendsLoveSection = ({ onAttend, onParticipantClick, onOpenGroupChat, int
           </button>
         </div>
 
-        <SectionFilterBar value={filters} onChange={setFilters} />
-
         {visible.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-8 text-center">No events match those filters yet.</p>
+          <p className="text-sm text-muted-foreground py-8 text-center">No events yet.</p>
         ) : showAll ? (
           <ExpandableEventGrid
             events={visible}
