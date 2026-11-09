@@ -26,6 +26,8 @@ interface EventCardProps {
   onParticipantClick?: (participant: Participant) => void;
   onOpenGroupChat?: (event: Event) => void;
   guest?: boolean;
+  /** Leave out the category pill, e.g. when the list is already filtered to one interest. */
+  hideCategory?: boolean;
 }
 
 function ordinal(n: number) {
@@ -59,7 +61,7 @@ export const sourceLabels: Record<string, string> = {
 };
 
 
-const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest = false }: EventCardProps) => {
+const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest = false, hideCategory = false }: EventCardProps) => {
   const navigate = useNavigate();
   const { isAttending: isAttendingFn, toggle: toggleAttending } = useAttending();
   const { ensureGroupChat } = useSocial();
@@ -168,9 +170,11 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
               {sourceLabels[event.source] ?? event.source}
             </span>
           )}
-          <span className="min-w-0 truncate whitespace-nowrap px-2 py-1 rounded-md text-xs font-medium bg-card/95 text-card-foreground">
-            {event.category}
-          </span>
+          {!hideCategory && (
+            <span className="min-w-0 truncate whitespace-nowrap px-2 py-1 rounded-md text-xs font-medium bg-card/95 text-card-foreground">
+              {event.category}
+            </span>
+          )}
         </div>
 
         {/* Vibe badge */}

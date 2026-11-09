@@ -42,8 +42,8 @@ const FeedSetupBanner = ({ interests }: Props) => {
             Your feed is set to: {labels || 'your interests'}
           </h3>
           <p className="text-sm text-muted-foreground mt-0.5">
-            That's your starting point. Scroll down to Upcoming events to fine-tune by vibe, group size
-            and distance.
+            That's your starting point. The bar below stays pinned as you scroll: tap an interest, a time
+            or a group size to narrow every section at once.
           </p>
           <div className="flex flex-wrap gap-2 mt-4">
             <Button

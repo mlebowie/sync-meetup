@@ -1,29 +1,34 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Event, Participant, Vibe, GroupSize } from '@/types/event';
+import { RefObject, useEffect, useMemo, useRef, useState } from 'react';
+import { Event, Participant, Vibe } from '@/types/event';
 import { VIBES } from '@/lib/vibe';
 import { CITY_NEIGHBORHOODS } from '@/lib/onboardingData';
-import { ONBOARDING_INTERESTS, getInterestKeywords, UserProfile } from '@/lib/userProfile';
+import { UserProfile } from '@/lib/userProfile';
+import { FeedFilters, applyFeedFilters, scopeName } from '@/lib/feedFilters';
 import ExpandableEventGrid from './ExpandableEventGrid';
 import FilterTour, { TourStep } from './FilterTour';
 import { START_FILTER_TOUR_EVENT, setFilterTourState } from '@/lib/filterTour';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { TypeaheadSelect } from './TypeaheadSelect';
 import { useSearch } from '@/context/SearchContext';
 import { searchEvents } from '@/lib/search';
-import { Clock, MapPin, Users, Zap, Ruler, Sparkles, CalendarRange, Heart, HelpCircle, Search, X } from 'lucide-react';
+import { MapPin, Zap, Ruler, CalendarRange, HelpCircle, Search, X, SlidersHorizontal, ChevronDown } from 'lucide-react';
 
 interface Props {
   events: Event[];
   profile: UserProfile;
+  /** The home feed's shared filters (interests, time, size, inclusivity) from the pinned bar. */
+  filters: FeedFilters;
+  profileInterests: string[];
+  hideCategory?: boolean;
+  /** Parts of the pinned bar the filter tour points at. */
+  barInterestsRef: RefObject<HTMLElement>;
+  barInclusivityRef: RefObject<HTMLElement>;
   onAttend: (id: string) => void;
   onParticipantClick?: (p: Participant) => void;
   onOpenGroupChat?: (e: Event) => void;
 }
-
-type TimeWindow = 'hour' | '6h' | 'day' | 'week' | 'any';
 
 const eventAvgAge = (id: string) => {
   let h = 0;
@@ -36,60 +41,55 @@ const eventDistance = (id: string) => {
   return 0.5 + ((h % 90) / 10);
 };
 
-const timeWindows: { value: TimeWindow; label: string }[] = [
-  { value: 'any', label: 'Any time' },
-  { value: 'hour', label: 'Next hour' },
-  { value: '6h', label: 'Next 6 hours' },
-  { value: 'day', label: 'Next day' },
-  { value: 'week', label: 'Next week' },
-];
+const DEFAULT_AGE: [number, number] = [22, 45];
+const DEFAULT_DISTANCE = 15;
 
-// Group size slider: 0=Any, 1=Small, 2=Medium, 3=Large
-const groupSizeStops: { value: 0 | 1 | 2 | 3; label: string; size: GroupSize | null }[] = [
-  { value: 0, label: 'Any', size: null },
-  { value: 1, label: 'Small (2–12)', size: 'small' },
-  { value: 2, label: 'Medium (12–25)', size: 'medium' },
-  { value: 3, label: 'Large (25+)', size: 'large' },
-];
-
-const UpcomingEventsSection = ({ events, profile, onAttend, onParticipantClick, onOpenGroupChat }: Props) => {
+const UpcomingEventsSection = ({
+  events,
+  profile,
+  filters,
+  profileInterests,
+  hideCategory = false,
+  barInterestsRef,
+  barInclusivityRef,
+  onAttend,
+  onParticipantClick,
+  onOpenGroupChat,
+}: Props) => {
   const { query, setQuery } = useSearch();
   const neighborhoods = CITY_NEIGHBORHOODS[profile.location] ?? CITY_NEIGHBORHOODS['Porto'];
 
-  const [timeWindow, setTimeWindow] = useState<TimeWindow>('any');
+  // Finer filters that only this list needs. The shared ones live in the pinned bar.
   const [neighborhood, setNeighborhood] = useState<string>('');
   const [vibe, setVibe] = useState<Vibe[]>([]);
-  const [groupSizeIdx, setGroupSizeIdx] = useState<number>(0);
-  const [ageRange, setAgeRange] = useState<[number, number]>([22, 45]);
-  const [maxDistance, setMaxDistance] = useState<number>(15);
-  const [interests, setInterests] = useState<string[]>(profile.interests ?? []);
-  const [recommendMode, setRecommendMode] = useState(false);
-  const [womenOnly, setWomenOnly] = useState(false);
-  const [lgbtqFriendly, setLgbtqFriendly] = useState(false);
-  const [petFriendly, setPetFriendly] = useState(false);
+  const [ageRange, setAgeRange] = useState<[number, number]>(DEFAULT_AGE);
+  const [maxDistance, setMaxDistance] = useState<number>(DEFAULT_DISTANCE);
+  const [moreOpen, setMoreOpen] = useState(false);
 
   // --- First-run tutorial ---------------------------------------------------
-  const interestsRef = useRef<HTMLDivElement>(null);
   const vibeRef = useRef<HTMLDivElement>(null);
   const placeRef = useRef<HTMLDivElement>(null);
-  const inclusivityRef = useRef<HTMLDivElement>(null);
   const [tourOpen, setTourOpen] = useState(false);
 
+  const startTour = () => {
+    setMoreOpen(true);
+    setTourOpen(true);
+  };
+
   useEffect(() => {
-    const start = () => setTourOpen(true);
-    window.addEventListener(START_FILTER_TOUR_EVENT, start);
-    return () => window.removeEventListener(START_FILTER_TOUR_EVENT, start);
+    window.addEventListener(START_FILTER_TOUR_EVENT, startTour);
+    return () => window.removeEventListener(START_FILTER_TOUR_EVENT, startTour);
   }, []);
 
   const tourSteps: TourStep[] = [
     {
-      title: 'Interests come from your profile',
-      body: 'These are pre-selected from onboarding, so your feed already matches you. Add or remove any of them here — and use the Time dropdown above when you only want what starts soon.',
-      ref: interestsRef,
+      title: 'Your interests sit in the bar at the top',
+      body: 'They come from your profile and stay pinned as you scroll. Tap one to narrow every section of your feed, All to see everything you follow, or More to browse other categories.',
+      ref: barInterestsRef,
     },
     {
       title: 'Choose how the room should feel',
-      body: 'Group size and vibe set how the room feels. A chill coffee for 6, or a lively rooftop for 60 — pick what you actually want to walk into.',
+      body: 'Vibe sets the social energy, from a chill coffee to a lively rooftop. Group size lives in the bar at the top.',
       ref: vibeRef,
     },
     {
@@ -99,22 +99,25 @@ const UpcomingEventsSection = ({ events, profile, onAttend, onParticipantClick, 
     },
     {
       title: 'Only show spaces that fit you',
-      body: 'Women only, LGBTQ+ friendly and pet friendly narrow the feed to events built with those in mind. That\u2019s it — change any of this any time and your feed updates instantly.',
-      ref: inclusivityRef,
+      body: 'Women only, LGBTQ+ friendly and pet friendly in the bar narrow the whole feed to events built with those in mind. Change any of this any time and your feed updates instantly.',
+      ref: barInclusivityRef,
     },
   ];
 
   const resetFilters = () => {
-    setTimeWindow('any'); setNeighborhood(''); setVibe([]);
-    setGroupSizeIdx(0); setAgeRange([22, 45]); setMaxDistance(15);
-    setInterests(profile.interests ?? []); setRecommendMode(false);
-    setWomenOnly(false); setLgbtqFriendly(false); setPetFriendly(false);
+    setNeighborhood('');
+    setVibe([]);
+    setAgeRange(DEFAULT_AGE);
+    setMaxDistance(DEFAULT_DISTANCE);
   };
 
+  const moreCount =
+    (neighborhood ? 1 : 0) +
+    vibe.length +
+    (ageRange[0] !== DEFAULT_AGE[0] || ageRange[1] !== DEFAULT_AGE[1] ? 1 : 0) +
+    (maxDistance !== DEFAULT_DISTANCE ? 1 : 0);
 
-  const toggle = <T,>(value: T, list: T[], setter: (v: T[]) => void) => {
-    setter(list.includes(value) ? list.filter(v => v !== value) : [...list, value]);
-  };
+  const toggleVibe = (v: Vibe) => setVibe(list => (list.includes(v) ? list.filter(x => x !== v) : [...list, v]));
 
   const neighborhoodOptions = useMemo(
     () => neighborhoods.map(n => ({ value: n, label: n, searchText: n })),
@@ -122,43 +125,20 @@ const UpcomingEventsSection = ({ events, profile, onAttend, onParticipantClick, 
   );
 
   const filtered = useMemo(() => {
-    const now = Date.now();
-    const windowMs: Record<TimeWindow, number> = {
-      hour: 60 * 60 * 1000,
-      '6h': 6 * 60 * 60 * 1000,
-      day: 24 * 60 * 60 * 1000,
-      week: 7 * 24 * 60 * 60 * 1000,
-      any: Infinity,
-    };
-
-    const activeInterests = recommendMode && interests.length === 0 ? profile.interests : interests;
-    const keywords = getInterestKeywords(activeInterests).map(k => k.toLowerCase());
-    const selectedSize = groupSizeStops[groupSizeIdx]?.size ?? null;
     const nbq = neighborhood.trim().toLowerCase();
-
-    const list = events.filter(e => {
-      const diff = e.date.getTime() - now;
-      if (windowMs[timeWindow] !== Infinity && (diff < 0 || diff > windowMs[timeWindow])) return false;
+    const list = applyFeedFilters(events, filters, profileInterests).filter(e => {
       if (nbq && !e.location.toLowerCase().includes(nbq)) return false;
       if (vibe.length > 0 && !vibe.includes(e.vibe)) return false;
-      if (selectedSize && e.groupSize !== selectedSize) return false;
       const age = eventAvgAge(e.id);
       if (age < ageRange[0] || age > ageRange[1]) return false;
       if (eventDistance(e.id) > maxDistance) return false;
-      if (keywords.length > 0) {
-        const blob = [e.category, ...e.tags].join(' ').toLowerCase();
-        if (!keywords.some(k => blob.includes(k))) return false;
-      }
-if (womenOnly && !e.womenOnly) return false;
-      if (lgbtqFriendly && !e.lgbtqFriendly) return false;
-      if (petFriendly && !e.petFriendly) return false;
       if (query.trim() && searchEvents([e], query).length === 0) return false;
       return true;
     });
 
     // Closest to the chosen neighborhood first.
     return [...list].sort((a, b) => eventDistance(a.id) - eventDistance(b.id));
-  }, [events, timeWindow, neighborhood, vibe, groupSizeIdx, ageRange, maxDistance, interests, recommendMode, profile.interests, womenOnly, lgbtqFriendly, petFriendly, query]);
+  }, [events, filters, profileInterests, neighborhood, vibe, ageRange, maxDistance, query]);
 
   const pill = (active: boolean) =>
     `px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
@@ -166,236 +146,169 @@ if (womenOnly && !e.womenOnly) return false;
     }`;
 
   return (
-    <section id="upcoming" className="py-12 md:py-16">
+    <section id="upcoming" className="py-10 md:py-14 scroll-mt-32">
       <div className="container px-4 md:px-6">
-        <div className="text-center mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">Upcoming events</h2>
-          <p className="text-muted-foreground">Dial in exactly what you want to walk into</p>
+        <div className="flex flex-wrap items-end justify-between gap-3 mb-5">
+          <div>
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground">Upcoming events</h2>
+            <p className="text-muted-foreground mt-1">Everything coming up in {scopeName(filters)}.</p>
+          </div>
           <button
-            onClick={() => setTourOpen(true)}
-            className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+            onClick={startTour}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
           >
-<HelpCircle className="h-4 w-4" />
+            <HelpCircle className="h-4 w-4" />
             How filters work
           </button>
         </div>
 
-        {/* Search field — filters the feed live, stays in sync with the header search */}
-        <div className="relative mb-4">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-          <Input
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            placeholder="Search events, locations, organizers…"
-            className="pl-9 pr-9"
-            aria-label="Search events"
-          />
-          {query && (
-            <button
-              type="button"
-              onClick={() => setQuery('')}
-              aria-label="Clear search"
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
+        <div className="flex flex-col sm:flex-row gap-3 mb-4">
+          {/* Search field — filters the list live, stays in sync with the header search */}
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <Input
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder="Search events, locations, organizers…"
+              className="pl-9 pr-9"
+              aria-label="Search events"
+            />
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery('')}
+                aria-label="Clear search"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => setMoreOpen(v => !v)}
+            aria-expanded={moreOpen}
+            aria-controls="upcoming-more-filters"
+            className="shrink-0"
+          >
+            <SlidersHorizontal className="h-4 w-4 mr-1.5" />
+            More filters
+            {moreCount > 0 && (
+              <span className="ml-1.5 rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground">
+                {moreCount}
+              </span>
+            )}
+            <ChevronDown className={`h-4 w-4 ml-1 transition-transform ${moreOpen ? 'rotate-180' : ''}`} />
+          </Button>
         </div>
 
-        <div className="bg-card rounded-2xl shadow-card p-5 md:p-6 mb-8 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Time dropdown */}
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <Clock className="h-4 w-4 text-primary" />
-                <span className="text-sm font-semibold">Time</span>
-              </div>
-              <p className="text-xs text-muted-foreground mb-2">How soon you want to be out the door.</p>
-              <Select value={timeWindow} onValueChange={(v) => setTimeWindow(v as TimeWindow)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Any time" />
-                </SelectTrigger>
-                <SelectContent>
-                  {timeWindows.map(t => (
-                    <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+        {moreOpen && (
+          <div id="upcoming-more-filters" className="bg-card rounded-2xl shadow-card p-5 md:p-6 mb-8 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Vibe */}
+              <div ref={vibeRef} className="rounded-xl">
+                <div className="flex items-center gap-2 mb-1">
+                  <Zap className="h-4 w-4 text-accent-strong" />
+                  <span className="text-sm font-semibold">Vibe</span>
+                </div>
+                <p className="text-xs text-muted-foreground mb-3">The social energy in the room, from relaxed to loud.</p>
+                <div className="flex flex-wrap gap-2">
+                  {VIBES.map(v => (
+                    <button key={v.value} title={v.description} onClick={() => toggleVibe(v.value)} className={pill(vibe.includes(v.value))}>
+                      {v.emoji} {v.label}
+                    </button>
                   ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Neighborhood typeahead */}
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <MapPin className="h-4 w-4 text-danger" />
-                <span className="text-sm font-semibold">Neighborhood</span>
-              </div>
-              <p className="text-xs text-muted-foreground mb-2">Anchor your feed to one part of the city.</p>
-              <TypeaheadSelect
-                value={neighborhood}
-                onChange={setNeighborhood}
-                options={neighborhoodOptions}
-                placeholder="Type to filter (e.g. Cedofeita)"
-                allowFreeText
-              />
-            </div>
-          </div>
-
-          {/* How the room feels: group size + vibe */}
-          <div ref={vibeRef} className="space-y-6 rounded-xl">
-            {/* Group size slider */}
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-success" />
-                  <span className="text-sm font-semibold">Preferred group size</span>
                 </div>
-                <span className="text-sm text-muted-foreground">{groupSizeStops[groupSizeIdx].label}</span>
               </div>
-              <p className="text-xs text-muted-foreground mb-3">Small rooms are easier to talk in; big ones are easier to blend into.</p>
-              <Slider
-                min={0}
-                max={3}
-                step={1}
-                value={[groupSizeIdx]}
-                onValueChange={v => setGroupSizeIdx(v[0])}
-              />
-              <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-                {groupSizeStops.map(s => <span key={s.value}>{s.label.split(' ')[0]}</span>)}
-              </div>
-            </div>
 
-            {/* Vibe */}
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <Zap className="h-4 w-4 text-accent-strong" />
-                <span className="text-sm font-semibold">Preferred vibe</span>
-              </div>
-              <p className="text-xs text-muted-foreground mb-3">The social energy in the room, from relaxed and chill to loud and lively.</p>
-              <div className="flex flex-wrap gap-2">
-                {VIBES.map(v => (
-                  <button key={v.value} title={v.description} onClick={() => toggle(v.value, vibe, setVibe)} className={pill(vibe.includes(v.value))}>
-                    {v.emoji} {v.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Place & people: age + distance */}
-          <div ref={placeRef} className="space-y-6 rounded-xl">
-            {/* Age range — two handles */}
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-2">
-                  <CalendarRange className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-semibold">Age range of attendees</span>
+              {/* Neighborhood typeahead */}
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <MapPin className="h-4 w-4 text-danger" />
+                  <span className="text-sm font-semibold">Neighborhood</span>
                 </div>
-                <span className="text-sm text-muted-foreground">{ageRange[0]}–{ageRange[1]} years old</span>
+                <p className="text-xs text-muted-foreground mb-2">Anchor your feed to one part of the city.</p>
+                <TypeaheadSelect
+                  value={neighborhood}
+                  onChange={setNeighborhood}
+                  options={neighborhoodOptions}
+                  placeholder="Type to filter (e.g. Cedofeita)"
+                  allowFreeText
+                />
               </div>
-              <p className="text-xs text-muted-foreground mb-3">Roughly who else will be there.</p>
-              <Slider
-                min={18}
-                max={65}
-                step={1}
-                minStepsBetweenThumbs={1}
-                value={ageRange}
-                onValueChange={v => setAgeRange([v[0], v[1]] as [number, number])}
-              />
             </div>
 
-            {/* Distance */}
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-2">
-                  <Ruler className="h-4 w-4 text-success" />
-                  <span className="text-sm font-semibold">Distance from event</span>
+            {/* Place & people: age + distance */}
+            <div ref={placeRef} className="grid grid-cols-1 md:grid-cols-2 gap-6 rounded-xl">
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    <CalendarRange className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-semibold">Age range of attendees</span>
+                  </div>
+                  <span className="text-sm text-muted-foreground">{ageRange[0]}–{ageRange[1]} years old</span>
                 </div>
-                <span className="text-sm text-muted-foreground">≤ {maxDistance.toFixed(1)} km</span>
+                <p className="text-xs text-muted-foreground mb-3">Roughly who else will be there.</p>
+                <Slider
+                  min={18}
+                  max={65}
+                  step={1}
+                  minStepsBetweenThumbs={1}
+                  value={ageRange}
+                  onValueChange={v => setAgeRange([v[0], v[1]] as [number, number])}
+                />
               </div>
-              <p className="text-xs text-muted-foreground mb-3">
-                Closest events to {neighborhood || profile.neighborhood || 'your neighborhood'} are always shown first.
-              </p>
-              <Slider
-                min={1}
-                max={20}
-                step={0.5}
-                value={[maxDistance]}
-                onValueChange={v => setMaxDistance(v[0])}
-              />
-            </div>
-          </div>
 
-          {/* Interests */}
-          <div ref={interestsRef} className="rounded-xl">
-            <div className="flex items-center gap-2 mb-1">
-              <Sparkles className="h-4 w-4 text-accent-strong" />
-              <span className="text-sm font-semibold">Interests</span>
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    <Ruler className="h-4 w-4 text-success" />
+                    <span className="text-sm font-semibold">Distance from event</span>
+                  </div>
+                  <span className="text-sm text-muted-foreground">≤ {maxDistance.toFixed(1)} km</span>
+                </div>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Closest events to {neighborhood || profile.neighborhood || 'your neighborhood'} are always shown first.
+                </p>
+                <Slider
+                  min={1}
+                  max={20}
+                  step={0.5}
+                  value={[maxDistance]}
+                  onValueChange={v => setMaxDistance(v[0])}
+                />
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground mb-3">Pre-selected from your profile — add or remove any time.</p>
-            <div className="flex flex-wrap gap-2">
-              {ONBOARDING_INTERESTS.map(i => (
-                <button key={i.id} onClick={() => toggle(i.id, interests, setInterests)} className={pill(interests.includes(i.id))}>
-                  <span className="mr-1">{i.icon}</span>{i.label}
-                </button>
-              ))}
-            </div>
-          </div>
 
-          {/* Inclusivity */}
-          <div ref={inclusivityRef} className="rounded-xl">
-            <div className="flex items-center gap-2 mb-1">
-              <Heart className="h-4 w-4 text-danger" />
-              <span className="text-sm font-semibold">Inclusivity</span>
-            </div>
-            <p className="text-xs text-muted-foreground mb-3">Only show events built with these spaces in mind.</p>
-            <div className="flex flex-wrap gap-2">
-              <button onClick={() => setWomenOnly(v => !v)} className={pill(womenOnly)}>
-                Women only
-              </button>
-              <button onClick={() => setLgbtqFriendly(v => !v)} className={pill(lgbtqFriendly)}>
-                LGBTQ+ friendly
-              </button>
-              <button onClick={() => setPetFriendly(v => !v)} className={pill(petFriendly)}>
-                Pet friendly
-              </button>
-            </div>
+            {moreCount > 0 && (
+              <div className="flex justify-end pt-2 border-t border-border">
+                <Button variant="ghost" onClick={resetFilters}>
+                  Reset these filters
+                </Button>
+              </div>
+            )}
           </div>
-
-          <div className="flex flex-wrap items-center justify-end gap-3 pt-2 border-t border-border">
-            <Button variant="ghost" onClick={resetFilters}>
-              Reset filters
-            </Button>
-            <Button variant="hero" onClick={() => setRecommendMode(true)}>
-              <Sparkles className="h-4 w-4 mr-1.5" />
-              View recommendations
-            </Button>
-          </div>
-        </div>
+        )}
 
         {filtered.length === 0 ? (
           <div className="text-center py-16">
-            <div className="text-6xl mb-4">🔍</div>
             <h3 className="text-xl font-semibold mb-2">No matches yet</h3>
-            <p className="text-muted-foreground mb-4">Loosen a filter and try again.</p>
-            <Button variant="outline" onClick={resetFilters}>Clear filters</Button>
+            <p className="text-muted-foreground mb-4">Loosen a filter here or in the bar at the top and try again.</p>
+            {moreCount > 0 && <Button variant="outline" onClick={resetFilters}>Reset these filters</Button>}
           </div>
         ) : (
           <>
-<div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               <p className="text-sm text-muted-foreground">
                 {query.trim() ? `Results for “${query}” — ` : ''}Showing {filtered.length} of {events.length} events
               </p>
-              <div className="flex items-center gap-2">
-                {query.trim() && (
-                  <Button variant="ghost" size="sm" onClick={() => setQuery('')}>Clear search</Button>
-                )}
-                {filtered.length < events.length && !query.trim() && (
-                  <Button variant="ghost" size="sm" onClick={resetFilters}>Clear filters</Button>
-                )}
-              </div>
+              {query.trim() && (
+                <Button variant="ghost" size="sm" onClick={() => setQuery('')}>Clear search</Button>
+              )}
             </div>
             <ExpandableEventGrid
               events={filtered}
+              hideCategory={hideCategory}
               initialCount={query.trim() ? filtered.length : 3}
               onAttend={onAttend}
               onParticipantClick={onParticipantClick}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
 import ParticipantProfileDialog from '@/components/ParticipantProfileDialog';
@@ -11,7 +11,9 @@ import PostEventReflectionDialog from '@/components/PostEventReflectionDialog';
 import GuestLanding from '@/components/GuestLanding';
 import FeedSetupBanner from '@/components/FeedSetupBanner';
 import HowSyncWorks from '@/components/HowSyncWorks';
-import RecommendedCarousel from '@/components/RecommendedCarousel';
+import HappeningSoonSection from '@/components/HappeningSoonSection';
+import RecommendedSection from '@/components/RecommendedSection';
+import HomeFilterBar from '@/components/HomeFilterBar';
 import FriendsLoveSection from '@/components/FriendsLoveSection';
 import UpcomingEventsSection from '@/components/UpcomingEventsSection';
 import PopularTrendingSection from '@/components/PopularTrendingSection';
@@ -23,7 +25,8 @@ import { Button } from '@/components/ui/button';
 import syncWordmark from '@/assets/sync-wordmark-v2.png';
 import { MessageCircle, Sparkles } from 'lucide-react';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
-import { getUserProfile } from '@/lib/userProfile';
+import { getUserProfile, saveUserProfile } from '@/lib/userProfile';
+import { DEFAULT_FEED_FILTERS, FeedFilters, hidesCategoryPill } from '@/lib/feedFilters';
 import { getReflectionCandidate } from '@/lib/reflection';
 import { useSearchParams } from 'react-router-dom';
 import { useSearch } from '@/context/SearchContext';
@@ -36,6 +39,22 @@ const Index = () => {
   const profile = getUserProfile();
   const isGuest = !profile;
   const { events } = useEvents();
+
+  // One set of filters for the whole feed, edited from the pinned bar.
+  const [feedFilters, setFeedFilters] = useState<FeedFilters>(DEFAULT_FEED_FILTERS);
+  const [profileInterests, setProfileInterests] = useState<string[]>(profile?.interests ?? []);
+  const hideCategory = hidesCategoryPill(feedFilters);
+  const barInterestsRef = useRef<HTMLDivElement>(null);
+  const barInclusivityRef = useRef<HTMLDivElement>(null);
+
+  const saveInterests = (ids: string[]) => {
+    const current = getUserProfile();
+    if (!current) return;
+    const next = [...current.interests, ...ids.filter(id => !current.interests.includes(id))];
+    saveUserProfile({ ...current, interests: next });
+    setProfileInterests(next);
+    toast({ title: 'Saved to your interests', description: 'They now show in your feed by default.' });
+  };
 
   const [searchParams, setSearchParams] = useSearchParams();
   const { setQuery } = useSearch();
@@ -155,7 +174,7 @@ const Index = () => {
       ) : (
         <>
           {/* 0) First-run tutorial banner */}
-          <FeedSetupBanner interests={profile?.interests ?? []} />
+          <FeedSetupBanner interests={profileInterests} />
 
           {/* 1) Reflect from last event attended */}
           {reflectionEvent && !alreadyTagged && (
@@ -179,41 +198,70 @@ const Index = () => {
             </section>
           )}
 
-{/* Featured partner events, pinned from /curate */}
+{/* Featured partner events, pinned from /curate (editorial, not filtered) */}
           <FeaturedPartnerSection
             onAttend={handleAttend}
             onParticipantClick={handleParticipantClick}
             onOpenGroupChat={handleOpenGroupChat}
           />
 
-          {/* 2) Recommended for you */}
-          <RecommendedCarousel
-            profile={profile!}
+          {/* 2) One filter bar for the whole feed, pinned under the header */}
+          <HomeFilterBar
+            value={feedFilters}
+            onChange={setFeedFilters}
+            profileInterests={profileInterests}
+            onSaveInterests={saveInterests}
+            interestsRef={barInterestsRef}
+            inclusivityRef={barInclusivityRef}
+          />
+
+          {/* 3) Starting in the next 6 hours: interests apply, time chips don't */}
+          <HappeningSoonSection
+            filters={feedFilters}
+            profileInterests={profileInterests}
+            hideCategory={hideCategory}
             onAttend={handleAttend}
             onParticipantClick={handleParticipantClick}
             onOpenGroupChat={handleOpenGroupChat}
           />
 
-          {/* 3) Upcoming events with expanded filters */}
+          {/* 4) Recommended for you: filtered, ranked by familiar faces */}
+          <RecommendedSection
+            filters={feedFilters}
+            profileInterests={profileInterests}
+            hideCategory={hideCategory}
+            onAttend={handleAttend}
+            onParticipantClick={handleParticipantClick}
+            onOpenGroupChat={handleOpenGroupChat}
+          />
+
+          {/* 5) Popular & Trending: most popular within the filter */}
+          <PopularTrendingSection
+            interests={profileInterests}
+            feedFilters={feedFilters}
+            hideCategory={hideCategory}
+            onAttend={handleAttend}
+            onParticipantClick={handleParticipantClick}
+            onOpenGroupChat={handleOpenGroupChat}
+          />
+
+          {/* 6) Where the people you follow show up: about people, so not filtered */}
+          <FriendsLoveSection
+            interests={profileInterests}
+            onAttend={handleAttend}
+            onParticipantClick={handleParticipantClick}
+            onOpenGroupChat={handleOpenGroupChat}
+          />
+
+          {/* 7) Upcoming events: the full list, with search and finer filters */}
           <UpcomingEventsSection
             events={events}
             profile={profile!}
-            onAttend={handleAttend}
-            onParticipantClick={handleParticipantClick}
-            onOpenGroupChat={handleOpenGroupChat}
-          />
-
-          {/* 4) Events your friends love */}
-          <FriendsLoveSection
-            interests={profile?.interests ?? []}
-            onAttend={handleAttend}
-            onParticipantClick={handleParticipantClick}
-            onOpenGroupChat={handleOpenGroupChat}
-          />
-
-          {/* 5) Popular & Trending one-time events */}
-          <PopularTrendingSection
-            interests={profile?.interests ?? []}
+            filters={feedFilters}
+            profileInterests={profileInterests}
+            hideCategory={hideCategory}
+            barInterestsRef={barInterestsRef}
+            barInclusivityRef={barInclusivityRef}
             onAttend={handleAttend}
             onParticipantClick={handleParticipantClick}
             onOpenGroupChat={handleOpenGroupChat}
