@@ -23,7 +23,18 @@ const MAX_PAGES: Record<'eventbrite' | 'meetup' | 'luma' | 'agenda-porto' | 'por
   'porto-coffee-week': 3,
 };
 const MAX_CLASSIFY_PER_RUN = 40;
-const LEASE_MINUTES = 10;
+/** A run can never outlive the edge time limit (150s), so a short lease is enough. */
+const LEASE_MINUTES = 3;
+/**
+ * Time budget per run, measured from the start of the request. Supabase stops an
+ * edge function after 150 seconds, so every step must finish comfortably before.
+ */
+const RUN_STARTED = { at: 0 };
+const elapsed = () => Date.now() - RUN_STARTED.at;
+const STOP_NEW_PAGES_MS = 60_000; // no new listing page is opened after this
+const STOP_VERIFY_MS = 80_000; // per-event date checks are skipped after this
+const STOP_EVENTS_MS = 100_000; // no further events are saved after this
+const STOP_LABELS_MS = 105_000; // AI labelling only starts before this
 
 type SourceId = 'eventbrite' | 'meetup' | 'luma' | 'agenda-porto' | 'porto-coffee-week';
 
@@ -243,6 +254,8 @@ async function firecrawl(path: string, body: unknown) {
     method: 'POST',
     headers: fcHeaders(),
     body: JSON.stringify(body),
+    // A slow page must not push the run past the edge time limit.
+    signal: AbortSignal.timeout(45_000),
   });
   if (!res.ok) {
     const text = await res.text();
@@ -571,6 +584,7 @@ async function classifyPending(supabase: ReturnType<typeof createClient>) {
   const res = await fetch(AI_API_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${AI_API_KEY}` },
+    signal: AbortSignal.timeout(25_000),
     body: JSON.stringify({
       model: AI_MODEL,
       messages: [
@@ -693,8 +707,20 @@ Deno.serve(async (req) => {
       ? allSources.filter((s) => requested.includes(s))
       : allSources;
 
-  // Runs must finish well inside the edge idle limit, so stop collecting after this.
-  const DEADLINE = Date.now() + 110_000;
+  RUN_STARTED.at = Date.now();
+
+  // Runs cut off by the time limit in the past never recorded an outcome; mark
+  // them so the run history stays honest.
+  await supabase
+    .from('event_scrape_runs')
+    .update({
+      status: 'failed',
+      lease_until: null,
+      finished_at: new Date().toISOString(),
+      error_details: 'Stopped before finishing (edge function time limit)',
+    })
+    .eq('status', 'running')
+    .lt('started_at', new Date(Date.now() - LEASE_MINUTES * 60_000).toISOString());
 
   // Events already stored with a future start need no re-verification, which is
   // the slow part of a run.
@@ -741,7 +767,7 @@ Deno.serve(async (req) => {
   let pausedReason: string | null = null;
 
   for (const source of sourceIds) {
-    if (pausedReason || Date.now() > DEADLINE) break;
+    if (pausedReason || elapsed() > STOP_NEW_PAGES_MS) break;
     counts[source] = 0;
     try {
       const budget = paused ? MAX_PAGES_PER_SOURCE : MAX_PAGES[source];
@@ -753,11 +779,21 @@ Deno.serve(async (req) => {
             : (THEMED_PAGES[focus][source] ?? []).slice(0, budget);
 
       for (const page of pages) {
-        if (pausedReason || Date.now() > DEADLINE) break;
-        const raws = paused ? (await scrapeListing(page)).slice(0, 5) : await scrapeListing(page);
+        if (pausedReason || elapsed() > STOP_NEW_PAGES_MS) break;
+        let raws: RawEvent[];
+        try {
+          raws = paused ? (await scrapeListing(page)).slice(0, 5) : await scrapeListing(page);
+        } catch (e) {
+          // Credit or permission problems stop the run; a single slow or broken
+          // page is only noted, and the next page is tried.
+          const status = (e as Denied).status ?? 0;
+          if (status === 402 || status === 403 || status === 429) throw e;
+          errors.push(`${source}: ${page}: ${(e as Error).message}`.slice(0, 300));
+          continue;
+        }
 
         for (const raw of raws) {
-          if (Date.now() > DEADLINE) break;
+          if (elapsed() > STOP_EVENTS_MS) break;
           const id = sourceEventId(source, raw);
           // Already stored and still upcoming: keep it and move on.
           if (!refreshExisting && id && known.has(`${source}:${id}`)) continue;
@@ -780,7 +816,9 @@ Deno.serve(async (req) => {
           // one, and never overwrite an approved one's edited wording.
           if (rejected.has(`${source}:${id}`)) continue;
           const listed = parseStart(raw);
-          const verified = raw.url ? await verifiedStart(raw.url) : null;
+          // Checking the event page's own date is the slow part; late in a run
+          // the listing's date is used instead so the run can finish in time.
+          const verified = raw.url && elapsed() < STOP_VERIFY_MS ? await verifiedStart(raw.url) : null;
           const confirmed = verified ? withListedClock(verified, raw) : null;
           const starts = confirmed ?? listed;
           if (!raw.title || !starts) continue;
@@ -870,7 +908,7 @@ Deno.serve(async (req) => {
   }
 
   let classified = 0;
-  if (!pausedReason) {
+  if (!pausedReason && elapsed() < STOP_LABELS_MS) {
     try {
       classified = await classifyPending(supabase);
     } catch (e) {
