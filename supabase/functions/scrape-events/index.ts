@@ -265,18 +265,10 @@ async function firecrawl(path: string, body: unknown) {
   return await res.json();
 }
 
-async function scrapeListing(url: string): Promise<RawEvent[]> {
-  const today = new Date().toISOString().slice(0, 10);
-  const data = await firecrawl('/scrape', {
-    url,
-    onlyMainContent: true,
-    waitFor: 5000,
-    formats: [
-      {
-        type: 'json',
-        schema: EVENT_SCHEMA,
-        prompt:
-          `Today is ${today}. Extract every upcoming event listed on this page that happens in person in Greater Porto, Portugal ` +
+/** What to pull out of a listing page; shared by every source. */
+function listingPrompt(today: string): string {
+  return (
+    `Today is ${today}. Extract every upcoming event listed on this page that happens in person in Greater Porto, Portugal ` +
           '(Porto, Vila Nova de Gaia, Matosinhos, Maia, Gondomar, Valongo, Póvoa de Varzim, Vila do Conde, Espinho), ' +
           'or that is a trip or excursion departing from Porto to a nearby town (for example Guimarães, Braga, Aveiro or the Douro Valley). ' +
           'Include events that are not in English. Skip events held in Lisbon or any other city, and skip online-only events. ' +
@@ -293,12 +285,60 @@ async function scrapeListing(url: string): Promise<RawEvent[]> {
           'For each event also give: title, absolute url, date_text exactly as displayed on the card, ' +
           'iso_date (YYYY-MM-DD resolved from date_text relative to today — never guess a past year), ' +
           'time (HH:MM 24-hour), venue, address, image_url, organizer, category, price, attendees count, ' +
-          'and a one or two sentence description. Skip navigation links, adverts and anything that is not an event.',
-      },
-    ],
+          'and a one or two sentence description. Skip navigation links, adverts and anything that is not an event.'
+  );
+}
+
+/**
+ * Reads one listing page. Firecrawl only fetches the page as text (fast); the
+ * events are then extracted with the project's AI model, which is much quicker
+ * than Firecrawl's own extraction and keeps each page well inside the time limit.
+ */
+async function scrapeListing(url: string): Promise<RawEvent[]> {
+  const today = new Date().toISOString().slice(0, 10);
+  const data = await firecrawl('/scrape', {
+    url,
+    onlyMainContent: true,
+    waitFor: 3000,
+    timeout: 40_000,
+    formats: ['markdown'],
   });
-  const json = data?.json ?? data?.data?.json ?? {};
-  const events = Array.isArray(json?.events) ? json.events : [];
+  const markdown: string = (data?.markdown ?? data?.data?.markdown ?? '').slice(0, 60_000);
+  if (markdown.trim().length < 50) return [];
+
+  const res = await fetch(AI_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${AI_API_KEY}` },
+    signal: AbortSignal.timeout(40_000),
+    body: JSON.stringify({
+      model: AI_MODEL,
+      messages: [
+        {
+          role: 'system',
+          content:
+            listingPrompt(today) +
+            ' Make every url absolute (the page address is given). Reply with JSON only, matching this JSON schema: ' +
+            JSON.stringify(EVENT_SCHEMA),
+        },
+        { role: 'user', content: `Page: ${url}\n\n${markdown}` },
+      ],
+    }),
+  });
+  if (!res.ok) {
+    const text = (await res.text()).slice(0, 300);
+    console.error(`Listing extraction failed [${res.status}]: ${text}`);
+    throw new Denied(res.status === 429 ? 429 : 0, `AI extraction failed (${res.status}): ${text}`);
+  }
+  const payload = await res.json();
+  const content: string = payload?.choices?.[0]?.message?.content ?? '';
+  let json: { events?: unknown } = {};
+  try {
+    json = JSON.parse(content.replace(/```json|```/g, '').trim());
+  } catch {
+    console.error('Listing extraction returned non-JSON');
+    return [];
+  }
+  const events = Array.isArray(json?.events) ? (json.events as RawEvent[]) : [];
   return events.slice(0, MAX_EVENTS_PER_PAGE);
 }
 
