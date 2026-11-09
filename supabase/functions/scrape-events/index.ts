@@ -639,6 +639,25 @@ async function classifyPending(supabase: ReturnType<typeof createClient>) {
   return updated;
 }
 
+/**
+ * True when the token is a service (secret) key for this project. Supabase itself
+ * checks it: only a service key may list users through the Auth admin API. This
+ * accepts both legacy service_role JWTs and newer sb_secret_ keys, whichever form
+ * the function's own SUPABASE_SERVICE_ROLE_KEY happens to be.
+ */
+async function isServiceKey(token: string): Promise<boolean> {
+  if (!token.startsWith('eyJ') && !token.startsWith('sb_secret_')) return false;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users?page=1&per_page=1`, {
+      headers: { apikey: token, Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(10_000),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
@@ -653,7 +672,7 @@ Deno.serve(async (req) => {
 
   // --- only admins (or the service role, e.g. a scheduled job) may run it ----
   const token = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '');
-  let allowed = token !== '' && token === SERVICE_ROLE;
+  let allowed = token !== '' && (token === SERVICE_ROLE || (await isServiceKey(token)));
   if (!allowed && token) {
     const { data: userData } = await supabase.auth.getUser(token);
     if (userData.user) {
