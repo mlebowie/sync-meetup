@@ -31,9 +31,9 @@ const LEASE_MINUTES = 3;
  */
 const RUN_STARTED = { at: 0 };
 const elapsed = () => Date.now() - RUN_STARTED.at;
-const STOP_NEW_PAGES_MS = 60_000; // no new listing page is opened after this
+const STOP_NEW_PAGES_MS = 45_000; // no new listing page is opened after this
 const STOP_VERIFY_MS = 80_000; // per-event date checks are skipped after this
-const STOP_EVENTS_MS = 100_000; // no further events are saved after this
+const STOP_EVENTS_MS = 125_000; // no further events are saved after this (saving is quick)
 const STOP_LABELS_MS = 105_000; // AI labelling only starts before this
 
 type SourceId = 'eventbrite' | 'meetup' | 'luma' | 'agenda-porto' | 'porto-coffee-week';
@@ -255,7 +255,7 @@ async function firecrawl(path: string, body: unknown) {
     headers: fcHeaders(),
     body: JSON.stringify(body),
     // A slow page must not push the run past the edge time limit.
-    signal: AbortSignal.timeout(45_000),
+    signal: AbortSignal.timeout(35_000),
   });
   if (!res.ok) {
     const text = await res.text();
@@ -290,6 +290,20 @@ function listingPrompt(today: string): string {
 }
 
 /**
+ * Shrinks a page's markdown before extraction: tracking parameters, inline
+ * data images and repeated blank lines carry no event information, and large
+ * pages (Meetup) are otherwise too slow to read in one go.
+ */
+function compactMarkdown(md: string): string {
+  return md
+    .replace(/\(data:[^)]*\)/g, '()')
+    .replace(/(\]\((?:https?:\/\/[^)?\s]+))\?[^)\s]*/g, '$1')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .slice(0, 30_000);
+}
+
+/**
  * Reads one listing page. Firecrawl only fetches the page as text (fast); the
  * events are then extracted with the project's AI model, which is much quicker
  * than Firecrawl's own extraction and keeps each page well inside the time limit.
@@ -300,18 +314,16 @@ async function scrapeListing(url: string): Promise<RawEvent[]> {
     url,
     onlyMainContent: true,
     waitFor: 3000,
-    timeout: 40_000,
+    timeout: 30_000,
     formats: ['markdown'],
   });
-  const markdown: string = (data?.markdown ?? data?.data?.markdown ?? '').slice(0, 60_000);
+  const markdown = compactMarkdown(data?.markdown ?? data?.data?.markdown ?? '');
   if (markdown.trim().length < 50) return [];
 
-  const res = await fetch(AI_API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${AI_API_KEY}` },
-    signal: AbortSignal.timeout(40_000),
-    body: JSON.stringify({
+  const request = {
       model: AI_MODEL,
+      // Extraction needs no deliberation; this keeps large pages (Meetup) fast.
+      reasoning_effort: 'low',
       messages: [
         {
           role: 'system',
@@ -322,8 +334,20 @@ async function scrapeListing(url: string): Promise<RawEvent[]> {
         },
         { role: 'user', content: `Page: ${url}\n\n${markdown}` },
       ],
-    }),
-  });
+    };
+  const call = (payload: Record<string, unknown>) =>
+    fetch(AI_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${AI_API_KEY}` },
+      signal: AbortSignal.timeout(55_000),
+      body: JSON.stringify(payload),
+    });
+  let res = await call(request);
+  // Some models do not accept reasoning_effort; ask again without it.
+  if (res.status === 400) {
+    const { reasoning_effort: _ignored, ...plain } = request;
+    res = await call(plain);
+  }
   if (!res.ok) {
     const text = (await res.text()).slice(0, 300);
     console.error(`Listing extraction failed [${res.status}]: ${text}`);
@@ -395,12 +419,24 @@ async function lumaPages(focus: Focus = 'general'): Promise<string[]> {
   return urls.slice(0, MAX_PAGES.luma);
 }
 
+/**
+ * The same listing appears under several addresses (eventbrite.pt / .co.uk /
+ * .com, luma.com / lu.ma); one canonical host keeps it a single event.
+ */
+function canonicalHost(host: string): string {
+  const h = host.toLowerCase().replace(/^www\./, '');
+  if (/^eventbrite\./.test(h)) return 'www.eventbrite.com';
+  if (h === 'luma.com') return 'lu.ma';
+  if (h === 'meetup.com') return 'www.meetup.com';
+  return host.toLowerCase();
+}
+
 function sourceEventId(source: SourceId, raw: RawEvent): string | null {
   const url = raw.url?.trim();
   if (!url) return null;
   try {
     const u = new URL(url);
-    return `${u.host}${u.pathname}`.replace(/\/$/, '').slice(0, 200);
+    return `${canonicalHost(u.host)}${u.pathname}`.replace(/\/$/, '').slice(0, 200);
   } catch {
     return `${source}:${raw.title}`.slice(0, 200);
   }
@@ -562,7 +598,18 @@ function canonicalCategory(raw: RawEvent, source?: SourceId): string {
 /** Venue and address, always ending with the town (Porto unless stated otherwise). */
 function portoLocation(raw: RawEvent): string {
   const city = raw.city?.trim() || 'Porto';
-  const parts = [raw.venue, raw.address].filter(Boolean).join(', ').trim();
+  // Venue and address often repeat each other ("Fonte dos Leões, Fonte dos Leões").
+  const pieces: string[] = [];
+  for (const piece of [raw.venue, raw.address]) {
+    const t = piece?.trim();
+    if (!t) continue;
+    if (pieces.some((p) => p.toLowerCase().includes(t.toLowerCase()))) continue;
+    for (let i = pieces.length - 1; i >= 0; i--) {
+      if (t.toLowerCase().includes(pieces[i].toLowerCase())) pieces.splice(i, 1);
+    }
+    pieces.push(t);
+  }
+  const parts = pieces.join(', ');
   if (!parts) return `${city}, Portugal`;
   const withCity = parts.toLowerCase().includes(city.toLowerCase()) ? parts : `${parts}, ${city}`;
   return withCity.slice(0, 300);
@@ -785,8 +832,18 @@ Deno.serve(async (req) => {
   // the slow part of a run.
   const { data: knownRows } = await supabase
     .from('events')
-    .select('source,source_event_id,review_status')
+    .select('source,source_event_id,review_status,title,starts_at')
     .gte('starts_at', new Date().toISOString());
+  // One listing per title per day, even when it appears under different links.
+  const dayKey = (title: string | undefined, isoDay: string | undefined) =>
+    `${(title ?? '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()}|${isoDay ?? ''}`;
+  const lisbonDay = (iso: string) => new Date(iso).toLocaleDateString('en-CA', { timeZone: 'Europe/Lisbon' });
+  const seenDays = new Map<string, string>(
+    (knownRows ?? []).map((r: Record<string, unknown>) => [
+      dayKey(String(r.title ?? ''), lisbonDay(String(r.starts_at))),
+      `${r.source}:${r.source_event_id}`,
+    ]),
+  );
   const known = new Set(
     (knownRows ?? []).map((r: Record<string, unknown>) => `${r.source}:${r.source_event_id}`),
   );
@@ -859,6 +916,10 @@ Deno.serve(async (req) => {
           if (!id) continue;
           // Lisbon, other cities and online-only events are not for SYNC Porto.
           if (!locationOk(raw)) continue;
+          const sameDay = dayKey(raw.title, raw.iso_date);
+          const twin = seenDays.get(sameDay);
+          if (raw.iso_date && twin && twin !== `${source}:${id}`) continue;
+          seenDays.set(sameDay, `${source}:${id}`);
           if (!isEnglishEligible(raw)) {
             if (known.has(`${source}:${id}`)) {
               const { error } = await supabase
