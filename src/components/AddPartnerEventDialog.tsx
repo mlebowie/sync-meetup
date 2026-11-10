@@ -43,6 +43,7 @@ interface Draft {
   vibe: string;
   group_size: string;
   women_only: boolean;
+  organizer_bio?: string | null;
   lgbtq_friendly?: boolean;
   pet_friendly?: boolean;
   registration_url: string | null;
@@ -142,6 +143,7 @@ const AddPartnerEventDialog = ({ onAdded }: Props) => {
       image_url: /^https?:\/\//.test(imageUrl.trim()) ? imageUrl.trim() : null,
       location: draft.location ?? 'Porto',
       organizer_name: organizer,
+      organizer_bio: draft.organizer_bio?.trim() ? draft.organizer_bio.trim() : null,
       category: draft.category,
       price_label: draft.price_label,
       vibe: draft.vibe,
@@ -375,6 +377,17 @@ const AddPartnerEventDialog = ({ onAdded }: Props) => {
                 rows={4}
                 value={draft.description ?? ''}
                 onChange={(e) => field('description', e.target.value || null)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="host-bio">Host bio (optional)</Label>
+              <Textarea
+                id="host-bio"
+                rows={3}
+                maxLength={1500}
+                value={draft.organizer_bio ?? ''}
+                onChange={(e) => field('organizer_bio', e.target.value || null)}
+                placeholder={`A few lines from ${organizer || 'the host'} about themselves. Shown as "About the host".`}
               />
             </div>
             <DialogFooter className="gap-2 sm:gap-2">

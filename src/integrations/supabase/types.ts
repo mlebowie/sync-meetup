@@ -75,6 +75,7 @@ export type Database = {
           lgbtq_friendly: boolean
           lng: number | null
           location: string | null
+          organizer_bio: string | null
           organizer_name: string | null
           organizer_url: string | null
           pet_friendly: boolean
@@ -114,6 +115,7 @@ export type Database = {
           lgbtq_friendly?: boolean
           lng?: number | null
           location?: string | null
+          organizer_bio?: string | null
           organizer_name?: string | null
           organizer_url?: string | null
           pet_friendly?: boolean
@@ -153,6 +155,7 @@ export type Database = {
           lgbtq_friendly?: boolean
           lng?: number | null
           location?: string | null
+          organizer_bio?: string | null
           organizer_name?: string | null
           organizer_url?: string | null
           pet_friendly?: boolean

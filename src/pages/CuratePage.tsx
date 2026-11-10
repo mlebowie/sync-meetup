@@ -36,6 +36,7 @@ interface Row {
   location: string | null;
   image_url: string | null;
   organizer_name: string | null;
+  organizer_bio: string | null;
   category: string | null;
   price_label: string | null;
   vibe: string | null;
@@ -248,6 +249,7 @@ const CuratePage = () => {
       vibe: draft.vibe,
       group_size: draft.group_size,
       image_url: draft.image_url?.trim() ? draft.image_url.trim() : null,
+      organizer_bio: draft.organizer_bio?.trim() ? draft.organizer_bio.trim() : null,
     };
     const { error } = await supabase.from('events').update(patch).eq('id', id);
     setBusy(null);
@@ -458,6 +460,13 @@ const CuratePage = () => {
                             value={draft.image_url ?? ''}
                             onChange={(e) => setDraft((d) => ({ ...d, image_url: e.target.value }))}
                             placeholder="Cover image link (https://…)"
+                          />
+                          <Textarea
+                            rows={3}
+                            maxLength={1500}
+                            value={draft.organizer_bio ?? ''}
+                            onChange={(e) => setDraft((d) => ({ ...d, organizer_bio: e.target.value }))}
+                            placeholder={`Host bio (optional): a few lines from ${draft.organizer_name || 'the host'} about themselves. Shown as "About the host".`}
                           />
                           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                             <Select
