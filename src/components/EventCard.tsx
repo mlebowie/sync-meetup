@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Event, Participant } from '@/types/event';
-import { Calendar, MapPin, Users, Clock, ArrowRight, Check, MessageSquare, Repeat, Heart, TrendingUp, Hourglass, X, BadgeCheck } from 'lucide-react';
+import { Calendar, MapPin, Users, Clock, ArrowRight, Check, MessageSquare, Repeat, Heart, TrendingUp, Hourglass, X, BadgeCheck, UserPlus } from 'lucide-react';
 import { format } from 'date-fns';
 import ParticipantAvatars from './ParticipantAvatars';
 import OrganizerPopover from './OrganizerPopover';
@@ -12,6 +12,9 @@ import { useEventRatings } from '@/context/EventRatingContext';
 import AttendConfirmationDialog from './AttendConfirmationDialog';
 import CancelRegistrationDialog from './CancelRegistrationDialog';
 import WaitlistDialog from './WaitlistDialog';
+import InviteFriendsDialog from './InviteFriendsDialog';
+import InvitedSummary from './InvitedSummary';
+import { useInvites } from '@/context/InvitesContext';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
 import { vibeMeta } from '@/lib/vibe';
 import { useWishlist } from '@/context/WishlistContext';
@@ -74,6 +77,8 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
   const [waitlistOpen, setWaitlistOpen] = useState(false);
   const [cancelArmed, setCancelArmed] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const { getInvited } = useInvites();
   const armTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const chatTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { seriesCount, crossedPathsWith } = useActivityHistory();
@@ -361,9 +366,25 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
             </Button>
           )}
         </div>
+
+        {/* Invite friends, once you're going */}
+        {isAttending && !guest && (
+          <div className="mt-3 flex flex-col gap-2">
+            <InvitedSummary event={event} />
+            <Button
+              variant="outline"
+              className="w-full border-2 border-primary text-primary bg-primary/5 hover:bg-primary/10 hover:text-primary"
+              onClick={(e) => { e.stopPropagation(); setInviteOpen(true); }}
+            >
+              <UserPlus className="h-4 w-4 mr-2" />
+              {getInvited(event.id).length ? 'Invite more' : 'Invite friends'}
+            </Button>
+          </div>
+        )}
       </div>
 
-      <AttendConfirmationDialog event={event} open={confirmOpen} onOpenChange={setConfirmOpen} />
+      <AttendConfirmationDialog event={event} open={confirmOpen} onOpenChange={setConfirmOpen} onEngage={cancelAutoChat} />
+      <InviteFriendsDialog event={event} open={inviteOpen} onOpenChange={setInviteOpen} />
       <WaitlistDialog event={event} open={waitlistOpen} onOpenChange={setWaitlistOpen} />
       <CancelRegistrationDialog
         event={event}

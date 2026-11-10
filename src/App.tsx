@@ -16,6 +16,7 @@ import { SocialProvider } from "./context/SocialContext";
 import { ActivityHistoryProvider } from "./context/ActivityHistoryContext";
 import { WishlistProvider } from "./context/WishlistContext";
 import { AttendingProvider } from "./context/AttendingContext";
+import { InvitesProvider } from "./context/InvitesContext";
 import { SearchProvider } from "./context/SearchContext";
 import { EventMediaProvider } from "./context/EventMediaContext";
 import { EventRatingProvider } from "./context/EventRatingContext";
@@ -32,6 +33,7 @@ const App = () => (
         <ActivityHistoryProvider>
           <WishlistProvider allEvents={mockEvents}>
 <AttendingProvider>
+            <InvitesProvider>
               <SearchProvider>
                 <EventRatingProvider>
                 <EventMediaProvider>
@@ -54,6 +56,7 @@ const App = () => (
                 </EventMediaProvider>
                 </EventRatingProvider>
               </SearchProvider>
+            </InvitesProvider>
             </AttendingProvider>
           </WishlistProvider>
         </ActivityHistoryProvider>
