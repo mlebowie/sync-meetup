@@ -33,7 +33,8 @@ const OrganizerDetailsDialog = ({ organizer, open, onOpenChange }: Props) => {
   ].slice(0, 8);
   const testimonials = organizer.testimonials?.length ? organizer.testimonials :
     (organizer.recentReview ? [organizer.recentReview, ...fallbackTestimonials] : fallbackTestimonials);
-  const bio = organizer.bio ?? `${organizer.name} has been bringing people together in ${organizer.location} for years, hosting consistent, welcoming events designed for regulars and first-timers alike. Expect a friendly crowd, a clear structure, and the kind of small touches that turn a one-off meetup into a weekly habit.`;
+  // Only the host's own words; no invented bio.
+  const bio = organizer.bio?.trim();
   const eventTypes = organizer.eventTypes?.length ? organizer.eventTypes : ['Weekly meetups', 'Beginner-friendly sessions', 'Social mixers', 'Seasonal special events'];
 
   return (
@@ -82,10 +83,12 @@ const OrganizerDetailsDialog = ({ organizer, open, onOpenChange }: Props) => {
             </div>
 
             {/* Bio */}
-            <section>
-              <h3 className="text-sm font-semibold text-foreground mb-1">About</h3>
-              <p className="text-sm text-muted-foreground whitespace-pre-line">{bio}</p>
-            </section>
+            {bio && (
+              <section>
+                <h3 className="text-sm font-semibold text-foreground mb-1">About</h3>
+                <p className="text-sm text-muted-foreground whitespace-pre-line">{bio}</p>
+              </section>
+            )}
 
             {/* Event types */}
             <section>

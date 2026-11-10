@@ -72,13 +72,12 @@ const EventDetailsModal = ({
   
   const { toast } = useToast();
 
-  const extendedDescription = `${event.description}
-
-About the host
-${org ? `${org.name} has been running events in ${org.location} for a while now, with ${org.eventsHosted} events under their belt and a ${org.rating.toFixed(1)}-star average across ${org.reviewCount} reviews. They're known for being approachable, keeping things on schedule, and making sure no one gets left on the edge of the group.` : 'The host is an experienced organizer who specializes in welcoming, well-paced gatherings that make it easy to leave with a few new contacts.'} Tap their name below to see past events, photos, and reviews from previous attendees.
-
-What to bring
-Just yourself and an open attitude. Anything specific (gear, dress code, food contribution) is called out by the host in the group chat once you RSVP.`;
+  // Only the event's own description, plus the host's own words when they have
+  // written a bio; no generic template text.
+  const hostBio = org?.bio?.trim();
+  const extendedDescription = hostBio
+    ? `${event.description}\n\nAbout the host\n${hostBio}`
+    : event.description;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
