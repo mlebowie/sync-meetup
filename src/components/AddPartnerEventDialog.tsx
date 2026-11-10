@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { lisbonToIso } from '@/lib/lisbonTime';
+import EventFlagToggles from '@/components/EventFlagToggles';
 import { EVENT_CATEGORIES } from '@/lib/categories';
 import { AlertTriangle, Loader2, Plus, Sparkles } from 'lucide-react';
 
@@ -42,6 +43,8 @@ interface Draft {
   vibe: string;
   group_size: string;
   women_only: boolean;
+  lgbtq_friendly?: boolean;
+  pet_friendly?: boolean;
   registration_url: string | null;
   image_url?: string | null;
   warnings: string[];
@@ -96,7 +99,14 @@ const AddPartnerEventDialog = ({ onAdded }: Props) => {
       toast({ title: 'Could not read the event', description: message });
       return;
     }
-    const next = data.draft as Draft;
+    const parsed = data.draft as Draft;
+    const next: Draft = {
+      ...parsed,
+      // Expat Girls events are for women unless the curator switches it off.
+      women_only: !!parsed.women_only || chosen.source === 'expat-girls-porto',
+      lgbtq_friendly: !!parsed.lgbtq_friendly,
+      pet_friendly: !!parsed.pet_friendly,
+    };
     setDraft(next);
     if (next.image_url && !imageUrl.trim()) setImageUrl(next.image_url);
   };
@@ -136,7 +146,9 @@ const AddPartnerEventDialog = ({ onAdded }: Props) => {
       price_label: draft.price_label,
       vibe: draft.vibe,
       group_size: draft.group_size,
-      women_only: draft.women_only || chosen.source === 'expat-girls-porto',
+      women_only: draft.women_only,
+      lgbtq_friendly: !!draft.lgbtq_friendly,
+      pet_friendly: !!draft.pet_friendly,
       tags: featured ? ['sync-partner', 'featured'] : ['sync-partner'],
       classified: true,
       review_status: status,
@@ -345,6 +357,17 @@ const AddPartnerEventDialog = ({ onAdded }: Props) => {
                 <p className="text-xs text-muted-foreground">Pins it to the Featured spotlight at the top of the feed.</p>
               </div>
               <Switch id="featured" checked={featured} onCheckedChange={setFeatured} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Filters</Label>
+              <EventFlagToggles
+                value={{
+                  women_only: draft.women_only,
+                  lgbtq_friendly: !!draft.lgbtq_friendly,
+                  pet_friendly: !!draft.pet_friendly,
+                }}
+                onChange={(flags) => setDraft((d) => (d ? { ...d, ...flags } : d))}
+              />
             </div>
             <div className="space-y-1.5">
               <Label>Description</Label>

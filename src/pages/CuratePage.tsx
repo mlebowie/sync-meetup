@@ -17,6 +17,8 @@ import {
 } from '@/components/ui/select';
 import { EVENT_CATEGORIES, normalizeCategory } from '@/lib/categories';
 import AddPartnerEventDialog from '@/components/AddPartnerEventDialog';
+import EventFlagToggles, { type EventFlags } from '@/components/EventFlagToggles';
+import { isoToLisbon, lisbonToIso, timeLabelFor } from '@/lib/lisbonTime';
 import { Check, X, Pencil, ExternalLink, RotateCcw, Clock, Loader2, Star, ImagePlus, Link2 } from 'lucide-react';
 
 type ReviewStatus = 'pending' | 'approved' | 'rejected';
@@ -28,6 +30,7 @@ interface Row {
   title: string;
   description: string | null;
   starts_at: string;
+  ends_at: string | null;
   time_label: string | null;
   venue_name: string | null;
   location: string | null;
@@ -40,7 +43,16 @@ interface Row {
   review_status: ReviewStatus;
   tags: string[] | null;
   created_at: string;
+  women_only: boolean | null;
+  lgbtq_friendly: boolean | null;
+  pet_friendly: boolean | null;
 }
+
+const FLAG_LABELS: { key: keyof EventFlags; label: string }[] = [
+  { key: 'women_only', label: 'Women only' },
+  { key: 'lgbtq_friendly', label: 'LGBTQ+ friendly' },
+  { key: 'pet_friendly', label: 'Pet friendly' },
+];
 
 const SOURCE_LABELS: Record<string, string> = {
   meetup: 'Meetup',
@@ -75,6 +87,8 @@ const CuratePage = () => {
   const [sourceFilter, setSourceFilter] = useState<string>('all');
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState<Partial<Row>>({});
+  // Date and times are edited in Porto time, then converted on save.
+  const [when, setWhen] = useState({ date: '', start: '', end: '' });
   const [busy, setBusy] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -204,9 +218,30 @@ const CuratePage = () => {
     toast({ title: 'Photo added from the event page' });
   };
 
+  const startEdit = (row: Row) => {
+    setEditing(row.id);
+    setDraft({ ...row, category: normalizeCategory(row.category, row.title) });
+    const start = isoToLisbon(row.starts_at);
+    setWhen({ date: start.date, start: start.time, end: row.ends_at ? isoToLisbon(row.ends_at).time : '' });
+  };
+
   const saveEdit = async (id: string) => {
+    if (!when.date || !when.start) {
+      toast({ title: 'Add a date and start time' });
+      return;
+    }
+    const startsAt = lisbonToIso(when.date, when.start);
+    // An end time earlier than the start (e.g. 23:00–01:00) runs past midnight.
+    let endsAt: string | null = when.end ? lisbonToIso(when.date, when.end) : null;
+    if (endsAt && endsAt <= startsAt) endsAt = new Date(new Date(endsAt).getTime() + 86_400_000).toISOString();
     setBusy(id);
     const patch = {
+      starts_at: startsAt,
+      ends_at: endsAt,
+      time_label: timeLabelFor(when.start, when.end || null),
+      women_only: !!draft.women_only,
+      lgbtq_friendly: !!draft.lgbtq_friendly,
+      pet_friendly: !!draft.pet_friendly,
       title: draft.title,
       description: draft.description,
       category: draft.category,
@@ -220,7 +255,11 @@ const CuratePage = () => {
       toast({ title: 'Could not save', description: error.message });
       return;
     }
-    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } as Row : r)));
+    setRows((prev) =>
+      prev
+        .map((r) => (r.id === id ? ({ ...r, ...patch } as Row) : r))
+        .sort((a, b) => a.starts_at.localeCompare(b.starts_at)),
+    );
     setEditing(null);
     toast({ title: 'Changes saved' });
   };
@@ -359,7 +398,15 @@ const CuratePage = () => {
                             ? row.organizer_name
                             : SOURCE_LABELS[row.source] ?? row.source}
                         </Badge>
-                        <span className="text-muted-foreground">{dayLabel(row.starts_at)}</span>
+                        <span className="text-muted-foreground">
+                          {dayLabel(row.starts_at)}
+                          {row.ends_at ? `–${isoToLisbon(row.ends_at).time}` : ''}
+                        </span>
+                        {FLAG_LABELS.filter(({ key }) => row[key]).map(({ key, label }) => (
+                          <Badge key={key} variant="outline">
+                            {label}
+                          </Badge>
+                        ))}
                         {row.price_label && (
                           <span className="text-muted-foreground">· {row.price_label}</span>
                         )}
@@ -372,6 +419,32 @@ const CuratePage = () => {
                             onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))}
                             placeholder="Title"
                           />
+                          <div className="grid grid-cols-3 gap-2">
+                            <label className="space-y-1 text-xs text-muted-foreground">
+                              Date
+                              <Input
+                                type="date"
+                                value={when.date}
+                                onChange={(e) => setWhen((w) => ({ ...w, date: e.target.value }))}
+                              />
+                            </label>
+                            <label className="space-y-1 text-xs text-muted-foreground">
+                              Starts
+                              <Input
+                                type="time"
+                                value={when.start}
+                                onChange={(e) => setWhen((w) => ({ ...w, start: e.target.value }))}
+                              />
+                            </label>
+                            <label className="space-y-1 text-xs text-muted-foreground">
+                              Ends (optional)
+                              <Input
+                                type="time"
+                                value={when.end}
+                                onChange={(e) => setWhen((w) => ({ ...w, end: e.target.value }))}
+                              />
+                            </label>
+                          </div>
                           <Textarea
                             rows={4}
                             value={draft.description ?? ''}
@@ -426,6 +499,14 @@ const CuratePage = () => {
                               </Select>
                             ))}
                           </div>
+                          <EventFlagToggles
+                            value={{
+                              women_only: !!draft.women_only,
+                              lgbtq_friendly: !!draft.lgbtq_friendly,
+                              pet_friendly: !!draft.pet_friendly,
+                            }}
+                            onChange={(flags) => setDraft((d) => ({ ...d, ...flags }))}
+                          />
                           <div className="flex gap-2">
                             <Button size="sm" disabled={busy === row.id} onClick={() => saveEdit(row.id)}>
                               Save
@@ -536,10 +617,7 @@ const CuratePage = () => {
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => {
-                              setEditing(row.id);
-                              setDraft({ ...row, category: normalizeCategory(row.category, row.title) });
-                            }}
+                            onClick={() => startEdit(row)}
                           >
                             <Pencil className="h-4 w-4 mr-1" /> Edit
                           </Button>
