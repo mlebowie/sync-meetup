@@ -16,6 +16,7 @@ export interface EventRow {
   location: string | null;
   image_url: string | null;
   organizer_name: string | null;
+  organizer_bio?: string | null;
   organizer_url: string | null;
   category: string | null;
   tags: string[] | null;
@@ -126,7 +127,8 @@ export function rowToEvent(row: EventRow): Event {
           reviewCount: 12 + (h % 90),
           location: 'Porto, Portugal',
           eventsHosted: 4 + (h % 40),
-          bio: `Hosts ${row.category || 'social'} events around Porto.`,
+          // Only the host's own words, entered while curating.
+          bio: row.organizer_bio?.trim() || undefined,
           social: {},
         }
       : undefined,

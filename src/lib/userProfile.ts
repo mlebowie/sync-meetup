@@ -2,6 +2,7 @@ import defaultProfilePhoto from '@/assets/default-profile.jpg';
 
 export const ONBOARDING_INTERESTS: { id: string; label: string; icon: string; keywords: string[] }[] = [
   { id: 'sports', label: 'Sports', icon: '⚽', keywords: ['running', 'football', 'padel', 'surf', 'climbing', 'sports'] },
+  { id: 'dance', label: 'Dance', icon: '💃', keywords: ['dance', 'dancing', 'salsa', 'bachata', 'kizomba', 'tango'] },
   { id: 'social-networking', label: 'Social networking', icon: '🤝', keywords: ['social', 'brunch', 'walk', 'beer', 'networking'] },
   { id: 'dining-cooking', label: 'Dining & cooking', icon: '🍽️', keywords: ['brunch', 'food', 'dinner', 'drinks', 'cooking'] },
   { id: 'popup-events', label: 'Pop-up events', icon: '✨', keywords: ['pop-up', 'popup'] },
@@ -12,7 +13,7 @@ export const ONBOARDING_INTERESTS: { id: string; label: string; icon: string; ke
   { id: 'health-wellness', label: 'Health & wellness', icon: '🧘', keywords: ['wellness', 'yoga', 'mindfulness', 'health'] },
   { id: 'religion', label: 'Religion', icon: '🕊️', keywords: ['religion', 'faith', 'church'] },
   { id: 'spirituality', label: 'Spirituality', icon: '🌙', keywords: ['spirituality', 'meditation', 'mindfulness'] },
-  { id: 'music-live', label: 'Music & live events', icon: '🎵', keywords: ['music', 'salsa', 'dancing', 'concert', 'live'] },
+  { id: 'music-live', label: 'Music & live events', icon: '🎵', keywords: ['music', 'concert', 'live', 'dj', 'jazz'] },
   { id: 'professional', label: 'Professional development', icon: '📈', keywords: ['networking', 'founders', 'professional', 'career'] },
   { id: 'education', label: 'Education', icon: '🎓', keywords: ['learning', 'education', 'languages', 'workshop'] },
   { id: 'languages', label: 'Languages', icon: '🗣️', keywords: ['languages', 'language'] },
@@ -21,7 +22,7 @@ export const ONBOARDING_INTERESTS: { id: string; label: string; icon: string; ke
 ];
 
 export const INTEREST_GROUPS: { label: string; interestIds: string[] }[] = [
-  { label: 'Outdoors & movement', interestIds: ['sports', 'outdoors', 'health-wellness'] },
+  { label: 'Outdoors & movement', interestIds: ['sports', 'dance', 'outdoors', 'health-wellness'] },
   { label: 'Food & social', interestIds: ['social-networking', 'dining-cooking', 'popup-events'] },
   { label: 'Arts & culture', interestIds: ['arts-theatre', 'music-live', 'cultural-exchange', 'games'] },
   { label: 'Learning & professional', interestIds: ['tech-ai', 'professional', 'education', 'languages'] },

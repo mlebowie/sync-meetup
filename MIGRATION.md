@@ -108,3 +108,16 @@ are kept, plus trips that depart from Porto. Online-only events and events in Li
 Run one theme by hand: `select public.run_event_collector('meetup', 'sports');`
 (themes: `general`, `sports`, `languages`, `outdoors`). Search terms live in `THEMED_PAGES` and `LUMA_QUERIES`
 in `supabase/functions/scrape-events/index.ts`.
+
+## 13. Recurring events and Dance (Nov 2026)
+- **Repeats** (Edit on /curate and Add partner event): Doesn't repeat, every week, every 2 weeks, or every month
+  (same weekday position, e.g. 2nd Wednesday), with an optional last date. Each date is its own event in the same
+  series (`series_key`); SYNC creates the next six weeks (`extend_event_series`) and a daily job at 04:50 UTC tops
+  them up. Generated dates have `series_generated = true` and copy the status of the date they follow.
+- Works for scraped events too. A source's own "every week" sets `recurrence` for the badge only; dates are
+  generated only when the curator turns Repeats on (`generate_dates = true`). The collector never overwrites the
+  repeat settings of an event it already knows.
+- Stopping a series or changing its frequency removes the generated dates after the edited one
+  (`clear_upcoming_series_dates`). "Apply to all upcoming dates" copies an edit to the later dates.
+- **Dance** is an interest (Outdoors & movement). Salsa, bachata, kizomba, tango, swing, ecstatic dance etc. are
+  labelled Dance; Thursday's sports search also looks for dance socials.

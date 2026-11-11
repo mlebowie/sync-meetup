@@ -98,12 +98,14 @@ const THEMED_PAGES: Record<Exclude<Focus, 'general'>, Partial<Record<SourceId, s
       'https://www.meetup.com/find/?location=pt--Porto&source=EVENTS&keywords=padel&distance=twentyFiveMiles',
       'https://www.meetup.com/find/?location=pt--Porto&source=EVENTS&keywords=tennis&distance=twentyFiveMiles',
       'https://www.meetup.com/find/?location=pt--Porto&source=EVENTS&keywords=pickleball&distance=twentyFiveMiles',
+      'https://www.meetup.com/find/?location=pt--Porto&source=EVENTS&keywords=salsa%20bachata%20kizomba%20dance&distance=twentyFiveMiles',
       'https://www.meetup.com/find/?location=pt--Porto&source=EVENTS&keywords=football%20volleyball%20basketball&distance=twentyFiveMiles',
     ],
     eventbrite: [
       'https://www.eventbrite.com/d/portugal--porto/padel/',
       'https://www.eventbrite.com/d/portugal--porto/tennis/',
       'https://www.eventbrite.com/d/portugal--porto/pickleball/',
+      'https://www.eventbrite.com/d/portugal--porto/dance/',
     ],
   },
   languages: {
@@ -138,7 +140,10 @@ const LUMA_QUERIES: Record<Focus, string[]> = {
     'site:lu.ma Porto Portugal events calendar',
     'site:lu.ma Porto yoga wellness OR fitness OR run event',
   ],
-  sports: ['site:luma.com OR site:lu.ma Porto padel OR tennis OR pickleball'],
+  sports: [
+    'site:luma.com OR site:lu.ma Porto padel OR tennis OR pickleball',
+    'site:luma.com OR site:lu.ma Porto salsa OR bachata OR kizomba OR "dance social"',
+  ],
   languages: ['site:luma.com OR site:lu.ma Porto "language exchange" OR "language cafe" OR tandem'],
   outdoors: ['site:luma.com OR site:lu.ma Porto "walking tour" OR "guided walk" OR "day trip" OR hike'],
 };
@@ -552,12 +557,13 @@ const CATEGORY_RULES: [RegExp, string][] = [
   [/volunteer|charity|non-?profit|ngo|fundrais|beach clean|clean-?up/, 'Charity & non-profit'],
   [/language exchange|language meetup|language caf[eé]|languages|tandem|polyglot|conversation (?:club|practice|exchange)|portuguese (?:class|practice|conversation)|english class|speak portuguese|intercambio/, 'Languages'],
   [/church|faith|bible|christian|muslim|mosque|synagogue|religio/, 'Religion'],
+  [/salsa|bachata|kizomba|zouk|forr[oó]|tango|swing danc|lindy|dance social|social danc|dance class|dance night|dance party|ecstatic dance|contact improv|5 ?rhythms|ballroom|flamenco|hip ?hop dance|k-?pop dance|line danc|ceilidh|\bdance\b|\bdancing\b/, 'Dance'],
   [/tennis|padel|pickleball|squash|badminton|table tennis|ping[- ]?pong|football|soccer|futsal|basketball|volleyball|beach volley|run club|running club|jogging|marathon|\b5k\b|\b10k\b|bouldering|climbing|surf|skate|swimming|cycling|bike ride|martial arts|jiu-?jitsu|boxing|muay thai|rugby|golf|\bsports?\b/, 'Sports'],
   [/yoga|pilates|barre|hyrox|crossfit|bootcamp|calisthenic|nutrition|gym|fitness|wellness|wellbeing|well-?being|ice bath|cold plunge|sauna|spa day/, 'Health & wellness'],
-  [/meditation|mindful|spiritual|reiki|astrolog|sound bath|sound healing|kirtan|tarot|retiro|retreat|chakra|kundalini|ecstatic dance|cacao|shamanic|breathwork|cuddle party/, 'Spirituality'],
+  [/meditation|mindful|spiritual|reiki|astrolog|sound bath|sound healing|kirtan|tarot|retiro|retreat|chakra|kundalini|cacao|shamanic|breathwork|cuddle party/, 'Spirituality'],
   [/hike|hiking|trail|kayak|paddle ?board|nature walk|camping|outdoor|picnic|day trip|birdwatch|forest bathing|sunrise walk|sunset walk|caminhada|walking holiday|camino|guided walk|walking tour|walk(?:ing)? group|day trip|excursion|road trip|douro valley|guimar[aã]es|braga|aveiro|viana do castelo|ponte de lima|ger[eê]s|amarante|costa nova/, 'Outdoors activities'],
   [/ ai |artificial intelligence|machine learning|tech|developer|software|coding|data|cyber|security|blockchain|robotic/, 'Tech & AI'],
-  [/concert|live music|dj |salsa|bachata|kizomba|dance|dancing|band|gig|vinyl|jazz/, 'Music & live events'],
+  [/concert|live music|dj |band|gig|vinyl|jazz/, 'Music & live events'],
   [/comedy|stand-?up|theatre|theater|improv|art |arts|gallery|exhibition|painting|photograph|writing|film|cinema|book club|poetry/, 'Arts & theatre'],
   [/dinner|brunch|lunch|food|cooking|wine tasting|tasting|restaurant|supper|bbq|coffee/, 'Dining & cooking'],
   [/workshop|course|lecture|class|seminar|masterclass|talk|philosophy|learn/, 'Education'],
@@ -997,8 +1003,8 @@ Deno.serve(async (req) => {
               typeof raw.attendees === 'number' && raw.attendees > 0
                 ? Math.max(12, Math.round(raw.attendees * 1.4))
                 : null,
-            recurrence,
-            series_key,
+            // A known event keeps its repeat settings (the curator may have set them).
+            ...(known.has(`${source}:${id}`) ? {} : { recurrence, series_key }),
             ...keywordDerive(raw),
             ...agendaFlags(raw, source),
             last_seen_at: new Date().toISOString(),

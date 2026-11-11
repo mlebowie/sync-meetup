@@ -17,7 +17,7 @@ const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 /** Must match the onboarding interests (src/lib/userProfile.ts); src/test/categories.test.ts checks this. */
 const CATEGORIES = [
-  'Sports', 'Health & wellness', 'Spirituality', 'Religion', 'Outdoors activities', 'Social networking',
+  'Sports', 'Dance', 'Health & wellness', 'Spirituality', 'Religion', 'Outdoors activities', 'Social networking',
   'Cultural exchange', 'Languages', 'Professional development', 'Tech & AI', 'Music & live events',
   'Arts & theatre', 'Dining & cooking', 'Education', 'Games', 'Charity & non-profit', 'Pop-up events',
 ];

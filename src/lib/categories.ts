@@ -23,6 +23,7 @@ const LEGACY: Record<string, string> = {
   arts: 'Arts & theatre',
   'arts & culture': 'Arts & theatre',
   tech: 'Tech & AI',
+  dancing: 'Dance',
 };
 
 const WELLNESS = /yoga|pilates|breathwork|wellness|wellbeing|meditation|mindful|barre|gym|fitness/;
