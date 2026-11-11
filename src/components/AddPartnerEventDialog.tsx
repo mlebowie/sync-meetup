@@ -18,6 +18,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { lisbonToIso } from '@/lib/lisbonTime';
 import EventFlagToggles from '@/components/EventFlagToggles';
+import RepeatFields, { type RepeatValue } from '@/components/RepeatFields';
 import { EVENT_CATEGORIES } from '@/lib/categories';
 import { AlertTriangle, Loader2, Plus, Sparkles } from 'lucide-react';
 
@@ -66,6 +67,7 @@ const AddPartnerEventDialog = ({ onAdded }: Props) => {
   const [pasted, setPasted] = useState('');
   const [link, setLink] = useState('');
   const [draft, setDraft] = useState<Draft | null>(null);
+  const [repeat, setRepeat] = useState<RepeatValue>({ recurrence: 'one-off', until: '' });
   const [busy, setBusy] = useState<'reading' | 'saving' | null>(null);
 
   const chosen = PARTNERS.find((p) => p.value === partner) ?? PARTNERS[0];
@@ -81,6 +83,7 @@ const AddPartnerEventDialog = ({ onAdded }: Props) => {
     setBusy(null);
     setFeatured(false);
     setImageUrl('');
+    setRepeat({ recurrence: 'one-off', until: '' });
   };
 
   const read = async () => {
@@ -130,9 +133,15 @@ const AddPartnerEventDialog = ({ onAdded }: Props) => {
 
     setBusy('saving');
     const startsAt = lisbonToIso(draft.date, draft.start_time);
+    const sourceEventId = `${slug(organizer)}-${draft.date}-${draft.start_time.replace(':', '')}-${slug(draft.title)}`;
+    const repeating = repeat.recurrence !== 'one-off';
+    const seriesKey = `${chosen.source}:${sourceEventId}`;
     const { error } = await supabase.from('events').insert({
       source: chosen.source,
-      source_event_id: `${slug(organizer)}-${draft.date}-${draft.start_time.replace(':', '')}-${slug(draft.title)}`,
+      source_event_id: sourceEventId,
+      ...(repeating
+        ? { recurrence: repeat.recurrence, repeat_until: repeat.until || null, series_key: seriesKey, generate_dates: true }
+        : {}),
       source_url: url,
       title: draft.title.trim(),
       description: draft.description,
@@ -165,7 +174,16 @@ const AddPartnerEventDialog = ({ onAdded }: Props) => {
       });
       return;
     }
-    toast({ title: status === 'approved' ? 'Event published' : 'Added to Waiting' });
+    // A repeating event gets its upcoming dates now, with the same status.
+    let added = 0;
+    if (repeating) {
+      const { data } = await supabase.rpc('extend_event_series', { _series_key: seriesKey });
+      added = data ?? 0;
+    }
+    toast({
+      title: status === 'approved' ? 'Event published' : 'Added to Waiting',
+      description: added ? `${added} upcoming date${added === 1 ? '' : 's'} added as well.` : undefined,
+    });
     reset();
     setOpen(false);
     onAdded();
@@ -293,6 +311,7 @@ const AddPartnerEventDialog = ({ onAdded }: Props) => {
                 />
               </div>
             </div>
+            <RepeatFields value={repeat} onChange={setRepeat} date={draft.date ?? ''} />
             <div className="grid sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label>Venue</Label>

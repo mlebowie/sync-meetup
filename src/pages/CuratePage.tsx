@@ -6,6 +6,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import RepeatFields, { type Repeat, type RepeatValue, describeRepeat } from '@/components/RepeatFields';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
@@ -47,7 +49,14 @@ interface Row {
   women_only: boolean | null;
   lgbtq_friendly: boolean | null;
   pet_friendly: boolean | null;
+  recurrence: string | null;
+  series_key: string | null;
+  repeat_until: string | null;
+  series_generated: boolean | null;
+  generate_dates: boolean | null;
 }
+
+const REPEAT_LABELS: Record<string, string> = { weekly: 'Weekly', biweekly: 'Every 2 weeks', monthly: 'Monthly' };
 
 const FLAG_LABELS: { key: keyof EventFlags; label: string }[] = [
   { key: 'women_only', label: 'Women only' },
@@ -90,6 +99,10 @@ const CuratePage = () => {
   const [draft, setDraft] = useState<Partial<Row>>({});
   // Date and times are edited in Porto time, then converted on save.
   const [when, setWhen] = useState({ date: '', start: '', end: '' });
+  const [repeat, setRepeat] = useState<RepeatValue>({ recurrence: 'one-off', until: '' });
+  const [repeatTouched, setRepeatTouched] = useState(false);
+  // Edit every upcoming date of a series, not just this one.
+  const [applyAll, setApplyAll] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -224,6 +237,13 @@ const CuratePage = () => {
     setDraft({ ...row, category: normalizeCategory(row.category, row.title) });
     const start = isoToLisbon(row.starts_at);
     setWhen({ date: start.date, start: start.time, end: row.ends_at ? isoToLisbon(row.ends_at).time : '' });
+    // Only repeats switched on in SYNC show here; a source's own "weekly" is a hint.
+    setRepeat({
+      recurrence: (row.generate_dates ? row.recurrence : 'one-off') as Repeat,
+      until: row.repeat_until ?? '',
+    });
+    setRepeatTouched(false);
+    setApplyAll(false);
   };
 
   const saveEdit = async (id: string) => {
@@ -251,19 +271,74 @@ const CuratePage = () => {
       image_url: draft.image_url?.trim() ? draft.image_url.trim() : null,
       organizer_bio: draft.organizer_bio?.trim() ? draft.organizer_bio.trim() : null,
     };
-    const { error } = await supabase.from('events').update(patch).eq('id', id);
-    setBusy(null);
+    const row = rows.find((r) => r.id === id);
+    const wasRepeating = !!row?.generate_dates && row.recurrence !== 'one-off';
+    const repeating = repeat.recurrence !== 'one-off';
+    const seriesKey = row?.series_key || `series-${id}`;
+    // Repeat settings are written only when the curator changed them, so editing
+    // a scraped "weekly" event's title never starts generating dates.
+    const repeatPatch = repeatTouched
+      ? repeating
+        ? { recurrence: repeat.recurrence, repeat_until: repeat.until || null, series_key: seriesKey, generate_dates: true }
+        : wasRepeating
+          ? { recurrence: 'one-off', repeat_until: null, generate_dates: false }
+          : {}
+      : {};
+
+    const { error } = await supabase.from('events').update({ ...patch, ...repeatPatch }).eq('id', id);
     if (error) {
+      setBusy(null);
       toast({ title: 'Could not save', description: error.message });
       return;
     }
-    setRows((prev) =>
-      prev
-        .map((r) => (r.id === id ? ({ ...r, ...patch } as Row) : r))
-        .sort((a, b) => a.starts_at.localeCompare(b.starts_at)),
-    );
+
+    let note = '';
+    try {
+      // Stopping a series, or changing how often it repeats, replaces the dates
+      // SYNC generated after this one.
+      const frequencyChanged = wasRepeating && repeatTouched && (!repeating || repeat.recurrence !== row?.recurrence);
+      if (frequencyChanged && row?.series_key) {
+        const { data: removed } = await supabase.rpc('clear_upcoming_series_dates', {
+          _series_key: row.series_key,
+          _after: startsAt,
+        });
+        if (removed) note = `${removed} later date${removed === 1 ? '' : 's'} removed. `;
+      }
+
+      // Copy these changes to every later date of the series.
+      if (applyAll && row?.series_key && !frequencyChanged) {
+        const { data: later } = await supabase
+          .from('events')
+          .select('id, starts_at')
+          .eq('series_key', row.series_key)
+          .gt('starts_at', row.starts_at)
+          .neq('review_status', 'rejected');
+        for (const sib of later ?? []) {
+          const day = isoToLisbon(sib.starts_at).date;
+          const sibStart = lisbonToIso(day, when.start);
+          let sibEnd: string | null = when.end ? lisbonToIso(day, when.end) : null;
+          if (sibEnd && sibEnd <= sibStart) sibEnd = new Date(new Date(sibEnd).getTime() + 86_400_000).toISOString();
+          await supabase
+            .from('events')
+            .update({ ...patch, ...repeatPatch, starts_at: sibStart, ends_at: sibEnd })
+            .eq('id', sib.id);
+        }
+        if (later?.length) note += `${later.length} later date${later.length === 1 ? '' : 's'} updated. `;
+      }
+
+      if (repeating) {
+        const { data: added } = await supabase.rpc('extend_event_series', { _series_key: seriesKey });
+        if (added) note += `${added} upcoming date${added === 1 ? '' : 's'} added. `;
+      }
+    } catch (e) {
+      note += `Series update incomplete: ${(e as Error).message}`;
+    }
+
+    setBusy(null);
     setEditing(null);
-    toast({ title: 'Changes saved' });
+    toast({ title: 'Changes saved', description: note.trim() || undefined });
+    // The series may have new or removed dates, so reload the list.
+    await load();
   };
 
   if (authLoading) {
@@ -404,6 +479,9 @@ const CuratePage = () => {
                           {dayLabel(row.starts_at)}
                           {row.ends_at ? `–${isoToLisbon(row.ends_at).time}` : ''}
                         </span>
+                        {row.generate_dates && row.recurrence && REPEAT_LABELS[row.recurrence] && (
+                          <Badge variant="outline">↻ {REPEAT_LABELS[row.recurrence]}</Badge>
+                        )}
                         {FLAG_LABELS.filter(({ key }) => row[key]).map(({ key, label }) => (
                           <Badge key={key} variant="outline">
                             {label}
@@ -447,6 +525,19 @@ const CuratePage = () => {
                               />
                             </label>
                           </div>
+                          <RepeatFields
+                            value={repeat}
+                            date={when.date}
+                            sourceSays={
+                              !row.generate_dates && row.recurrence && row.recurrence !== 'one-off'
+                                ? describeRepeat(row.recurrence as Repeat, when.date)
+                                : null
+                            }
+                            onChange={(next) => {
+                              setRepeat(next);
+                              setRepeatTouched(true);
+                            }}
+                          />
                           <Textarea
                             rows={4}
                             value={draft.description ?? ''}
@@ -516,6 +607,12 @@ const CuratePage = () => {
                             }}
                             onChange={(flags) => setDraft((d) => ({ ...d, ...flags }))}
                           />
+                          {row.series_key && row.generate_dates && (
+                            <label className="flex items-center gap-2 text-sm">
+                              <Checkbox checked={applyAll} onCheckedChange={(v) => setApplyAll(v === true)} />
+                              Apply these changes to all upcoming dates in this series
+                            </label>
+                          )}
                           <div className="flex gap-2">
                             <Button size="sm" disabled={busy === row.id} onClick={() => saveEdit(row.id)}>
                               Save

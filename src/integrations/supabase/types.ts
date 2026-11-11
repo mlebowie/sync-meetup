@@ -81,6 +81,9 @@ export type Database = {
           pet_friendly: boolean
           price_label: string | null
           recurrence: string
+          repeat_until: string | null
+          series_generated: boolean
+          generate_dates: boolean
           review_status: string
           reviewed_at: string | null
           reviewed_by: string | null
@@ -121,6 +124,9 @@ export type Database = {
           pet_friendly?: boolean
           price_label?: string | null
           recurrence?: string
+          repeat_until?: string | null
+          series_generated?: boolean
+          generate_dates?: boolean
           review_status?: string
           reviewed_at?: string | null
           reviewed_by?: string | null
@@ -161,6 +167,9 @@ export type Database = {
           pet_friendly?: boolean
           price_label?: string | null
           recurrence?: string
+          repeat_until?: string | null
+          series_generated?: boolean
+          generate_dates?: boolean
           review_status?: string
           reviewed_at?: string | null
           reviewed_by?: string | null
@@ -205,6 +214,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      clear_upcoming_series_dates: {
+        Args: { _after: string; _series_key: string }
+        Returns: number
+      }
+      extend_event_series: {
+        Args: { _horizon_days?: number; _series_key?: string }
+        Returns: number
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
