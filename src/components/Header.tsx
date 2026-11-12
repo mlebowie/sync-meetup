@@ -73,31 +73,34 @@ const Header = ({ onOpenMessages }: HeaderProps) => {
 
 
 <div className="flex items-center gap-2">
-          <HeaderSearch />
-          <Button variant="ghost" size="icon" onClick={onOpenMessages} title="Messages">
-            <MessageCircle className="h-5 w-5" />
-          </Button>
-          {showNotifications && (
-            <NotificationsPopover open={notifOpen} onOpenChange={setNotifOpen} />
-          )}
-          <Button variant="ghost" size="icon" asChild title="Calendar">
-            <Link to="/calendar" aria-label="Calendar">
-              <CalendarDays className="h-5 w-5" />
-            </Link>
-          </Button>
-
-          <Button variant="ghost" size="icon" asChild title="Profile">
-            <Link to="/profile">
-              <User className="h-5 w-5" />
-            </Link>
-          </Button>
-          {isGuest && (
+          {isGuest ? (
+            // Logged out: no member tools and no profile, just a way in.
             <>
               <Button variant="outline" size="sm" asChild>
                 <Link to="/login">Log in</Link>
               </Button>
               <Button variant="hero" size="sm" asChild>
                 <Link to="/onboarding">Register</Link>
+              </Button>
+            </>
+          ) : (
+            <>
+              <HeaderSearch />
+              <Button variant="ghost" size="icon" onClick={onOpenMessages} title="Messages">
+                <MessageCircle className="h-5 w-5" />
+              </Button>
+              {showNotifications && (
+                <NotificationsPopover open={notifOpen} onOpenChange={setNotifOpen} />
+              )}
+              <Button variant="ghost" size="icon" asChild title="Calendar">
+                <Link to="/calendar" aria-label="Calendar">
+                  <CalendarDays className="h-5 w-5" />
+                </Link>
+              </Button>
+              <Button variant="ghost" size="icon" asChild title="Profile">
+                <Link to="/profile" aria-label="Profile">
+                  <User className="h-5 w-5" />
+                </Link>
               </Button>
             </>
           )}

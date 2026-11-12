@@ -12,6 +12,7 @@ import CalendarPage from "./pages/CalendarPage";
 import Login from "./pages/Login";
 import CuratePage from "./pages/CuratePage";
 import AuthProfileSync from "./components/AuthProfileSync";
+import RequireProfile from "./components/RequireProfile";
 
 import { SocialProvider } from "./context/SocialContext";
 import { ActivityHistoryProvider } from "./context/ActivityHistoryContext";
@@ -44,8 +45,8 @@ const App = () => (
                   <Route path="/" element={<Index />} />
                   <Route path="/onboarding" element={<Onboarding />} />
                   <Route path="/login" element={<Login />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/profile/connections" element={<Connections />} />
+                  <Route path="/profile" element={<RequireProfile><Profile /></RequireProfile>} />
+                  <Route path="/profile/connections" element={<RequireProfile><Connections /></RequireProfile>} />
                   <Route path="/calendar" element={<CalendarPage />} />
                   <Route path="/curate" element={<CuratePage />} />
 
