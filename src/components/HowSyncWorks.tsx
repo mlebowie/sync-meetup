@@ -1,29 +1,23 @@
-import { Compass, SlidersHorizontal, MessagesSquare, Users2 } from 'lucide-react';
+import { Compass, CalendarCheck, Users2 } from 'lucide-react';
 
 const STEPS = [
   {
     icon: Compass,
     step: 'Step 1',
-    title: 'Curate your feed',
-    body: 'Choose your interests and your neighborhood. SYNC builds a feed of what is actually happening near you.',
+    title: 'Pick what you like doing',
+    body: "Choose your interests and neighborhood. SYNC builds a feed of what's actually happening near you. No bio to write.",
   },
   {
-    icon: SlidersHorizontal,
+    icon: CalendarCheck,
     step: 'Step 2',
-    title: 'Register for the right event',
-    body: 'Filter by vibe (chill, social or lively), age range, recurring series, and inclusivity — pet-friendly, LGBTQI+ friendly, women only.',
-  },
-  {
-    icon: MessagesSquare,
-    step: 'Step 3',
-    title: 'Chat before and after',
-    body: 'Every event opens a group chat with the organizer and attendees, so you arrive knowing names — and keep talking afterwards.',
+    title: 'Go to a small event',
+    body: 'Filter by vibe, group size and inclusivity. Every event opens a group chat, so you arrive already knowing a few names.',
   },
   {
     icon: Users2,
-    step: 'Step 4',
-    title: 'Build your crew',
-    body: 'Tag the people you clicked with. Repeat attendance and mutual tags form crews that organize their own events together.',
+    step: 'Step 3',
+    title: 'Keep meeting the same people',
+    body: 'Tag the people you clicked with. Repeat events and mutual tags form crews that plan their own meetups.',
   },
 ];
 
@@ -37,12 +31,12 @@ const HowSyncWorks = () => {
               How SYNC works
             </p>
             <h2 className="text-2xl md:text-4xl font-light tracking-tight text-foreground">
-              Four steps from new in town to{' '}
+              Three steps from new in town to{' '}
               <span className="text-primary font-normal">a crew that expects you.</span>
             </h2>
           </div>
 
-          <ol className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-border/60 rounded-2xl overflow-hidden">
+          <ol className="grid grid-cols-1 md:grid-cols-3 gap-px bg-border/60 rounded-2xl overflow-hidden">
             {STEPS.map(({ icon: Icon, step, title, body }, i) => (
               <li
                 key={title}
