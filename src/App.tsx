@@ -11,6 +11,7 @@ import Connections from "./pages/Connections";
 import CalendarPage from "./pages/CalendarPage";
 import Login from "./pages/Login";
 import CuratePage from "./pages/CuratePage";
+import AuthProfileSync from "./components/AuthProfileSync";
 
 import { SocialProvider } from "./context/SocialContext";
 import { ActivityHistoryProvider } from "./context/ActivityHistoryContext";
@@ -37,6 +38,7 @@ const App = () => (
                 <EventMediaProvider>
                 <Toaster />
                 <Sonner />
+                <AuthProfileSync />
               <BrowserRouter>
                 <Routes>
                   <Route path="/" element={<Index />} />

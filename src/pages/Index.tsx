@@ -36,6 +36,9 @@ const Index = () => {
   const { toast } = useToast();
   const { history, tags } = useActivityHistory();
   const { isAttending: isAttendingFn } = useAttending();
+  // Re-read the local profile when it changes, e.g. right after a Google sign-in
+  // lands back here and AuthProfileSync creates it.
+  const [, setProfileVersion] = useState(0);
   const profile = getUserProfile();
   const isGuest = !profile;
   const { events } = useEvents();
@@ -43,6 +46,15 @@ const Index = () => {
   // One set of filters for the whole feed, edited from the pinned bar.
   const [feedFilters, setFeedFilters] = useState<FeedFilters>(DEFAULT_FEED_FILTERS);
   const [profileInterests, setProfileInterests] = useState<string[]>(profile?.interests ?? []);
+
+  useEffect(() => {
+    const onProfileChanged = () => {
+      setProfileVersion(v => v + 1);
+      setProfileInterests(getUserProfile()?.interests ?? []);
+    };
+    window.addEventListener('sync:profile-changed', onProfileChanged);
+    return () => window.removeEventListener('sync:profile-changed', onProfileChanged);
+  }, []);
   const hideCategory = hidesCategoryPill(feedFilters);
   const barInterestsRef = useRef<HTMLDivElement>(null);
   const barInclusivityRef = useRef<HTMLDivElement>(null);

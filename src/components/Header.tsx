@@ -22,7 +22,10 @@ const Header = ({ onOpenMessages }: HeaderProps) => {
   const { isAdmin } = useAdmin();
   const [pendingCount, setPendingCount] = useState(0);
   useEffect(() => {
-    setIsGuest(!getUserProfile());
+    const sync = () => setIsGuest(!getUserProfile());
+    sync();
+    window.addEventListener('sync:profile-changed', sync);
+    return () => window.removeEventListener('sync:profile-changed', sync);
   }, []);
 
   // Curators see how many collected events are still waiting for review.
