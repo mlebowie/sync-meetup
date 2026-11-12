@@ -5,7 +5,8 @@ import Header from '@/components/Header';
 import GroupsSection from '@/components/GroupsSection';
 import EditProfileDialog from '@/components/EditProfileDialog';
 import { Button } from '@/components/ui/button';
-import { getUserProfile, saveUserProfile, clearUserProfile, ONBOARDING_INTERESTS, DEFAULT_PROFILE, calculateAge, UserProfile } from '@/lib/userProfile';
+import { getUserProfile, saveUserProfile, clearUserProfile, backupUserProfile, ONBOARDING_INTERESTS, DEFAULT_PROFILE, calculateAge, UserProfile } from '@/lib/userProfile';
+import { saveAccountProfile } from '@/lib/authProfile';
 import { useSocial } from '@/context/SocialContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -21,14 +22,23 @@ const Profile = () => {
   const connectionsCount = new Set([...following, ...followers]).size;
 
   const handleLogout = async () => {
+    // Save the latest profile to the account before signing out, so nothing is lost.
+    const current = getUserProfile();
+    const { data: sessionData } = await supabase.auth.getSession();
+    const userId = sessionData.session?.user.id;
+    if (current && userId) await saveAccountProfile(userId, current);
+
     // Sign out from backend auth when available
     const { error } = await supabase.auth.signOut();
     if (error && error.message !== 'Auth session missing!') {
       toast({ title: 'Error signing out', description: error.message, variant: 'destructive' });
       return;
     }
-    // Clear local guest profile and persisted state
+    // Sign this device out of the profile. It stays saved with the account,
+    // and a backup is kept here so the next sign-in restores it.
+    if (current) backupUserProfile(current);
     clearUserProfile();
+    window.dispatchEvent(new Event('sync:profile-changed'));
     toast({ title: 'Signed out', description: 'See you soon!' });
     navigate('/');
   };

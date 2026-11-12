@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { getUserProfile, saveUserProfile, DEFAULT_PROFILE } from '@/lib/userProfile';
+import { getUserProfile, saveUserProfile, getBackedUpProfile, UserProfile } from '@/lib/userProfile';
+import { syncProfileWithAccount } from '@/lib/authProfile';
 import { LogIn } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -57,24 +58,33 @@ const Login = () => {
       return;
     }
     setSubmitting(true);
-    const { error } = DEMO_MODE
-      ? { error: null }
+    const { data, error } = DEMO_MODE
+      ? { data: { user: null }, error: null }
       : await supabase.auth.signInWithPassword({ email: email.trim(), password });
-    setSubmitting(false);
     if (error) {
+      setSubmitting(false);
       toast({ title: 'Log in failed', description: error.message, variant: 'destructive' });
       return;
     }
-    const existing = getUserProfile();
-    if (DEMO_MODE && !existing) {
-      // Demo profiles live on the device they were created on.
-      toast({ title: 'No profile on this device yet', description: 'Create your profile to get started.' });
-      navigate('/onboarding');
-      return;
+
+    let profile: UserProfile;
+    if (!DEMO_MODE && data.user) {
+      // Load the profile saved with the account (or rescue one from this device).
+      profile = await syncProfileWithAccount(data.user);
+    } else {
+      const existing = getUserProfile() ?? getBackedUpProfile(email);
+      if (!existing) {
+        setSubmitting(false);
+        // Demo profiles live on the device they were created on.
+        toast({ title: 'No profile on this device yet', description: 'Create your profile to get started.' });
+        navigate('/onboarding');
+        return;
+      }
+      profile = existing;
+      saveUserProfile(profile);
+      window.dispatchEvent(new Event('sync:profile-changed'));
     }
-    const profile = existing ?? { ...DEFAULT_PROFILE, email: email.trim().slice(0, 120) };
-saveUserProfile(profile);
-    window.dispatchEvent(new Event('sync:profile-changed'));
+    setSubmitting(false);
     toast({ title: `Welcome back, ${profile.firstName}!`, description: 'Your feed is ready.' });
     navigate('/', { replace: true });
   };

@@ -188,6 +188,60 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          created_at: string
+          date_of_birth: string | null
+          email: string
+          first_name: string
+          id: string
+          interests: string[]
+          last_name: string
+          location: string
+          nationality: string
+          neighborhood: string
+          onboarded_at: string | null
+          photo: string | null
+          social_preferences: Json | null
+          social_style: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          date_of_birth?: string | null
+          email?: string
+          first_name?: string
+          id: string
+          interests?: string[]
+          last_name?: string
+          location?: string
+          nationality?: string
+          neighborhood?: string
+          onboarded_at?: string | null
+          photo?: string | null
+          social_preferences?: Json | null
+          social_style?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          date_of_birth?: string | null
+          email?: string
+          first_name?: string
+          id?: string
+          interests?: string[]
+          last_name?: string
+          location?: string
+          nationality?: string
+          neighborhood?: string
+          onboarded_at?: string | null
+          photo?: string | null
+          social_preferences?: Json | null
+          social_style?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
