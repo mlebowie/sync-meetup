@@ -96,13 +96,53 @@ export const getUserProfile = (): UserProfile | null => {
   }
 };
 
-export const saveUserProfile = (profile: UserProfile) => {
+/**
+ * Saves the profile on this device. Unless it came from the account itself,
+ * also fires `sync:profile-saved` so AuthProfileSync can save it to the account.
+ */
+export const saveUserProfile = (profile: UserProfile, options: { fromAccount?: boolean } = {}) => {
   window.localStorage.setItem(KEY, JSON.stringify(profile));
+  if (!options.fromAccount && typeof window.dispatchEvent === 'function') {
+    window.dispatchEvent(new Event('sync:profile-saved'));
+  }
 };
 
+/** Signs the profile out of this device. The account copy (and a local backup) stay. */
 export const clearUserProfile = () => {
   window.localStorage.removeItem(KEY);
 };
+
+// Per-email backup kept on sign-out, so a profile is never lost even if the
+// account copy couldn't be saved (offline, or before the profiles table existed).
+const BACKUP_KEY = 'sync.savedProfiles.v1';
+
+const readBackups = (): Record<string, UserProfile> => {
+  try {
+    return JSON.parse(window.localStorage.getItem(BACKUP_KEY) ?? '{}') as Record<string, UserProfile>;
+  } catch {
+    return {};
+  }
+};
+
+export const backupUserProfile = (profile: UserProfile) => {
+  if (!profile.email) return;
+  try {
+    const backups = readBackups();
+    backups[profile.email.trim().toLowerCase()] = profile;
+    window.localStorage.setItem(BACKUP_KEY, JSON.stringify(backups));
+  } catch {
+    // Storage full: the account copy still holds the profile.
+  }
+};
+
+export const getBackedUpProfile = (email: string | undefined | null): UserProfile | null => {
+  if (!email) return null;
+  return readBackups()[email.trim().toLowerCase()] ?? null;
+};
+
+/** True for the built-in sample profile, which must never be saved as someone's own. */
+export const isSampleProfile = (profile: UserProfile) =>
+  profile.firstName === DEFAULT_PROFILE.firstName && profile.lastName === DEFAULT_PROFILE.lastName;
 
 export const getInterestKeywords = (interestIds: string[]): string[] =>
   interestIds.flatMap(id => {
