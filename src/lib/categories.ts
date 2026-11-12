@@ -20,8 +20,8 @@ const LEGACY: Record<string, string> = {
   professional: 'Professional development',
   'food & drinks': 'Dining & cooking',
   music: 'Music & live events',
-  arts: 'Arts & theatre',
-  'arts & culture': 'Arts & theatre',
+  arts: 'Arts & culture',
+  'arts & theatre': 'Arts & culture',
   tech: 'Tech & AI',
   dancing: 'Dance',
 };

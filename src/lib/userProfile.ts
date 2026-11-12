@@ -8,7 +8,7 @@ export const ONBOARDING_INTERESTS: { id: string; label: string; icon: string; ke
   { id: 'popup-events', label: 'Pop-up events', icon: '✨', keywords: ['pop-up', 'popup'] },
   { id: 'outdoors', label: 'Outdoors activities', icon: '🌲', keywords: ['outdoors', 'trail', 'surf', 'walk', 'nature'] },
   { id: 'tech-ai', label: 'Tech & AI', icon: '💻', keywords: ['tech', 'ai', 'founders', 'startup'] },
-  { id: 'arts-theatre', label: 'Arts & theatre', icon: '🎭', keywords: ['arts', 'theatre', 'creative', 'photography'] },
+  { id: 'arts-theatre', label: 'Arts & culture', icon: '🎭', keywords: ['arts', 'theatre', 'creative', 'photography', 'books', 'reading'] },
   { id: 'games', label: 'Games', icon: '🎮', keywords: ['games', 'gaming'] },
   { id: 'health-wellness', label: 'Health & wellness', icon: '🧘', keywords: ['wellness', 'yoga', 'mindfulness', 'health'] },
   { id: 'religion', label: 'Religion', icon: '🕊️', keywords: ['religion', 'faith', 'church'] },
