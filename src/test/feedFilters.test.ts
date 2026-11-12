@@ -32,7 +32,7 @@ const ev = (id: string, category: string, extra: Partial<Event> = {}): Event =>
 const events = [
   ev('run', 'Sports'),
   ev('yoga', 'Health & wellness', { womenOnly: true, groupSize: 'small' }),
-  ev('comedy', 'Arts & theatre', { date: new Date(Date.now() + 20 * DAY) }),
+  ev('comedy', 'Arts & culture', { date: new Date(Date.now() + 20 * DAY) }),
   ev('wine', 'Dining & cooking'),
 ];
 const mine = ['sports', 'health-wellness', 'arts-theatre'];

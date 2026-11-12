@@ -19,7 +19,7 @@ const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const CATEGORIES = [
   'Sports', 'Dance', 'Health & wellness', 'Spirituality', 'Religion', 'Outdoors activities', 'Social networking',
   'Cultural exchange', 'Languages', 'Professional development', 'Tech & AI', 'Music & live events',
-  'Arts & theatre', 'Dining & cooking', 'Education', 'Games', 'Charity & non-profit', 'Pop-up events',
+  'Arts & culture', 'Dining & cooking', 'Education', 'Games', 'Charity & non-profit', 'Pop-up events',
 ];
 
 const json = (body: unknown, status = 200) =>

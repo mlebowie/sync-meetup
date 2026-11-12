@@ -561,10 +561,12 @@ const CATEGORY_RULES: [RegExp, string][] = [
   [/tennis|padel|pickleball|squash|badminton|table tennis|ping[- ]?pong|football|soccer|futsal|basketball|volleyball|beach volley|run club|running club|jogging|marathon|\b5k\b|\b10k\b|bouldering|climbing|surf|skate|swimming|cycling|bike ride|martial arts|jiu-?jitsu|boxing|muay thai|rugby|golf|\bsports?\b/, 'Sports'],
   [/yoga|pilates|barre|hyrox|crossfit|bootcamp|calisthenic|nutrition|gym|fitness|wellness|wellbeing|well-?being|ice bath|cold plunge|sauna|spa day/, 'Health & wellness'],
   [/meditation|mindful|spiritual|reiki|astrolog|sound bath|sound healing|kirtan|tarot|retiro|retreat|chakra|kundalini|cacao|shamanic|breathwork|cuddle party/, 'Spirituality'],
+  // Book clubs and photo walks are about the hobby, not the walk or the crowd.
+  [/book club|book ?swap|reading (?:group|club|circle)|silent reading|readers'? (?:club|meetup)|literary|writers'? (?:club|circle|group|meetup)|writing (?:club|circle|group)|photo ?walk|photography (?:walk|meetup|club|tour)|photowalk|street photography/, 'Arts & culture'],
   [/hike|hiking|trail|kayak|paddle ?board|nature walk|camping|outdoor|picnic|day trip|birdwatch|forest bathing|sunrise walk|sunset walk|caminhada|walking holiday|camino|guided walk|walking tour|walk(?:ing)? group|day trip|excursion|road trip|douro valley|guimar[aã]es|braga|aveiro|viana do castelo|ponte de lima|ger[eê]s|amarante|costa nova/, 'Outdoors activities'],
   [/ ai |artificial intelligence|machine learning|tech|developer|software|coding|data|cyber|security|blockchain|robotic/, 'Tech & AI'],
   [/concert|live music|dj |band|gig|vinyl|jazz/, 'Music & live events'],
-  [/comedy|stand-?up|theatre|theater|improv|art |arts|gallery|exhibition|painting|photograph|writing|film|cinema|book club|poetry/, 'Arts & theatre'],
+  [/comedy|stand-?up|theatre|theater|improv|art |arts|gallery|exhibition|painting|photograph|writing|film|cinema|book club|poetry/, 'Arts & culture'],
   [/dinner|brunch|lunch|food|cooking|wine tasting|tasting|restaurant|supper|bbq|coffee/, 'Dining & cooking'],
   [/workshop|course|lecture|class|seminar|masterclass|talk|philosophy|learn/, 'Education'],
   [/founder|startup|entrepreneur|business|career|professional|conference|b2b|freelanc|coworking/, 'Professional development'],
@@ -582,7 +584,7 @@ const AGENDA_SECTION_RULES: [RegExp, string][] = [
   [/game|jogo/, 'Games'],
   [/fair|feira|market|pop-?up|party|festa/, 'Pop-up events'],
   [/talk|lecture|conversa|conferenc/, 'Education'],
-  [/art|exhibition|stage|theatre|theater|dance|circus|film|cinema|performance|literature|comedy/, 'Arts & theatre'],
+  [/art|exhibition|stage|theatre|theater|dance|circus|film|cinema|performance|literature|comedy/, 'Arts & culture'],
   [/famil|kids|criança/, 'Cultural exchange'],
 ];
 
