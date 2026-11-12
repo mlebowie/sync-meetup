@@ -1,111 +1,63 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { withSampleDate } from '@/lib/sampleDates';
 import { useEvents } from '@/context/EventsContext';
 import { ONBOARDING_INTERESTS } from '@/lib/userProfile';
-import { searchEvents } from '@/lib/search';
-import { Event, Participant } from '@/types/event';
-import EventCard from './EventCard';
-import PopularTrendingSection from './PopularTrendingSection';
-import FeaturedPartnerSection from './FeaturedPartnerSection';
-import { Users, Globe2, Sparkles, Clock, ArrowRight, Search, X } from 'lucide-react';
+import { Participant } from '@/types/event';
+import EventCarousel from './EventCarousel';
+import { Sparkles, ArrowRight, Quote } from 'lucide-react';
 
 interface Props {
   onAttend: (id: string) => void;
   onParticipantClick?: (p: Participant) => void;
 }
 
-// Re-anchor mock events so they read as "happening in Porto in the next 2–6h".
-// Spread 8 events across the 2h–6h window (in minutes).
-const SOON_OFFSETS = [120, 165, 210, 255, 300, 330, 345, 360].map(m => m * 60 * 1000);
+const HOUR = 60 * 60 * 1000;
+const WEEK = 7 * 24 * HOUR;
+const MAX_EVENTS = 12;
+
+// Sample events are spread across the coming week so the carousel reads as "this week".
+const WEEK_OFFSETS = [3, 10, 26, 34, 50, 58, 74, 82, 98, 122, 130, 146].map(h => h * HOUR);
 
 const GuestLanding = ({ onAttend, onParticipantClick }: Props) => {
-  const { events: mockEvents, isLive } = useEvents();
-  const [query, setQuery] = useState('');
-  // With real collected events: those starting in the next 6 hours, or, if none,
-  // the soonest upcoming ones. Sample events keep their generated timing.
-  const { portoEvents, soonWindow } = useMemo(() => {
+  const { events: allEvents, isLive } = useEvents();
+
+  // One carousel: featured partner events first, then everything else this week,
+  // soonest first. With no events in the next 7 days, fall back to the soonest ones.
+  const { weekEvents, isThisWeek } = useMemo(() => {
     const now = Date.now();
     if (isLive) {
-      const upcoming = mockEvents
+      const upcoming = allEvents
         .filter(e => e.date.getTime() >= now - 30 * 60 * 1000)
         .sort((a, b) => a.date.getTime() - b.date.getTime());
-      const soon = upcoming.filter(e => e.date.getTime() <= now + 6 * 3600 * 1000);
-      return soon.length
-        ? { portoEvents: soon.slice(0, 8), soonWindow: true }
-        : { portoEvents: upcoming.slice(0, 8), soonWindow: false };
+      const thisWeek = upcoming.filter(e => e.date.getTime() <= now + WEEK);
+      const pool = thisWeek.length ? thisWeek : upcoming;
+      const ordered = [...pool.filter(e => e.featured), ...pool.filter(e => !e.featured)];
+      return { weekEvents: ordered.slice(0, MAX_EVENTS), isThisWeek: thisWeek.length > 0 };
     }
     return {
-      portoEvents: mockEvents
+      weekEvents: allEvents
         .filter(e => e.location.toLowerCase().includes('porto'))
-        .slice(0, 8)
-        .map((e, i) => withSampleDate(e, now + SOON_OFFSETS[i % SOON_OFFSETS.length])),
-      soonWindow: true,
+        .slice(0, MAX_EVENTS)
+        .map((e, i) => withSampleDate(e, now + WEEK_OFFSETS[i % WEEK_OFFSETS.length])),
+      isThisWeek: true,
     };
-  }, [mockEvents, isLive]);
-
-  const filteredPorto = useMemo(() => searchEvents(portoEvents, query), [portoEvents, query]);
-
-  // Platform-wide stats derived from mock data — feels real, not hardcoded.
-  const stats = useMemo(() => {
-    const totalUsers = mockEvents.reduce((acc, e) => acc + e.currentParticipants, 0) * 47 + 12480;
-    const nationalities = 64;
-    const eventTypes = new Set(mockEvents.map(e => e.category)).size;
-    const happeningNextHour = Math.max(3, Math.round(mockEvents.length * 0.4));
-    return { totalUsers, nationalities, eventTypes, happeningNextHour };
-  }, []);
+  }, [allEvents, isLive]);
 
   return (
     <>
-      {/* Stats dashboard */}
-      <section className="py-10 md:py-14 bg-gradient-to-b from-primary/5 to-transparent">
-        <div className="container px-4 md:px-6">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-                Sync, by the numbers
-              </h2>
-              <p className="text-muted-foreground mt-1">
-                Live snapshot of the community right now
-              </p>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <StatCard icon={<Users className="h-5 w-5" />} value={stats.totalUsers.toLocaleString()} label="Total users" />
-              <StatCard icon={<Globe2 className="h-5 w-5" />} value={stats.nationalities.toString()} label="Nationalities" />
-              <StatCard icon={<Sparkles className="h-5 w-5" />} value={stats.eventTypes.toString()} label="Types of events" />
-              <StatCard icon={<Clock className="h-5 w-5" />} value={stats.happeningNextHour.toString()} label="Happening next hour" />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Featured partner events */}
-      <FeaturedPartnerSection
-        onAttend={onAttend}
-        onParticipantClick={onParticipantClick}
-        guest
-      />
-
-      {/* Popular & Trending — one-time events */}
-      <PopularTrendingSection
-        onAttend={onAttend}
-        onParticipantClick={onParticipantClick}
-        guest
-      />
-
-      {/* Public Porto feed */}
-      <section id="happening-porto" className="py-10 md:py-14 scroll-mt-24">
+      {/* Happening this week: the single public carousel */}
+      <section id="happening-porto" className="py-12 md:py-16 scroll-mt-24">
         <div className="container px-4 md:px-6">
           <div className="max-w-6xl mx-auto">
             <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
               <div>
                 <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-                  {soonWindow ? 'Happening in Porto, next few hours' : 'Coming up next in Porto'}
+                  {isThisWeek ? 'Happening this week' : 'Coming up in Porto'}
                 </h2>
                 <p className="text-muted-foreground mt-1">
-                  Browse what's open right now. Sign up to see familiar faces and personal picks.
+                  Hand-picked gatherings in Porto. Grab a spot before they fill up.
                 </p>
               </div>
               <Link to="/onboarding">
@@ -116,48 +68,37 @@ const GuestLanding = ({ onAttend, onParticipantClick }: Props) => {
               </Link>
             </div>
 
-{/* Search — same utility the homefeed uses */}
-            <div className="relative mb-6">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-              <Input
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                placeholder="Search events, locations, organizers…"
-                className="pl-9 pr-9"
-                aria-label="Search events"
-              />
-              {query && (
-                <button
-                  type="button"
-                  onClick={() => setQuery('')}
-                  aria-label="Clear search"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
-            </div>
-
-            {filteredPorto.length === 0 ? (
+            {weekEvents.length === 0 ? (
               <div className="text-center py-12 bg-card rounded-2xl">
-                <p className="text-muted-foreground mb-4">No events match “{query}”. Try another search.</p>
-                <Button variant="outline" onClick={() => setQuery('')}>Clear search</Button>
+                <p className="text-muted-foreground">New events are on their way. Check back soon.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredPorto.map((e, i) => (
-                  <div key={e.id} className="animate-fade-in-up" style={{ animationDelay: `${i * 0.06}s` }}>
-                    <EventCard
-                      event={e}
-                      onAttend={onAttend}
-                      onParticipantClick={onParticipantClick}
-                      guest
-                    />
-                  </div>
-                ))}
-              </div>
+              <EventCarousel
+                events={weekEvents}
+                onAttend={onAttend}
+                onParticipantClick={onParticipantClick}
+                guest
+              />
             )}
           </div>
+        </div>
+      </section>
+
+      {/* Why it works: the 50 hours research */}
+      <section className="py-12 md:py-16">
+        <div className="container px-4 md:px-6">
+          <figure className="max-w-5xl mx-auto bg-card border border-border/60 rounded-3xl px-6 py-12 md:px-12 md:py-16 text-center flex flex-col items-center gap-5">
+            <Quote className="h-9 w-9 text-accent" aria-hidden="true" />
+            <blockquote className="max-w-3xl flex flex-col gap-3">
+              <p className="text-5xl md:text-7xl font-light tracking-tight text-primary">About 50 hours</p>
+              <p className="text-xl md:text-2xl text-foreground leading-snug">
+                of time together turns an acquaintance into a casual friend. Showing up regularly with the same people is how you get there.
+              </p>
+            </blockquote>
+            <figcaption className="text-sm text-muted-foreground">
+              Based on research by Jeffrey Hall, University of Kansas, 2018
+            </figcaption>
+          </figure>
         </div>
       </section>
 
@@ -203,15 +144,5 @@ const GuestLanding = ({ onAttend, onParticipantClick }: Props) => {
     </>
   );
 };
-
-const StatCard = ({ icon, value, label }: { icon: React.ReactNode; value: string; label: string }) => (
-  <div className="bg-card rounded-2xl p-5 shadow-card text-center">
-    <div className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-primary/10 text-primary mb-3">
-      {icon}
-    </div>
-    <div className="text-2xl md:text-3xl font-bold text-foreground">{value}</div>
-    <div className="text-xs md:text-sm text-muted-foreground mt-1">{label}</div>
-  </div>
-);
 
 export default GuestLanding;
