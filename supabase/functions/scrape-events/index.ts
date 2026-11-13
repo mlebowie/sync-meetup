@@ -288,9 +288,11 @@ function listingPrompt(today: string): string {
           'For eligible events, preserve existing English title and description verbatim. Only when explicit evidence confirms the event supports English, ' +
           'translate non-English title or description into natural English without summarizing, adding facts or changing proper names. ' +
           'For each event also give: title, absolute url, date_text exactly as displayed on the card, ' +
-          'iso_date (YYYY-MM-DD resolved from date_text relative to today — never guess a past year), ' +
+          'iso_date (YYYY-MM-DD resolved from date_text relative to today; when the card shows no year, pick the year in which ' +
+          'the weekday shown falls on that date), ' +
           'time (HH:MM 24-hour), venue, address, image_url, organizer, category, price, attendees count, ' +
-          'and a one or two sentence description. Skip navigation links, adverts and anything that is not an event.'
+          'and a one or two sentence description. Skip navigation links, adverts and anything that is not an event, ' +
+          'and skip any event the page marks as past, ended or cancelled.'
   );
 }
 
@@ -474,9 +476,46 @@ function lisbonInstant(dateLabel: string, clock: string): Date {
   return new Date(guess.getTime() - diffMin * 60_000);
 }
 
-function parseStart(raw: RawEvent): Date | null {
+const WEEKDAY_WORDS: [RegExp, number][] = [
+  [/\b(sun|sunday|dom|domingo)\b/, 0],
+  [/\b(mon|monday|seg|segunda)\b/, 1],
+  [/\b(tue|tues|tuesday|ter|ter[cç]a)\b/, 2],
+  [/\b(wed|wednesday|qua|quarta)\b/, 3],
+  [/\b(thu|thur|thurs|thursday|qui|quinta)\b/, 4],
+  [/\b(fri|friday|sex|sexta)\b/, 5],
+  [/\b(sat|saturday|s[aá]b|s[aá]bado)\b/, 6],
+];
+
+/** The weekday a listing card shows ("Sat 2 May", "sábado, 2 de maio"), if exactly one. */
+function listedWeekday(raw: RawEvent): number | null {
+  const text = (raw.date_text ?? '').toLowerCase();
+  const hits = WEEKDAY_WORDS.filter(([re]) => re.test(text)).map(([, d]) => d);
+  return hits.length === 1 ? hits[0] : null;
+}
+
+/**
+ * Cards often show "Saturday 2 May" with no year, and the year gets guessed.
+ * When the weekday shown does not fall on the guessed date, the adjacent year
+ * where it does is the real one. Returns the checked date and whether the
+ * weekday could confirm it.
+ */
+export function checkListedYear(raw: RawEvent): { iso: string | null; weekdayChecked: boolean } {
   const iso = (raw.iso_date ?? '').trim();
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return { iso: null, weekdayChecked: false };
+  const want = listedWeekday(raw);
+  if (want === null) return { iso, weekdayChecked: false };
+  const dow = (y: number) => new Date(Date.UTC(y, Number(iso.slice(5, 7)) - 1, Number(iso.slice(8, 10)))).getUTCDay();
+  const year = Number(iso.slice(0, 4));
+  if (dow(year) === want) return { iso, weekdayChecked: true };
+  for (const y of [year - 1, year + 1]) {
+    if (dow(y) === want) return { iso: `${y}${iso.slice(4)}`, weekdayChecked: true };
+  }
+  return { iso, weekdayChecked: false };
+}
+
+function parseStart(raw: RawEvent): Date | null {
+  const iso = checkListedYear(raw).iso;
+  if (!iso) return null;
   const time = (raw.time ?? '').trim();
   const hhmm = /^(\d{1,2}):(\d{2})/.exec(time);
   const clock = hhmm ? `${hhmm[1].padStart(2, '0')}:${hhmm[2]}` : '19:00';
@@ -491,7 +530,7 @@ function parseStart(raw: RawEvent): Date | null {
  */
 async function verifiedStart(
   url: string,
-): Promise<{ date: Date; dateOnly: boolean } | null> {
+): Promise<{ date: Date; dateOnly: boolean; past?: boolean } | null> {
   try {
     const res = await fetch(url, {
       redirect: 'follow',
@@ -508,6 +547,11 @@ async function verifiedStart(
     // "2026-09-11" carries no clock; "2026-09-11T21:00" does.
     const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(value);
     const parsed = dateOnly ? lisbonInstant(value, '00:00') : new Date(value);
+    if (isNaN(parsed.getTime())) return null;
+    // The page is the truth: a date already gone means the event is over, even
+    // if the listing card (often with no year) suggested a future date.
+    const endOfDay = dateOnly ? parsed.getTime() + 86_400_000 : parsed.getTime() + 6 * 3600_000;
+    if (endOfDay < Date.now()) return { date: parsed, dateOnly, past: true };
     if (!withinWindow(parsed)) return null;
     return { date: parsed, dateOnly };
   } catch (err) {
@@ -947,9 +991,17 @@ Deno.serve(async (req) => {
           // Checking the event page's own date is the slow part; late in a run
           // the listing's date is used instead so the run can finish in time.
           const verified = raw.url && elapsed() < STOP_VERIFY_MS ? await verifiedStart(raw.url) : null;
+          // The event's own page says it is over: never queue or refresh it.
+          if (verified?.past) continue;
           const confirmed = verified ? withListedClock(verified, raw) : null;
           const starts = confirmed ?? listed;
           if (!raw.title || !starts) continue;
+          // A far-off date that neither the event page nor the card's weekday
+          // confirmed is the likeliest to carry a guessed year: ask the curator.
+          const dateNote =
+            !confirmed && !checkListedYear(raw).weekdayChecked && starts.getTime() > Date.now() + 120 * 86400_000
+              ? 'Date not confirmed on the event page; check the year'
+              : null;
           // A curator already decided on this listing: never overwrite the wording
           // they approved, but do keep schedule and practical details current so a
           // moved or repriced event does not stay stale in the feed.
@@ -1007,6 +1059,7 @@ Deno.serve(async (req) => {
                 : null,
             // A known event keeps its repeat settings (the curator may have set them).
             ...(known.has(`${source}:${id}`) ? {} : { recurrence, series_key }),
+            ...(dateNote ? { review_note: dateNote } : {}),
             ...keywordDerive(raw),
             ...agendaFlags(raw, source),
             last_seen_at: new Date().toISOString(),
