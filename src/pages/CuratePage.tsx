@@ -54,6 +54,7 @@ interface Row {
   repeat_until: string | null;
   series_generated: boolean | null;
   generate_dates: boolean | null;
+  review_note: string | null;
 }
 
 const REPEAT_LABELS: Record<string, string> = { weekly: 'Weekly', biweekly: 'Every 2 weeks', monthly: 'Monthly' };
@@ -137,7 +138,8 @@ const CuratePage = () => {
     setBusy(ids.length === 1 ? ids[0] : 'bulk');
     const { error } = await supabase
       .from('events')
-      .update({ review_status: status, reviewed_at: new Date().toISOString() })
+      // Publishing or hiding settles any open review note.
+      .update({ review_status: status, reviewed_at: new Date().toISOString(), review_note: null })
       .in('id', ids);
     setBusy(null);
     if (error) {
@@ -270,6 +272,8 @@ const CuratePage = () => {
       group_size: draft.group_size,
       image_url: draft.image_url?.trim() ? draft.image_url.trim() : null,
       organizer_bio: draft.organizer_bio?.trim() ? draft.organizer_bio.trim() : null,
+      // Saving an edit means the curator has looked at it.
+      review_note: null,
     };
     const row = rows.find((r) => r.id === id);
     const wasRepeating = !!row?.generate_dates && row.recurrence !== 'one-off';
@@ -479,6 +483,12 @@ const CuratePage = () => {
                           {dayLabel(row.starts_at)}
                           {row.ends_at ? `–${isoToLisbon(row.ends_at).time}` : ''}
                         </span>
+                        {row.review_note && (
+                          <Badge className="bg-amber-100 text-amber-900 border-amber-300 hover:bg-amber-100" title={row.review_note}>
+                            Needs review: {row.review_note}
+                          </Badge>
+                        )}
+                        {(row.tags ?? []).includes('sold-out') && <Badge variant="outline">Waitlist</Badge>}
                         {row.generate_dates && row.recurrence && REPEAT_LABELS[row.recurrence] && (
                           <Badge variant="outline">↻ {REPEAT_LABELS[row.recurrence]}</Badge>
                         )}

@@ -82,6 +82,7 @@ export type Database = {
           price_label: string | null
           recurrence: string
           repeat_until: string | null
+          review_note: string | null
           series_generated: boolean
           generate_dates: boolean
           review_status: string
@@ -125,6 +126,7 @@ export type Database = {
           price_label?: string | null
           recurrence?: string
           repeat_until?: string | null
+          review_note?: string | null
           series_generated?: boolean
           generate_dates?: boolean
           review_status?: string
@@ -168,6 +170,7 @@ export type Database = {
           price_label?: string | null
           recurrence?: string
           repeat_until?: string | null
+          review_note?: string | null
           series_generated?: boolean
           generate_dates?: boolean
           review_status?: string
