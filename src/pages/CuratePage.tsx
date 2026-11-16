@@ -57,6 +57,23 @@ interface Row {
   review_note: string | null;
 }
 
+interface Template {
+  id: string;
+  title: string;
+  description: string;
+  category: string | null;
+  organizer_bio: string | null;
+  image_url: string | null;
+  women_only: boolean;
+  lgbtq_friendly: boolean;
+  pet_friendly: boolean;
+  last_starts_at: string | null;
+}
+
+/** Same as the database's match_key(): lower case, letters and digits only. */
+const matchKey = (text: string | null | undefined) =>
+  (text ?? '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+
 const REPEAT_LABELS: Record<string, string> = { weekly: 'Weekly', biweekly: 'Every 2 weeks', monthly: 'Monthly' };
 
 const FLAG_LABELS: { key: keyof EventFlags; label: string }[] = [
@@ -105,6 +122,8 @@ const CuratePage = () => {
   // Edit every upcoming date of a series, not just this one.
   const [applyAll, setApplyAll] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
+  // Descriptions published earlier for the organiser of the event being edited.
+  const [templates, setTemplates] = useState<Template[]>([]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -246,6 +265,32 @@ const CuratePage = () => {
     });
     setRepeatTouched(false);
     setApplyAll(false);
+    setTemplates([]);
+    const organizerKey = matchKey(row.organizer_name);
+    if (organizerKey) {
+      supabase
+        .from('event_templates')
+        .select('id,title,description,category,organizer_bio,image_url,women_only,lgbtq_friendly,pet_friendly,last_starts_at')
+        .eq('organizer_key', organizerKey)
+        .order('updated_at', { ascending: false })
+        .limit(8)
+        .then(({ data }) => setTemplates((data ?? []) as Template[]));
+    }
+  };
+
+  // Fills the form from a published description; nothing is saved until Save.
+  const applyTemplate = (t: Template) => {
+    setDraft((d) => ({
+      ...d,
+      description: t.description,
+      category: t.category ? normalizeCategory(t.category, d.title ?? '') : d.category,
+      organizer_bio: d.organizer_bio?.trim() ? d.organizer_bio : t.organizer_bio,
+      image_url: d.image_url?.trim() ? d.image_url : t.image_url,
+      women_only: !!d.women_only || t.women_only,
+      lgbtq_friendly: !!d.lgbtq_friendly || t.lgbtq_friendly,
+      pet_friendly: !!d.pet_friendly || t.pet_friendly,
+    }));
+    toast({ title: 'Description filled in', description: 'Check it, then Save.' });
   };
 
   const saveEdit = async (id: string) => {
@@ -559,6 +604,41 @@ const CuratePage = () => {
                             }
                             placeholder="Description"
                           />
+                          {templates.length > 0 && (
+                            <div className="rounded-md border bg-muted/40 p-2 space-y-2">
+                              <p className="text-xs font-medium">
+                                Published descriptions from {draft.organizer_name}
+                              </p>
+                              {templates
+                                .filter((t) => t.description !== draft.description)
+                                .map((t) => (
+                                  <div key={t.id} className="flex items-start gap-2 text-xs">
+                                    <div className="flex-1 min-w-0">
+                                      <p className="font-medium truncate">
+                                        {t.title}
+                                        {t.last_starts_at && (
+                                          <span className="font-normal text-muted-foreground">
+                                            {' · '}
+                                            {new Date(t.last_starts_at).toLocaleDateString('en-GB', {
+                                              day: 'numeric',
+                                              month: 'short',
+                                              timeZone: 'Europe/Lisbon',
+                                            })}
+                                          </span>
+                                        )}
+                                      </p>
+                                      <p className="text-muted-foreground line-clamp-2">{t.description}</p>
+                                    </div>
+                                    <Button size="sm" variant="outline" onClick={() => applyTemplate(t)}>
+                                      Use this
+                                    </Button>
+                                  </div>
+                                ))}
+                              {templates.every((t) => t.description === draft.description) && (
+                                <p className="text-xs text-muted-foreground">This description is the published one.</p>
+                              )}
+                            </div>
+                          )}
                           <Input
                             type="url"
                             value={draft.image_url ?? ''}

@@ -515,6 +515,52 @@ export function similarTitles(a: Set<string>, b: Set<string>): boolean {
   return shared / (shared + onlyA + onlyB) >= 0.8;
 }
 
+/** Same normalisation as the database's match_key(): lower case, letters and digits. */
+export function matchKey(text: string | null | undefined): string {
+  return (text ?? '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+export interface EventTemplate {
+  organizer_key: string;
+  title_key: string;
+  title: string;
+  series_key: string | null;
+  description: string;
+  category: string | null;
+  organizer_bio: string | null;
+  image_url: string | null;
+  women_only: boolean;
+  lgbtq_friendly: boolean;
+  pet_friendly: boolean;
+  updated_at: string;
+}
+
+/**
+ * The published wording to start a waiting event from: the same organiser's
+ * template for the same series or a matching title ("title"), or, when the
+ * organiser has published other events only, a pointer to them ("organiser").
+ */
+export function findTemplate(
+  templates: EventTemplate[],
+  organizer: string | null | undefined,
+  title: string,
+  seriesKey: string | null,
+): { kind: 'title'; template: EventTemplate } | { kind: 'organiser'; count: number } | null {
+  const org = matchKey(organizer);
+  if (!org) return null;
+  const mine = templates
+    .filter((t) => t.organizer_key === org)
+    .sort((a, b) => b.updated_at.localeCompare(a.updated_at));
+  if (!mine.length) return null;
+  const key = matchKey(title);
+  const tokens = titleTokens(title);
+  const same =
+    mine.find((t) => t.title_key === key) ??
+    mine.find((t) => seriesKey && t.series_key === seriesKey) ??
+    mine.find((t) => similarTitles(titleTokens(t.title), tokens));
+  return same ? { kind: 'title', template: same } : { kind: 'organiser', count: mine.length };
+}
+
 const WEEKDAY_WORDS: [RegExp, number][] = [
   [/\b(sun|sunday|dom|domingo)\b/, 0],
   [/\b(mon|monday|seg|segunda)\b/, 1],
@@ -925,6 +971,14 @@ Deno.serve(async (req) => {
     .from('events')
     .select('id,source,source_event_id,source_url,review_status,reviewed_at,title,starts_at')
     .gte('starts_at', new Date().toISOString());
+  // Wording of every event a curator published, so a new date of the same
+  // series starts from what was published instead of the platform's text.
+  const { data: templateRows } = await supabase
+    .from('event_templates')
+    .select(
+      'organizer_key,title_key,title,series_key,description,category,organizer_bio,image_url,women_only,lgbtq_friendly,pet_friendly,updated_at',
+    );
+  const templates = (templateRows ?? []) as EventTemplate[];
   // Every stored and newly saved event, for spotting the same event on another
   // platform (Luma, Meetup and Eventbrite often list the same run club).
   const sameEventIndex: { id?: string; key: string; day: string; at: number; tokens: Set<string>; hidden: boolean }[] =
@@ -1095,12 +1149,23 @@ Deno.serve(async (req) => {
           }
 
           const { recurrence, series_key } = recurrenceOf(raw);
+          const derived = { ...keywordDerive(raw), ...agendaFlags(raw, source) } as Record<string, unknown>;
+          // Start from the wording published for this organiser's earlier dates.
+          const match = findTemplate(templates, raw.organizer, raw.title, series_key);
+          const t = match?.kind === 'title' ? match.template : null;
+          const templateNote =
+            match?.kind === 'title'
+              ? `Description copied from the published "${match.template.title}"; check the details`
+              : match?.kind === 'organiser'
+                ? `${raw.organizer?.trim()} has published events; Edit → Published descriptions to reuse one`
+                : null;
+          const reviewNote = [dateNote, templateNote].filter(Boolean).join(' · ') || null;
           const row = {
             source,
             source_event_id: id,
             source_url: raw.url!,
             title: raw.title.trim().slice(0, 300),
-            description: (raw.description ?? '').slice(0, 4000) || null,
+            description: t?.description ?? ((raw.description ?? '').slice(0, 4000) || null),
             starts_at: starts.toISOString(),
             time_label: confirmed
               ? portoTimeLabel(confirmed)
@@ -1108,9 +1173,10 @@ Deno.serve(async (req) => {
 
             venue_name: raw.venue?.trim()?.slice(0, 200) || null,
             location: portoLocation(raw),
-            image_url: raw.image_url?.startsWith('http') ? raw.image_url : null,
+            image_url: raw.image_url?.startsWith('http') ? raw.image_url : (t?.image_url ?? null),
             organizer_name: raw.organizer?.trim()?.slice(0, 200) || null,
-            category: canonicalCategory(raw, source),
+            ...(t?.organizer_bio ? { organizer_bio: t.organizer_bio } : {}),
+            category: t?.category ?? canonicalCategory(raw, source),
             price_label: raw.price?.trim()?.slice(0, 60) || agendaPrice(raw, source),
             attendee_count:
               typeof raw.attendees === 'number' && raw.attendees > 0 ? Math.round(raw.attendees) : null,
@@ -1120,9 +1186,15 @@ Deno.serve(async (req) => {
                 : null,
             // A known event keeps its repeat settings (the curator may have set them).
             ...(known.has(`${source}:${id}`) ? {} : { recurrence, series_key }),
-            ...(dateNote ? { review_note: dateNote } : {}),
-            ...keywordDerive(raw),
-            ...agendaFlags(raw, source),
+            ...(reviewNote ? { review_note: reviewNote } : {}),
+            ...derived,
+            ...(t
+              ? {
+                  women_only: !!derived.women_only || t.women_only,
+                  lgbtq_friendly: !!derived.lgbtq_friendly || t.lgbtq_friendly,
+                  pet_friendly: !!derived.pet_friendly || t.pet_friendly,
+                }
+              : {}),
             last_seen_at: new Date().toISOString(),
           };
 
