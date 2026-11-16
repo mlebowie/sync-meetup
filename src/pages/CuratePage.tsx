@@ -491,6 +491,7 @@ const CuratePage = () => {
                           </Badge>
                         )}
                         {(row.tags ?? []).includes('sold-out') && <Badge variant="outline">Waitlist</Badge>}
+                        {(row.tags ?? []).includes('sync-partner') && <Badge variant="outline">Partner</Badge>}
                         {row.generate_dates && row.recurrence && REPEAT_LABELS[row.recurrence] && (
                           <Badge variant="outline">↻ {REPEAT_LABELS[row.recurrence]}</Badge>
                         )}

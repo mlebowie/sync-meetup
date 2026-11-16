@@ -476,6 +476,45 @@ function lisbonInstant(dateLabel: string, clock: string): Date {
   return new Date(guess.getTime() - diffMin * 60_000);
 }
 
+/** Words that say nothing about which event it is ("Porto", "the", "::"). */
+const TITLE_NOISE = new Set([
+  'porto', 'oporto', 'portugal', 'pt', 'the', 'a', 'an', 'and', 'of', 'at', 'in', 'on', 'for', 'with', 'by',
+  'de', 'do', 'da', 'dos', 'das', 'e', 'em', 'no', 'na', 'com', 'para', 'x', 'edition', 'event', 'meetup',
+  '2025', '2026', '2027',
+]);
+
+/** Distinct meaningful words of a title, accents and punctuation removed. */
+export function titleTokens(title: string | undefined): Set<string> {
+  const words = (title ?? '')
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .split(' ')
+    .map((w) => w.replace(/(ing|s)$/, '').replace(/([a-z])\1$/, '$1'))
+    .filter((w) => w.length > 1 && !TITLE_NOISE.has(w));
+  return new Set(words);
+}
+
+/**
+ * Two listings are the same event when one title extends the other ("Make new
+ * friends over drinks" and "Make new friends over drinks – The Soda by
+ * SpeakTiger") or both share nearly all their words ("Founders Run Club Porto"
+ * and "Founders Running Club :: Porto"). Titles that each have their own
+ * distinguishing word ("Tech and Business Networking" vs "Finance and Business
+ * Networking") are different events.
+ */
+export function similarTitles(a: Set<string>, b: Set<string>): boolean {
+  if (!a.size || !b.size) return false;
+  let shared = 0;
+  for (const w of a) if (b.has(w)) shared += 1;
+  const onlyA = a.size - shared;
+  const onlyB = b.size - shared;
+  if (onlyA === 0 && onlyB === 0) return true;
+  if (onlyA === 0 || onlyB === 0) return shared >= 2;
+  return shared / (shared + onlyA + onlyB) >= 0.8;
+}
+
 const WEEKDAY_WORDS: [RegExp, number][] = [
   [/\b(sun|sunday|dom|domingo)\b/, 0],
   [/\b(mon|monday|seg|segunda)\b/, 1],
@@ -884,8 +923,19 @@ Deno.serve(async (req) => {
   // the slow part of a run.
   const { data: knownRows } = await supabase
     .from('events')
-    .select('source,source_event_id,review_status,reviewed_at,title,starts_at')
+    .select('id,source,source_event_id,source_url,review_status,reviewed_at,title,starts_at')
     .gte('starts_at', new Date().toISOString());
+  // Every stored and newly saved event, for spotting the same event on another
+  // platform (Luma, Meetup and Eventbrite often list the same run club).
+  const sameEventIndex: { id?: string; key: string; day: string; at: number; tokens: Set<string>; hidden: boolean }[] =
+    (knownRows ?? []).map((r: Record<string, unknown>) => ({
+      id: String(r.id),
+      key: `${r.source}:${r.source_event_id}`,
+      day: new Date(String(r.starts_at)).toLocaleDateString('en-CA', { timeZone: 'Europe/Lisbon' }),
+      at: new Date(String(r.starts_at)).getTime(),
+      tokens: titleTokens(String(r.title ?? '')),
+      hidden: r.review_status === 'rejected',
+    }));
   // One listing per title per day, even when it appears under different links.
   const dayKey = (title: string | undefined, isoDay: string | undefined) =>
     `${(title ?? '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()}|${isoDay ?? ''}`;
@@ -1004,6 +1054,27 @@ Deno.serve(async (req) => {
             !confirmed && !checkListedYear(raw).weekdayChecked && starts.getTime() > Date.now() + 120 * 86400_000
               ? 'Date not confirmed on the event page; check the year'
               : null;
+          // The same event already in SYNC from another listing (same Porto day,
+          // start within an hour, matching title): keep one card and record this
+          // page as "also on" instead of adding a second card.
+          if (!known.has(`${source}:${id}`)) {
+            const day = starts.toLocaleDateString('en-CA', { timeZone: 'Europe/Lisbon' });
+            const tokens = titleTokens(raw.title);
+            const twin = sameEventIndex.find(
+              (e) =>
+                e.key !== `${source}:${id}` &&
+                e.day === day &&
+                Math.abs(e.at - starts.getTime()) <= 60 * 60_000 &&
+                similarTitles(e.tokens, tokens),
+            );
+            if (twin) {
+              if (twin.id && !twin.hidden && raw.url) {
+                await supabase.rpc('add_event_also_on', { _id: twin.id, _url: raw.url });
+              }
+              continue;
+            }
+            sameEventIndex.push({ key: `${source}:${id}`, day, at: starts.getTime(), tokens, hidden: false });
+          }
           // A curator already reviewed this listing (often with the SYNC Curator):
           // their description, price, photo, organiser, venue, end time and
           // category stand. Only a start time the event page itself confirms,
@@ -1055,14 +1126,18 @@ Deno.serve(async (req) => {
             last_seen_at: new Date().toISOString(),
           };
 
-          const { error } = await supabase
+          const { data: saved, error } = await supabase
             .from('events')
-            .upsert(row, { onConflict: 'source,source_event_id' });
+            .upsert(row, { onConflict: 'source,source_event_id' })
+            .select('id')
+            .maybeSingle();
           if (error) {
             errors.push(`${source}: ${error.message}`);
           } else {
             counts[source] += 1;
             upserted += 1;
+            const entry = sameEventIndex.find((e) => e.key === `${source}:${id}`);
+            if (entry && saved?.id) entry.id = String(saved.id);
           }
         }
       }
@@ -1086,6 +1161,13 @@ Deno.serve(async (req) => {
       const err = e as Denied;
       pausedReason = `AI labelling returned ${err.status}: ${err.message}`.slice(0, 500);
     }
+  }
+
+  // Partner organisers: badge, sign-up and WhatsApp links, one card per day.
+  try {
+    await supabase.rpc('apply_partner_organisers');
+  } catch (e) {
+    errors.push(`partners: ${(e as Error).message}`);
   }
 
   // Drop events that are well past and therefore no longer useful.

@@ -105,6 +105,12 @@ export interface Event {
   live?: boolean;
   /** Listed by a SYNC partner organisation. */
   partner?: boolean;
+  /** Where to sign up, when it differs from the listing (a partner's own Luma page). */
+  registerUrl?: string;
+  /** A partner's WhatsApp group, the easiest way to join them. */
+  whatsappUrl?: string;
+  /** Other pages listing the same event (collected from another platform). */
+  alsoOn?: string[];
   /** Pinned to the Featured spotlight at the top of the feed. */
   featured?: boolean;
   /** Price as shown on the source page, e.g. "Free" or "€12". */

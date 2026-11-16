@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Event, Participant } from '@/types/event';
-import { Calendar, Clock, MapPin, Users, Star, Check, MessageSquare, Heart, ArrowRight, Quote, Instagram, Linkedin, Mail, Lock, X, BadgeCheck } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, Star, Check, MessageSquare, Heart, ArrowRight, Quote, Instagram, Linkedin, Mail, Lock, X, BadgeCheck, MessageCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { useWishlist } from '@/context/WishlistContext';
 import { cn } from '@/lib/utils';
@@ -10,6 +10,19 @@ import OrganizerDetailsDialog from './OrganizerDetailsDialog';
 import EventPhotoCarousel from './EventPhotoCarousel';
 import { useEventRatings } from '@/context/EventRatingContext';
 import { useToast } from '@/hooks/use-toast';
+
+/** "Meetup", "Eventbrite", "Lu.ma" or the site's name, for "Also on" links. */
+function platformName(url: string): string {
+  try {
+    const host = new URL(url).hostname.replace(/^www\./, '');
+    if (host.includes('meetup')) return 'Meetup';
+    if (host.includes('eventbrite')) return 'Eventbrite';
+    if (host.includes('lu.ma') || host.includes('luma')) return 'Lu.ma';
+    return host;
+  } catch {
+    return 'another site';
+  }
+}
 
 interface EventDetailsModalProps {
   event: Event;
@@ -90,7 +103,16 @@ const EventDetailsModal = ({
           className="h-56 shrink-0"
         >
           <div className="absolute top-3 left-3 flex items-center gap-2">
-            {event.sourceUrl ? (
+            {event.partner && (event.registerUrl || event.sourceUrl) ? (
+              <a
+                href={event.registerUrl || event.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-2 py-1 rounded-md text-xs font-semibold bg-white/90 text-foreground hover:underline"
+              >
+                Register
+              </a>
+            ) : event.sourceUrl ? (
               <a
                 href={event.sourceUrl}
                 target="_blank"
@@ -142,6 +164,30 @@ const EventDetailsModal = ({
           <section>
             <h3 className="text-sm font-semibold text-foreground mb-2">About this event</h3>
             <p className="text-sm text-muted-foreground whitespace-pre-line">{extendedDescription}</p>
+            {event.whatsappUrl && (
+              <a
+                href={event.whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+              >
+                <MessageCircle className="h-4 w-4" aria-hidden="true" />
+                Join their WhatsApp group
+              </a>
+            )}
+            {!event.partner && event.alsoOn && event.alsoOn.length > 0 && (
+              <p className="mt-2 text-xs text-muted-foreground">
+                Also on{' '}
+                {event.alsoOn.map((url, i) => (
+                  <span key={url}>
+                    {i > 0 && ' · '}
+                    <a href={url} target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
+                      {platformName(url)}
+                    </a>
+                  </span>
+                ))}
+              </p>
+            )}
           </section>
 
           {/* Host bio */}
