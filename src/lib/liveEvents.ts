@@ -17,6 +17,9 @@ export interface EventRow {
   image_url: string | null;
   organizer_name: string | null;
   organizer_bio?: string | null;
+  register_url?: string | null;
+  whatsapp_url?: string | null;
+  also_on?: string[] | null;
   organizer_url: string | null;
   category: string | null;
   tags: string[] | null;
@@ -117,6 +120,9 @@ export function rowToEvent(row: EventRow): Event {
     petFriendly: row.pet_friendly ?? false,
     trending: attendees > 40,
     sourceUrl: row.source_url,
+    registerUrl: row.register_url || undefined,
+    whatsappUrl: row.whatsapp_url || undefined,
+    alsoOn: row.also_on?.length ? row.also_on : undefined,
     priceLabel: row.price_label ?? undefined,
     organizer: row.organizer_name
       ? {

@@ -59,6 +59,7 @@ export type Database = {
       events: {
         Row: {
           activity_level: string | null
+          also_on: string[]
           attendee_count: number | null
           capacity: number | null
           category: string | null
@@ -81,6 +82,7 @@ export type Database = {
           pet_friendly: boolean
           price_label: string | null
           recurrence: string
+          register_url: string | null
           repeat_until: string | null
           review_note: string | null
           series_generated: boolean
@@ -99,10 +101,12 @@ export type Database = {
           updated_at: string
           vibe: string
           venue_name: string | null
+          whatsapp_url: string | null
           women_only: boolean
         }
         Insert: {
           activity_level?: string | null
+          also_on?: string[]
           attendee_count?: number | null
           capacity?: number | null
           category?: string | null
@@ -125,6 +129,7 @@ export type Database = {
           pet_friendly?: boolean
           price_label?: string | null
           recurrence?: string
+          register_url?: string | null
           repeat_until?: string | null
           review_note?: string | null
           series_generated?: boolean
@@ -143,10 +148,12 @@ export type Database = {
           updated_at?: string
           vibe?: string
           venue_name?: string | null
+          whatsapp_url?: string | null
           women_only?: boolean
         }
         Update: {
           activity_level?: string | null
+          also_on?: string[]
           attendee_count?: number | null
           capacity?: number | null
           category?: string | null
@@ -169,6 +176,7 @@ export type Database = {
           pet_friendly?: boolean
           price_label?: string | null
           recurrence?: string
+          register_url?: string | null
           repeat_until?: string | null
           review_note?: string | null
           series_generated?: boolean
@@ -187,6 +195,7 @@ export type Database = {
           updated_at?: string
           vibe?: string
           venue_name?: string | null
+          whatsapp_url?: string | null
           women_only?: boolean
         }
         Relationships: []
@@ -271,6 +280,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_event_also_on: {
+        Args: { _id: string; _url: string }
+        Returns: undefined
+      }
+      apply_partner_organisers: {
+        Args: never
+        Returns: number
+      }
       clear_upcoming_series_dates: {
         Args: { _after: string; _series_key: string }
         Returns: number

@@ -288,9 +288,11 @@ function listingPrompt(today: string): string {
           'For eligible events, preserve existing English title and description verbatim. Only when explicit evidence confirms the event supports English, ' +
           'translate non-English title or description into natural English without summarizing, adding facts or changing proper names. ' +
           'For each event also give: title, absolute url, date_text exactly as displayed on the card, ' +
-          'iso_date (YYYY-MM-DD resolved from date_text relative to today — never guess a past year), ' +
+          'iso_date (YYYY-MM-DD resolved from date_text relative to today; when the card shows no year, pick the year in which ' +
+          'the weekday shown falls on that date), ' +
           'time (HH:MM 24-hour), venue, address, image_url, organizer, category, price, attendees count, ' +
-          'and a one or two sentence description. Skip navigation links, adverts and anything that is not an event.'
+          'and a one or two sentence description. Skip navigation links, adverts and anything that is not an event, ' +
+          'and skip any event the page marks as past, ended or cancelled.'
   );
 }
 
@@ -474,9 +476,85 @@ function lisbonInstant(dateLabel: string, clock: string): Date {
   return new Date(guess.getTime() - diffMin * 60_000);
 }
 
-function parseStart(raw: RawEvent): Date | null {
+/** Words that say nothing about which event it is ("Porto", "the", "::"). */
+const TITLE_NOISE = new Set([
+  'porto', 'oporto', 'portugal', 'pt', 'the', 'a', 'an', 'and', 'of', 'at', 'in', 'on', 'for', 'with', 'by',
+  'de', 'do', 'da', 'dos', 'das', 'e', 'em', 'no', 'na', 'com', 'para', 'x', 'edition', 'event', 'meetup',
+  '2025', '2026', '2027',
+]);
+
+/** Distinct meaningful words of a title, accents and punctuation removed. */
+export function titleTokens(title: string | undefined): Set<string> {
+  const words = (title ?? '')
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .split(' ')
+    .map((w) => w.replace(/(ing|s)$/, '').replace(/([a-z])\1$/, '$1'))
+    .filter((w) => w.length > 1 && !TITLE_NOISE.has(w));
+  return new Set(words);
+}
+
+/**
+ * Two listings are the same event when one title extends the other ("Make new
+ * friends over drinks" and "Make new friends over drinks – The Soda by
+ * SpeakTiger") or both share nearly all their words ("Founders Run Club Porto"
+ * and "Founders Running Club :: Porto"). Titles that each have their own
+ * distinguishing word ("Tech and Business Networking" vs "Finance and Business
+ * Networking") are different events.
+ */
+export function similarTitles(a: Set<string>, b: Set<string>): boolean {
+  if (!a.size || !b.size) return false;
+  let shared = 0;
+  for (const w of a) if (b.has(w)) shared += 1;
+  const onlyA = a.size - shared;
+  const onlyB = b.size - shared;
+  if (onlyA === 0 && onlyB === 0) return true;
+  if (onlyA === 0 || onlyB === 0) return shared >= 2;
+  return shared / (shared + onlyA + onlyB) >= 0.8;
+}
+
+const WEEKDAY_WORDS: [RegExp, number][] = [
+  [/\b(sun|sunday|dom|domingo)\b/, 0],
+  [/\b(mon|monday|seg|segunda)\b/, 1],
+  [/\b(tue|tues|tuesday|ter|ter[cç]a)\b/, 2],
+  [/\b(wed|wednesday|qua|quarta)\b/, 3],
+  [/\b(thu|thur|thurs|thursday|qui|quinta)\b/, 4],
+  [/\b(fri|friday|sex|sexta)\b/, 5],
+  [/\b(sat|saturday|s[aá]b|s[aá]bado)\b/, 6],
+];
+
+/** The weekday a listing card shows ("Sat 2 May", "sábado, 2 de maio"), if exactly one. */
+function listedWeekday(raw: RawEvent): number | null {
+  const text = (raw.date_text ?? '').toLowerCase();
+  const hits = WEEKDAY_WORDS.filter(([re]) => re.test(text)).map(([, d]) => d);
+  return hits.length === 1 ? hits[0] : null;
+}
+
+/**
+ * Cards often show "Saturday 2 May" with no year, and the year gets guessed.
+ * When the weekday shown does not fall on the guessed date, the adjacent year
+ * where it does is the real one. Returns the checked date and whether the
+ * weekday could confirm it.
+ */
+export function checkListedYear(raw: RawEvent): { iso: string | null; weekdayChecked: boolean } {
   const iso = (raw.iso_date ?? '').trim();
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return { iso: null, weekdayChecked: false };
+  const want = listedWeekday(raw);
+  if (want === null) return { iso, weekdayChecked: false };
+  const dow = (y: number) => new Date(Date.UTC(y, Number(iso.slice(5, 7)) - 1, Number(iso.slice(8, 10)))).getUTCDay();
+  const year = Number(iso.slice(0, 4));
+  if (dow(year) === want) return { iso, weekdayChecked: true };
+  for (const y of [year - 1, year + 1]) {
+    if (dow(y) === want) return { iso: `${y}${iso.slice(4)}`, weekdayChecked: true };
+  }
+  return { iso, weekdayChecked: false };
+}
+
+function parseStart(raw: RawEvent): Date | null {
+  const iso = checkListedYear(raw).iso;
+  if (!iso) return null;
   const time = (raw.time ?? '').trim();
   const hhmm = /^(\d{1,2}):(\d{2})/.exec(time);
   const clock = hhmm ? `${hhmm[1].padStart(2, '0')}:${hhmm[2]}` : '19:00';
@@ -491,7 +569,7 @@ function parseStart(raw: RawEvent): Date | null {
  */
 async function verifiedStart(
   url: string,
-): Promise<{ date: Date; dateOnly: boolean } | null> {
+): Promise<{ date: Date; dateOnly: boolean; past?: boolean } | null> {
   try {
     const res = await fetch(url, {
       redirect: 'follow',
@@ -508,6 +586,11 @@ async function verifiedStart(
     // "2026-09-11" carries no clock; "2026-09-11T21:00" does.
     const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(value);
     const parsed = dateOnly ? lisbonInstant(value, '00:00') : new Date(value);
+    if (isNaN(parsed.getTime())) return null;
+    // The page is the truth: a date already gone means the event is over, even
+    // if the listing card (often with no year) suggested a future date.
+    const endOfDay = dateOnly ? parsed.getTime() + 86_400_000 : parsed.getTime() + 6 * 3600_000;
+    if (endOfDay < Date.now()) return { date: parsed, dateOnly, past: true };
     if (!withinWindow(parsed)) return null;
     return { date: parsed, dateOnly };
   } catch (err) {
@@ -840,8 +923,19 @@ Deno.serve(async (req) => {
   // the slow part of a run.
   const { data: knownRows } = await supabase
     .from('events')
-    .select('source,source_event_id,review_status,title,starts_at')
+    .select('id,source,source_event_id,source_url,review_status,reviewed_at,title,starts_at')
     .gte('starts_at', new Date().toISOString());
+  // Every stored and newly saved event, for spotting the same event on another
+  // platform (Luma, Meetup and Eventbrite often list the same run club).
+  const sameEventIndex: { id?: string; key: string; day: string; at: number; tokens: Set<string>; hidden: boolean }[] =
+    (knownRows ?? []).map((r: Record<string, unknown>) => ({
+      id: String(r.id),
+      key: `${r.source}:${r.source_event_id}`,
+      day: new Date(String(r.starts_at)).toLocaleDateString('en-CA', { timeZone: 'Europe/Lisbon' }),
+      at: new Date(String(r.starts_at)).getTime(),
+      tokens: titleTokens(String(r.title ?? '')),
+      hidden: r.review_status === 'rejected',
+    }));
   // One listing per title per day, even when it appears under different links.
   const dayKey = (title: string | undefined, isoDay: string | undefined) =>
     `${(title ?? '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()}|${isoDay ?? ''}`;
@@ -856,7 +950,9 @@ Deno.serve(async (req) => {
     (knownRows ?? []).map((r: Record<string, unknown>) => `${r.source}:${r.source_event_id}`),
   );
   // Curation decisions must survive every later run: rejected listings are never
-  // re-inserted, and reviewed listings keep the wording the curator approved.
+  // re-inserted, and reviewed listings keep what the curator set. An event counts
+  // as reviewed once it is published or hidden, or once a curator (by hand on
+  // /curate or with the SYNC Curator) saved changes to it while it is in Waiting.
   const rejected = new Set(
     (knownRows ?? [])
       .filter((r: Record<string, unknown>) => r.review_status === 'rejected')
@@ -864,7 +960,7 @@ Deno.serve(async (req) => {
   );
   const reviewed = new Set(
     (knownRows ?? [])
-      .filter((r: Record<string, unknown>) => r.review_status !== 'pending')
+      .filter((r: Record<string, unknown>) => r.review_status !== 'pending' || r.reviewed_at != null)
       .map((r: Record<string, unknown>) => `${r.source}:${r.source_event_id}`),
   );
 
@@ -947,32 +1043,49 @@ Deno.serve(async (req) => {
           // Checking the event page's own date is the slow part; late in a run
           // the listing's date is used instead so the run can finish in time.
           const verified = raw.url && elapsed() < STOP_VERIFY_MS ? await verifiedStart(raw.url) : null;
+          // The event's own page says it is over: never queue or refresh it.
+          if (verified?.past) continue;
           const confirmed = verified ? withListedClock(verified, raw) : null;
           const starts = confirmed ?? listed;
           if (!raw.title || !starts) continue;
-          // A curator already decided on this listing: never overwrite the wording
-          // they approved, but do keep schedule and practical details current so a
-          // moved or repriced event does not stay stale in the feed.
+          // A far-off date that neither the event page nor the card's weekday
+          // confirmed is the likeliest to carry a guessed year: ask the curator.
+          const dateNote =
+            !confirmed && !checkListedYear(raw).weekdayChecked && starts.getTime() > Date.now() + 120 * 86400_000
+              ? 'Date not confirmed on the event page; check the year'
+              : null;
+          // The same event already in SYNC from another listing (same Porto day,
+          // start within an hour, matching title): keep one card and record this
+          // page as "also on" instead of adding a second card.
+          if (!known.has(`${source}:${id}`)) {
+            const day = starts.toLocaleDateString('en-CA', { timeZone: 'Europe/Lisbon' });
+            const tokens = titleTokens(raw.title);
+            const twin = sameEventIndex.find(
+              (e) =>
+                e.key !== `${source}:${id}` &&
+                e.day === day &&
+                Math.abs(e.at - starts.getTime()) <= 60 * 60_000 &&
+                similarTitles(e.tokens, tokens),
+            );
+            if (twin) {
+              if (twin.id && !twin.hidden && raw.url) {
+                await supabase.rpc('add_event_also_on', { _id: twin.id, _url: raw.url });
+              }
+              continue;
+            }
+            sameEventIndex.push({ key: `${source}:${id}`, day, at: starts.getTime(), tokens, hidden: false });
+          }
+          // A curator already reviewed this listing (often with the SYNC Curator):
+          // their description, price, photo, organiser, venue, end time and
+          // category stand. Only a start time the event page itself confirms,
+          // and the live attendance numbers, are kept current.
           if (reviewed.has(`${source}:${id}`)) {
             const { error } = await supabase
               .from('events')
               .update({
-                starts_at: starts.toISOString(),
-                ends_at: null,
-                time_label: confirmed
-                  ? portoTimeLabel(confirmed)
-                  : raw.time?.trim()?.slice(0, 20) || null,
-                venue_name: raw.venue?.trim()?.slice(0, 200) || null,
-                location: portoLocation(raw),
-                image_url: raw.image_url?.startsWith('http') ? raw.image_url : null,
-                organizer_name: raw.organizer?.trim()?.slice(0, 200) || null,
-                price_label: raw.price?.trim()?.slice(0, 60) || agendaPrice(raw, source),
+                ...(confirmed ? { starts_at: confirmed.toISOString() } : {}),
                 attendee_count:
-                  typeof raw.attendees === 'number' && raw.attendees > 0 ? Math.round(raw.attendees) : null,
-                capacity:
-                  typeof raw.attendees === 'number' && raw.attendees > 0
-                    ? Math.max(12, Math.round(raw.attendees * 1.4))
-                    : null,
+                  typeof raw.attendees === 'number' && raw.attendees > 0 ? Math.round(raw.attendees) : undefined,
                 last_seen_at: new Date().toISOString(),
               })
               .eq('source', source)
@@ -1007,19 +1120,24 @@ Deno.serve(async (req) => {
                 : null,
             // A known event keeps its repeat settings (the curator may have set them).
             ...(known.has(`${source}:${id}`) ? {} : { recurrence, series_key }),
+            ...(dateNote ? { review_note: dateNote } : {}),
             ...keywordDerive(raw),
             ...agendaFlags(raw, source),
             last_seen_at: new Date().toISOString(),
           };
 
-          const { error } = await supabase
+          const { data: saved, error } = await supabase
             .from('events')
-            .upsert(row, { onConflict: 'source,source_event_id' });
+            .upsert(row, { onConflict: 'source,source_event_id' })
+            .select('id')
+            .maybeSingle();
           if (error) {
             errors.push(`${source}: ${error.message}`);
           } else {
             counts[source] += 1;
             upserted += 1;
+            const entry = sameEventIndex.find((e) => e.key === `${source}:${id}`);
+            if (entry && saved?.id) entry.id = String(saved.id);
           }
         }
       }
@@ -1043,6 +1161,13 @@ Deno.serve(async (req) => {
       const err = e as Denied;
       pausedReason = `AI labelling returned ${err.status}: ${err.message}`.slice(0, 500);
     }
+  }
+
+  // Partner organisers: badge, sign-up and WhatsApp links, one card per day.
+  try {
+    await supabase.rpc('apply_partner_organisers');
+  } catch (e) {
+    errors.push(`partners: ${(e as Error).message}`);
   }
 
   // Drop events that are well past and therefore no longer useful.

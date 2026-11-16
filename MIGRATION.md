@@ -121,3 +121,18 @@ in `supabase/functions/scrape-events/index.ts`.
   (`clear_upcoming_series_dates`). "Apply to all upcoming dates" copies an edit to the later dates.
 - **Dance** is an interest (Outdoors & movement). Salsa, bachata, kizomba, tango, swing, ecstatic dance etc. are
   labelled Dance; Thursday's sports search also looks for dance socials.
+
+## 14. Partner organisers and cross-platform duplicates (Nov 2026)
+- `partner_organisers` lists SYNC partners: `name`, `match` (regex on organiser and title), `register_url`
+  (their own sign-up page, e.g. Luma), `whatsapp_url`, `bio`. `apply_partner_organisers()` gives their upcoming
+  events the SYNC Partner badge, the Register and WhatsApp links and the bio, and keeps one card per partner per
+  day (published first, then Luma, Meetup, Eventbrite); other waiting copies are hidden and listed in `also_on`.
+  It runs after every collector run and daily at 06:15 UTC. Add a partner:
+  ```sql
+  insert into partner_organisers (name, match, register_url, whatsapp_url, bio)
+  values ('Name', 'regex', 'https://luma.com/...', 'https://chat.whatsapp.com/...', 'One line about them');
+  select apply_partner_organisers();
+  ```
+- The collector treats a new listing as the same event as one already in SYNC when it is on the same Porto day,
+  starts within an hour and the titles match (one extends the other, or 80% shared words). It records the page
+  in that card's `also_on` ("Also on Meetup · Eventbrite") instead of adding a second card.
