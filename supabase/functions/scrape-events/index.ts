@@ -884,7 +884,7 @@ Deno.serve(async (req) => {
   // the slow part of a run.
   const { data: knownRows } = await supabase
     .from('events')
-    .select('source,source_event_id,review_status,title,starts_at')
+    .select('source,source_event_id,review_status,reviewed_at,title,starts_at')
     .gte('starts_at', new Date().toISOString());
   // One listing per title per day, even when it appears under different links.
   const dayKey = (title: string | undefined, isoDay: string | undefined) =>
@@ -900,7 +900,9 @@ Deno.serve(async (req) => {
     (knownRows ?? []).map((r: Record<string, unknown>) => `${r.source}:${r.source_event_id}`),
   );
   // Curation decisions must survive every later run: rejected listings are never
-  // re-inserted, and reviewed listings keep the wording the curator approved.
+  // re-inserted, and reviewed listings keep what the curator set. An event counts
+  // as reviewed once it is published or hidden, or once a curator (by hand on
+  // /curate or with the SYNC Curator) saved changes to it while it is in Waiting.
   const rejected = new Set(
     (knownRows ?? [])
       .filter((r: Record<string, unknown>) => r.review_status === 'rejected')
@@ -908,7 +910,7 @@ Deno.serve(async (req) => {
   );
   const reviewed = new Set(
     (knownRows ?? [])
-      .filter((r: Record<string, unknown>) => r.review_status !== 'pending')
+      .filter((r: Record<string, unknown>) => r.review_status !== 'pending' || r.reviewed_at != null)
       .map((r: Record<string, unknown>) => `${r.source}:${r.source_event_id}`),
   );
 
@@ -1002,29 +1004,17 @@ Deno.serve(async (req) => {
             !confirmed && !checkListedYear(raw).weekdayChecked && starts.getTime() > Date.now() + 120 * 86400_000
               ? 'Date not confirmed on the event page; check the year'
               : null;
-          // A curator already decided on this listing: never overwrite the wording
-          // they approved, but do keep schedule and practical details current so a
-          // moved or repriced event does not stay stale in the feed.
+          // A curator already reviewed this listing (often with the SYNC Curator):
+          // their description, price, photo, organiser, venue, end time and
+          // category stand. Only a start time the event page itself confirms,
+          // and the live attendance numbers, are kept current.
           if (reviewed.has(`${source}:${id}`)) {
             const { error } = await supabase
               .from('events')
               .update({
-                starts_at: starts.toISOString(),
-                ends_at: null,
-                time_label: confirmed
-                  ? portoTimeLabel(confirmed)
-                  : raw.time?.trim()?.slice(0, 20) || null,
-                venue_name: raw.venue?.trim()?.slice(0, 200) || null,
-                location: portoLocation(raw),
-                image_url: raw.image_url?.startsWith('http') ? raw.image_url : null,
-                organizer_name: raw.organizer?.trim()?.slice(0, 200) || null,
-                price_label: raw.price?.trim()?.slice(0, 60) || agendaPrice(raw, source),
+                ...(confirmed ? { starts_at: confirmed.toISOString() } : {}),
                 attendee_count:
-                  typeof raw.attendees === 'number' && raw.attendees > 0 ? Math.round(raw.attendees) : null,
-                capacity:
-                  typeof raw.attendees === 'number' && raw.attendees > 0
-                    ? Math.max(12, Math.round(raw.attendees * 1.4))
-                    : null,
+                  typeof raw.attendees === 'number' && raw.attendees > 0 ? Math.round(raw.attendees) : undefined,
                 last_seen_at: new Date().toISOString(),
               })
               .eq('source', source)

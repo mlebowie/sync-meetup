@@ -272,8 +272,10 @@ const CuratePage = () => {
       group_size: draft.group_size,
       image_url: draft.image_url?.trim() ? draft.image_url.trim() : null,
       organizer_bio: draft.organizer_bio?.trim() ? draft.organizer_bio.trim() : null,
-      // Saving an edit means the curator has looked at it.
+      // Saving an edit means the curator has looked at it; the collector then
+      // keeps these details instead of rewriting them from the listing.
       review_note: null,
+      reviewed_at: new Date().toISOString(),
     };
     const row = rows.find((r) => r.id === id);
     const wasRepeating = !!row?.generate_dates && row.recurrence !== 'one-off';
