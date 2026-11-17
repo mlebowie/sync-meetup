@@ -150,3 +150,7 @@ To see an organiser's templates in the SQL editor:
 select title, last_starts_at, description from event_templates
 where organizer_key = match_key('Dinnersmate Porto') order by updated_at desc;
 ```
+
+## 16. Fisga agenda (weekly)
+
+`fisga` is a source read straight from https://www.fisga.space/en/agenda (no Firecrawl or AI): every upcoming event page with "In English" goes to Waiting with its description, photo and date. Fisga lists no start times, so each card is flagged "Start time not listed on Fisga's page; add it" and starts at 19:00 until edited. It runs Mondays at 06:10 UTC (`sync-collect-fisga`); to run it now: `select public.run_event_collector('fisga');`

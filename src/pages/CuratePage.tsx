@@ -87,6 +87,7 @@ const SOURCE_LABELS: Record<string, string> = {
   eventbrite: 'Eventbrite',
   luma: 'Lu.ma',
   'agenda-porto': 'Agenda Porto',
+  fisga: 'Fisga',
   'porto-coffee-week': 'Porto Coffee Week',
   'expat-girls-porto': 'Expat Girls Porto',
   partner: 'Partner',
