@@ -1,5 +1,6 @@
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { type Coords, coordsFromPage } from '../_shared/geo.ts';
 
 const FIRECRAWL_API = 'https://api.firecrawl.dev/v2';
 
@@ -563,40 +564,51 @@ function parseStart(raw: RawEvent): Date | null {
 }
 
 
+interface PageCheck {
+  /** The page's own start date, when it names exactly one. */
+  start: { date: Date; dateOnly: boolean; past?: boolean } | null;
+  /** The venue's coordinates, when the page names exactly one place in the region. */
+  coords: Coords | null;
+}
+
 /**
  * Listing cards are read by an AI and their dates drift, so the event page's own
- * schema.org startDate is treated as the truth whenever it is unambiguous.
+ * schema.org startDate is treated as the truth whenever it is unambiguous. The
+ * same page usually carries the venue's coordinates, so they are read here too
+ * at no extra cost (listing cards never include them).
  */
-async function verifiedStart(
-  url: string,
-): Promise<{ date: Date; dateOnly: boolean; past?: boolean } | null> {
+async function checkEventPage(url: string): Promise<PageCheck> {
   try {
     const res = await fetch(url, {
       redirect: 'follow',
       headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
       signal: AbortSignal.timeout(15_000),
     });
-    if (!res.ok) return null;
+    if (!res.ok) return { start: null, coords: null };
     const html = await res.text();
-    const found = [...html.matchAll(/"startDate"\s*:\s*"([^"]+)"/g)].map((m) => m[1]);
-    const distinct = [...new Set(found)];
-    // Calendar / listing pages carry many events — only a single date is trustworthy.
-    if (distinct.length !== 1) return null;
-    const value = distinct[0].trim();
-    // "2026-09-11" carries no clock; "2026-09-11T21:00" does.
-    const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(value);
-    const parsed = dateOnly ? lisbonInstant(value, '00:00') : new Date(value);
-    if (isNaN(parsed.getTime())) return null;
-    // The page is the truth: a date already gone means the event is over, even
-    // if the listing card (often with no year) suggested a future date.
-    const endOfDay = dateOnly ? parsed.getTime() + 86_400_000 : parsed.getTime() + 6 * 3600_000;
-    if (endOfDay < Date.now()) return { date: parsed, dateOnly, past: true };
-    if (!withinWindow(parsed)) return null;
-    return { date: parsed, dateOnly };
+    return { start: startFromPage(html), coords: coordsFromPage(html) };
   } catch (err) {
-    console.error(`Could not verify date for ${url}: ${err}`);
-    return null;
+    console.error(`Could not check event page ${url}: ${err}`);
+    return { start: null, coords: null };
   }
+}
+
+function startFromPage(html: string): PageCheck['start'] {
+  const found = [...html.matchAll(/"startDate"\s*:\s*"([^"]+)"/g)].map((m) => m[1]);
+  const distinct = [...new Set(found)];
+  // Calendar / listing pages carry many events — only a single date is trustworthy.
+  if (distinct.length !== 1) return null;
+  const value = distinct[0].trim();
+  // "2026-09-11" carries no clock; "2026-09-11T21:00" does.
+  const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(value);
+  const parsed = dateOnly ? lisbonInstant(value, '00:00') : new Date(value);
+  if (isNaN(parsed.getTime())) return null;
+  // The page is the truth: a date already gone means the event is over, even
+  // if the listing card (often with no year) suggested a future date.
+  const endOfDay = dateOnly ? parsed.getTime() + 86_400_000 : parsed.getTime() + 6 * 3600_000;
+  if (endOfDay < Date.now()) return { date: parsed, dateOnly, past: true };
+  if (!withinWindow(parsed)) return null;
+  return { date: parsed, dateOnly };
 }
 
 /** Wall-clock time in Porto, used for the card's time label. */
@@ -1042,7 +1054,9 @@ Deno.serve(async (req) => {
           const listed = parseStart(raw);
           // Checking the event page's own date is the slow part; late in a run
           // the listing's date is used instead so the run can finish in time.
-          const verified = raw.url && elapsed() < STOP_VERIFY_MS ? await verifiedStart(raw.url) : null;
+          const page = raw.url && elapsed() < STOP_VERIFY_MS ? await checkEventPage(raw.url) : null;
+          const verified = page?.start ?? null;
+          const coords = page?.coords ?? null;
           // The event's own page says it is over: never queue or refresh it.
           if (verified?.past) continue;
           const confirmed = verified ? withListedClock(verified, raw) : null;
@@ -1091,6 +1105,16 @@ Deno.serve(async (req) => {
               .eq('source', source)
               .eq('source_event_id', id);
             if (error) errors.push(`${source}: could not refresh ${id}: ${error.message}`);
+            // Coordinates are filled in only where none are set, so a point a
+            // curator placed by hand is never moved.
+            if (coords) {
+              await supabase
+                .from('events')
+                .update({ lat: coords.lat, lng: coords.lng, geo_source: 'page', geocoded_at: new Date().toISOString() })
+                .eq('source', source)
+                .eq('source_event_id', id)
+                .is('lat', null);
+            }
             continue;
           }
 
@@ -1108,6 +1132,9 @@ Deno.serve(async (req) => {
 
             venue_name: raw.venue?.trim()?.slice(0, 200) || null,
             location: portoLocation(raw),
+            ...(coords
+              ? { lat: coords.lat, lng: coords.lng, geo_source: 'page', geocoded_at: new Date().toISOString() }
+              : {}),
             image_url: raw.image_url?.startsWith('http') ? raw.image_url : null,
             organizer_name: raw.organizer?.trim()?.slice(0, 200) || null,
             category: canonicalCategory(raw, source),
