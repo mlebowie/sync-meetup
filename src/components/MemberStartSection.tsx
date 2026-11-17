@@ -8,6 +8,7 @@ import EventCard from './EventCard';
 import {
   activitySteps,
   interestLabel,
+  isFirstEventFriendly,
   isNewcomerFriendly,
   pickFirstEvent,
   placesThisMonth,
@@ -42,11 +43,14 @@ const MemberStartSection = ({ profileInterests, onAttend, onParticipantClick, on
   const { steps, attended, next } = activitySteps(joined, mutual);
   const isNew = attended.length === 0;
 
-  // The first-event card: the event they've already joined, else a good pick.
+  // The first-event card: a joined event if it's an easy first one, else the best pick.
   const firstEvent = useMemo(
-    () => (isNew && next) || pickFirstEvent(events, profileInterests, isAttending),
+    () =>
+      (isNew && next && isFirstEventFriendly(next) ? next : null) ??
+      pickFirstEvent(events, profileInterests, isAttending),
     [isNew, next, events, profileInterests, isAttending],
   );
+  const goingToFirst = !!firstEvent && firstEvent === next;
   const places = useMemo(() => placesThisMonth(events, profileInterests), [events, profileInterests]);
   const month = new Date().toLocaleDateString('en-GB', { month: 'long' });
   const dotFor = (id: string) => DOTS[Math.max(0, profileInterests.indexOf(id)) % DOTS.length];
@@ -60,10 +64,10 @@ const MemberStartSection = ({ profileInterests, onAttend, onParticipantClick, on
           {/* 1) Try your first event */}
           <div className="flex flex-col gap-3">
             <div className="flex flex-col gap-1.5">
-              <Eyebrow>{isNew ? (next ? 'Your first event' : 'Try your first event') : 'Try something this week'}</Eyebrow>
+              <Eyebrow>{isNew ? (goingToFirst ? 'Your first event' : 'Try your first event') : 'Try something this week'}</Eyebrow>
               <div className="flex items-center gap-2 flex-wrap">
                 <h2 className="text-xl font-bold text-foreground">
-                  {isNew && next ? "You're going" : 'A good place to start'}
+                  {goingToFirst ? "You're going" : 'A good place to start'}
                 </h2>
                 {firstEvent && isNewcomerFriendly(firstEvent) && (
                   <span className="rounded-full bg-event-card px-2.5 py-0.5 text-xs font-semibold text-event-card-foreground">
@@ -81,7 +85,7 @@ const MemberStartSection = ({ profileInterests, onAttend, onParticipantClick, on
               />
             ) : (
               <div className="rounded-2xl bg-card p-6 text-sm text-muted-foreground">
-                Nothing open in the next two weeks yet. New events land every day.
+                No coffee meetups, coworking or chill events open to everyone in the next two weeks yet. New events land every day.
               </div>
             )}
           </div>

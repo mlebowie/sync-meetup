@@ -38,20 +38,41 @@ describe('neighbourhoodOf', () => {
 });
 
 describe('pickFirstEvent', () => {
-  it('prefers a small, calm event that matches interests', () => {
-    const big = ev({ id: 'big', tags: ['yoga'], date: new Date(NOW + DAY) });
-    const small = ev({ id: 'small', tags: ['yoga'], groupSize: 'small', vibe: 'chill', date: new Date(NOW + 3 * DAY) });
-    const offTopic = ev({ id: 'off', tags: ['tech'], groupSize: 'small', vibe: 'chill' });
-    expect(pickFirstEvent([big, small, offTopic], ['health-wellness'], () => false, NOW)?.id).toBe('small');
+  it('puts coffee meetups and coworking ahead of other chill events', () => {
+    const chillYoga = ev({ id: 'yoga', tags: ['yoga'], vibe: 'chill', groupSize: 'small', date: new Date(NOW + DAY) });
+    const coffee = ev({ id: 'coffee', title: 'Coffee for people new to Porto', vibe: 'social', date: new Date(NOW + 3 * DAY) });
+    expect(pickFirstEvent([chillYoga, coffee], ['health-wellness'], () => false, NOW)?.id).toBe('coffee');
+  });
+
+  it('accepts coworking even when the vibe is social', () => {
+    const cowork = ev({ id: 'cowork', title: 'Friday coworking at Selina', vibe: 'social' });
+    expect(pickFirstEvent([cowork], [], () => false, NOW)?.id).toBe('cowork');
+  });
+
+  it('never suggests women-only, Expat Girls or age-limited events', () => {
+    const events = [
+      ev({ id: 'flag', title: 'Coffee morning', vibe: 'chill', womenOnly: true }),
+      ev({ id: 'eg', title: 'Breathwork & yoga', vibe: 'chill', source: 'expat-girls-porto' }),
+      ev({ id: 'ladies', title: 'Ladies coffee club', vibe: 'chill' }),
+      ev({ id: 'age', title: 'Coffee & chat (25-40 years)', vibe: 'chill' }),
+      ev({ id: 'plus', title: 'Cowork session 30+', vibe: 'chill' }),
+    ];
+    expect(pickFirstEvent(events, [], () => false, NOW)).toBeNull();
+  });
+
+  it('ignores lively or social events that are not coffee or coworking', () => {
+    const party = ev({ id: 'party', title: 'Salsa night', vibe: 'lively' });
+    const drinks = ev({ id: 'drinks', title: 'After-work drinks', vibe: 'social' });
+    expect(pickFirstEvent([party, drinks], [], () => false, NOW)).toBeNull();
   });
 
   it('skips past, full, joined and far-off events', () => {
     const events = [
-      ev({ id: 'past', date: new Date(NOW - DAY) }),
-      ev({ id: 'full', currentParticipants: 20 }),
-      ev({ id: 'joined' }),
-      ev({ id: 'far', date: new Date(NOW + 30 * DAY) }),
-      ev({ id: 'ok' }),
+      ev({ id: 'past', vibe: 'chill', date: new Date(NOW - DAY) }),
+      ev({ id: 'full', vibe: 'chill', currentParticipants: 20 }),
+      ev({ id: 'joined', vibe: 'chill' }),
+      ev({ id: 'far', vibe: 'chill', date: new Date(NOW + 30 * DAY) }),
+      ev({ id: 'ok', vibe: 'chill' }),
     ];
     expect(pickFirstEvent(events, [], id => id === 'joined', NOW)?.id).toBe('ok');
   });

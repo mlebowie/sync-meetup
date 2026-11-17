@@ -6,10 +6,28 @@ const DAY = 24 * 60 * 60 * 1000;
 
 const fold = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
+const textOf = (e: Event) => fold([e.title, e.category, ...e.tags, e.description].join(' '));
+
+/** Coffee meetups and coworking: the easiest rooms to walk into alone. */
+const EASY_FORMAT = /\b(coffee|cafe|cowork\w*|co-work\w*|work together|laptop)\b/;
+
+/** Events for one group only (women, men, students, LGBTQ+ only) or with an age limit. */
+const RESTRICTED =
+  /\b(women only|women-only|ladies|for women|for girls|girls only|men only|for men|students only|members only|adults only)\b|\b\d{2}\s*\+|\bages?\s*\d{2}|\b\d{2}\s*(?:-|–|to)\s*\d{2}\s*(?:years|yrs|y\.?o)|\b(over|under)\s*\d{2}\b/;
+
+/** Open to everyone: no women-only flag, not a women's community, no age or group limit in the listing. */
+export const isOpenToAll = (e: Event) =>
+  !e.womenOnly && e.source !== 'expat-girls-porto' && !RESTRICTED.test(textOf(e));
+
+/** A good first event: a coffee meetup, coworking or anything labelled chill, open to everyone. */
+export const isFirstEventFriendly = (e: Event) =>
+  isOpenToAll(e) && (e.vibe === 'chill' || EASY_FORMAT.test(textOf(e)));
+
 /**
- * The easiest good event to start with: upcoming in the next two weeks, matching
- * the member's interests, not already joined, with room left. Small, calm groups
- * and partner events first, then the soonest.
+ * The easiest event to start with, in the next two weeks, not already joined and
+ * with room left. Only coffee meetups, coworking or chill events open to everyone
+ * qualify. Coffee and coworking first, then the member's interests, small groups,
+ * then the soonest. Returns null rather than suggest anything else.
  */
 export const pickFirstEvent = (
   events: Event[],
@@ -17,28 +35,28 @@ export const pickFirstEvent = (
   isAttending: (id: string) => boolean,
   now = Date.now(),
 ): Event | null => {
-  const open = events.filter(
+  const pool = events.filter(
     e =>
       e.date.getTime() >= now &&
       e.date.getTime() <= now + 14 * DAY &&
       !isAttending(e.id) &&
-      (e.maxParticipants <= 0 || e.currentParticipants < e.maxParticipants),
+      (e.maxParticipants <= 0 || e.currentParticipants < e.maxParticipants) &&
+      isFirstEventFriendly(e),
   );
-  const matching = open.filter(e => matchesInterests(e, interests));
-  const pool = matching.length ? matching : open;
   if (!pool.length) return null;
 
   const score = (e: Event) =>
-    (e.groupSize === 'small' ? 3 : e.groupSize === 'medium' ? 1 : 0) +
-    (e.vibe === 'chill' || e.vibe === 'social' ? 2 : 0) +
-    (e.partner || e.featured ? 2 : 0) +
+    (EASY_FORMAT.test(textOf(e)) ? 10 : 0) +
+    (e.vibe === 'chill' ? 2 : 0) +
+    (interests.length && matchesInterests(e, interests) ? 2 : 0) +
+    (e.groupSize === 'small' ? 2 : e.groupSize === 'medium' ? 1 : 0) +
     (e.recurrence && e.recurrence !== 'one-off' ? 1 : 0);
 
   return [...pool].sort((a, b) => score(b) - score(a) || a.date.getTime() - b.date.getTime())[0];
 };
 
-/** Friendly for someone who knows nobody yet: a small group or a calm vibe. */
-export const isNewcomerFriendly = (e: Event) => e.groupSize === 'small' || e.vibe === 'chill';
+/** Shown as the "Good for newcomers" tag. */
+export const isNewcomerFriendly = isFirstEventFriendly;
 
 // Neighbourhoods first (most specific), then the wider towns.
 const PLACES: { name: string; key: string }[] = [
