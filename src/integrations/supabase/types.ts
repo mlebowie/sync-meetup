@@ -73,6 +73,8 @@ export type Database = {
           intensity: string | null
           last_seen_at: string
           lat: number | null
+          geo_source: string | null
+          geocoded_at: string | null
           lgbtq_friendly: boolean
           lng: number | null
           location: string | null
@@ -120,6 +122,8 @@ export type Database = {
           intensity?: string | null
           last_seen_at?: string
           lat?: number | null
+          geo_source?: string | null
+          geocoded_at?: string | null
           lgbtq_friendly?: boolean
           lng?: number | null
           location?: string | null
@@ -167,6 +171,8 @@ export type Database = {
           intensity?: string | null
           last_seen_at?: string
           lat?: number | null
+          geo_source?: string | null
+          geocoded_at?: string | null
           lgbtq_friendly?: boolean
           lng?: number | null
           location?: string | null

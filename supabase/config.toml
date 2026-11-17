@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.parse-event]
 verify_jwt = false
+
+[functions.geocode-events]
+verify_jwt = false
