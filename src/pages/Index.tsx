@@ -10,6 +10,7 @@ import ActivityFeed from '@/components/ActivityFeed';
 import PostEventReflectionDialog from '@/components/PostEventReflectionDialog';
 import GuestLanding from '@/components/GuestLanding';
 import FeedSetupBanner from '@/components/FeedSetupBanner';
+import MemberStartSection from '@/components/MemberStartSection';
 import HowSyncWorks from '@/components/HowSyncWorks';
 import HappeningSoonSection from '@/components/HappeningSoonSection';
 import RecommendedSection from '@/components/RecommendedSection';
@@ -187,6 +188,14 @@ const Index = () => {
         <>
           {/* 0) First-run tutorial banner */}
           <FeedSetupBanner interests={profileInterests} />
+
+          {/* 0b) Try your first event · Porto this month · Your activity log */}
+          <MemberStartSection
+            profileInterests={profileInterests}
+            onAttend={handleAttend}
+            onParticipantClick={handleParticipantClick}
+            onOpenGroupChat={handleOpenGroupChat}
+          />
 
           {/* 1) Reflect from last event attended */}
           {reflectionEvent && !alreadyTagged && (
