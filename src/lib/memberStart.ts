@@ -6,32 +6,58 @@ const DAY = 24 * 60 * 60 * 1000;
 
 const fold = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
-const textOf = (e: Event) => fold([e.title, e.category, ...e.tags, e.description].join(' '));
+/** Everything an event says about itself, including who organises it. */
+const fullTextOf = (e: Event) =>
+  fold([e.title, e.category, ...e.tags, e.description, e.organizer?.name ?? ''].join(' '));
 
-/** Coffee meetups and coworking: the easiest rooms to walk into alone. */
-const EASY_FORMAT = /\b(coffee|cafe|cowork\w*|co-work\w*|work together|laptop)\b/;
+/** What the event is: its title, category and tags (not the description's small print). */
+const formatTextOf = (e: Event) => fold([e.title, e.category, ...e.tags].join(' '));
 
-/** Events for one group only (women, men, students, LGBTQ+ only) or with an age limit. */
+/**
+ * General, low-key formats anyone can walk into alone, whatever their interests:
+ * coffee, meditation, walks, picnics, breakfasts.
+ */
+const GENERAL_FORMAT =
+  /\b(coffee|cafe|cafes|meditat\w*|mindfulness|walk|walks|walking|stroll\w*|picnic\w*|brunch\w*|breakfast\w*)\b/;
+
+/** Formats that suit one specific interest or skill rather than everyone. */
+const SPECIFIC_FORMAT =
+  /\b(yoga|aerial|pilates|breathwork|dance|salsa|bachata|kizomba|tango|run|runs|running|run club|surf\w*|padel|climb\w*|masterclass|pitch\w*|founders?|startup\w*|networking|tech|ai|karaoke|quiz|party|rave)\b/;
+
+/** Events for one group only (women, men, students, members) or with an age limit. */
 const RESTRICTED =
-  /\b(women only|women-only|ladies|for women|for girls|girls only|men only|for men|students only|members only|adults only)\b|\b\d{2}\s*\+|\bages?\s*\d{2}|\b\d{2}\s*(?:-|–|to)\s*\d{2}\s*(?:years|yrs|y\.?o)|\b(over|under)\s*\d{2}\b/;
+  /\b(women|woman|ladies|girls|girl|mums|moms|men only|for men|students only|members only|adults only)\b|\b\d{2}\s*\+|\bages?\s*\d{2}|\b\d{2}\s*(?:-|–|to)\s*\d{2}\s*(?:years|yrs|y\.?o)|\b(over|under)\s*\d{2}\b/;
 
-/** Open to everyone: no women-only flag, not a women's community, no age or group limit in the listing. */
+/** Open to everyone: no women-only flag, not a women's community, no age or group limit anywhere in the listing. */
 export const isOpenToAll = (e: Event) =>
-  !e.womenOnly && e.source !== 'expat-girls-porto' && !RESTRICTED.test(textOf(e));
+  !e.womenOnly && e.source !== 'expat-girls-porto' && !RESTRICTED.test(fullTextOf(e));
 
-/** A good first event: a coffee meetup, coworking or anything labelled chill, open to everyone. */
-export const isFirstEventFriendly = (e: Event) =>
-  isOpenToAll(e) && (e.vibe === 'chill' || EASY_FORMAT.test(textOf(e)));
+/**
+ * A good first event: a general, low-key format (coffee meetup, meditation,
+ * walk, picnic, breakfast) that isn't tied to a specific interest, isn't
+ * lively, and is open to everyone.
+ */
+export const isFirstEventFriendly = (e: Event) => {
+  // Your pick in Curate wins, as long as the event isn't flagged women only.
+  if (e.goodFirstEvent) return !e.womenOnly;
+  const format = formatTextOf(e);
+  return (
+    isOpenToAll(e) &&
+    e.vibe !== 'lively' &&
+    GENERAL_FORMAT.test(format) &&
+    !SPECIFIC_FORMAT.test(format)
+  );
+};
 
 /**
  * The easiest event to start with, in the next two weeks, not already joined and
- * with room left. Only coffee meetups, coworking or chill events open to everyone
- * qualify. Coffee and coworking first, then the member's interests, small groups,
- * then the soonest. Returns null rather than suggest anything else.
+ * with room left. Only events marked "Good first event" in Curate or general,
+ * low-key events open to everyone qualify (see isFirstEventFriendly). Curate's
+ * picks first, then chill, small groups, events that repeat and the soonest. Returns null rather than suggest anything else.
  */
 export const pickFirstEvent = (
   events: Event[],
-  interests: string[],
+  _interests: string[],
   isAttending: (id: string) => boolean,
   now = Date.now(),
 ): Event | null => {
@@ -46,9 +72,8 @@ export const pickFirstEvent = (
   if (!pool.length) return null;
 
   const score = (e: Event) =>
-    (EASY_FORMAT.test(textOf(e)) ? 10 : 0) +
-    (e.vibe === 'chill' ? 2 : 0) +
-    (interests.length && matchesInterests(e, interests) ? 2 : 0) +
+    (e.goodFirstEvent ? 20 : 0) +
+    (e.vibe === 'chill' ? 4 : 0) +
     (e.groupSize === 'small' ? 2 : e.groupSize === 'medium' ? 1 : 0) +
     (e.recurrence && e.recurrence !== 'one-off' ? 1 : 0);
 

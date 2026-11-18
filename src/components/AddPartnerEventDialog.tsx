@@ -51,6 +51,7 @@ interface Draft {
   organizer_bio?: string | null;
   lgbtq_friendly?: boolean;
   pet_friendly?: boolean;
+  good_first_event?: boolean;
   registration_url: string | null;
   image_url?: string | null;
   warnings: string[];
@@ -167,6 +168,7 @@ const AddPartnerEventDialog = ({ onAdded }: Props) => {
       women_only: draft.women_only,
       lgbtq_friendly: !!draft.lgbtq_friendly,
       pet_friendly: !!draft.pet_friendly,
+      ...(draft.good_first_event ? { good_first_event: true } : {}),
       tags: [...(isPartner ? ['sync-partner'] : []), ...(featured ? ['featured'] : [])],
       classified: true,
       review_status: status,
@@ -402,6 +404,7 @@ const AddPartnerEventDialog = ({ onAdded }: Props) => {
                   women_only: draft.women_only,
                   lgbtq_friendly: !!draft.lgbtq_friendly,
                   pet_friendly: !!draft.pet_friendly,
+                  good_first_event: !!draft.good_first_event,
                 }}
                 onChange={(flags) => setDraft((d) => (d ? { ...d, ...flags } : d))}
               />

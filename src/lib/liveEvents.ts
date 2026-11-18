@@ -35,6 +35,7 @@ export interface EventRow {
   women_only: boolean | null;
   lgbtq_friendly: boolean | null;
   pet_friendly: boolean | null;
+  good_first_event?: boolean | null;
   updated_at: string;
 }
 
@@ -118,6 +119,7 @@ export function rowToEvent(row: EventRow): Event {
     womenOnly: row.women_only ?? false,
     lgbtqFriendly: row.lgbtq_friendly ?? false,
     petFriendly: row.pet_friendly ?? false,
+    goodFirstEvent: row.good_first_event ?? false,
     trending: attendees > 40,
     sourceUrl: row.source_url,
     registerUrl: row.register_url || undefined,

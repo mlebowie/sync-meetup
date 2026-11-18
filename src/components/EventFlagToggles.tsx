@@ -4,12 +4,15 @@ export interface EventFlags {
   women_only: boolean;
   lgbtq_friendly: boolean;
   pet_friendly: boolean;
+  /** Optional: only Curate sets it. */
+  good_first_event?: boolean;
 }
 
 const FLAGS: { key: keyof EventFlags; label: string }[] = [
   { key: 'women_only', label: 'Women only' },
   { key: 'lgbtq_friendly', label: 'LGBTQ+ friendly' },
   { key: 'pet_friendly', label: 'Pet friendly' },
+  { key: 'good_first_event', label: 'Good first event (open to all)' },
 ];
 
 interface Props {
@@ -17,11 +20,11 @@ interface Props {
   onChange: (next: EventFlags) => void;
 }
 
-/** The three audience filters people can use in the feed; tap to switch on or off. */
+/** Audience flags, plus Curate's "Good first event" pick; tap to switch on or off. */
 const EventFlagToggles = ({ value, onChange }: Props) => (
   <div className="flex flex-wrap gap-2" role="group" aria-label="Event filters">
     {FLAGS.map(({ key, label }) => {
-      const on = value[key];
+      const on = !!value[key];
       return (
         <button
           key={key}
