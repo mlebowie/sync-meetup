@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -22,11 +22,15 @@ import RepeatFields, { type RepeatValue } from '@/components/RepeatFields';
 import { EVENT_CATEGORIES } from '@/lib/categories';
 import { AlertTriangle, Loader2, Plus, Sparkles } from 'lucide-react';
 
-/** Partners whose events are pasted in by hand. Add new partners here. */
-const PARTNERS: { value: string; label: string; source: 'expat-girls-porto' | 'partner' }[] = [
-  { value: 'expat-girls-porto', label: 'Expat Girls Porto', source: 'expat-girls-porto' },
-  { value: 'workin-matosinhos', label: 'SYNC × Workin Matosinhos', source: 'partner' },
-  { value: 'other', label: 'Other partner…', source: 'partner' },
+/**
+ * Organisers whose events are pasted in by hand. SYNC partners come first and
+ * get the SYNC Partner badge by default; "Another organiser" does not, unless
+ * the curator switches it on. Add new partners here.
+ */
+const PARTNERS: { value: string; label: string; source: 'expat-girls-porto' | 'partner'; partner: boolean }[] = [
+  { value: 'expat-girls-porto', label: 'Expat Girls Porto', source: 'expat-girls-porto', partner: true },
+  { value: 'workin-matosinhos', label: 'SYNC × Workin Matosinhos', source: 'partner', partner: true },
+  { value: 'other', label: 'Another organiser…', source: 'partner', partner: false },
 ];
 
 const CATEGORIES = EVENT_CATEGORIES;
@@ -74,6 +78,9 @@ const AddPartnerEventDialog = ({ onAdded }: Props) => {
   const isOther = chosen.value === 'other';
   const organizer = isOther ? partnerName.trim() : chosen.label;
   const [featured, setFeatured] = useState(false);
+  // Only SYNC partners get the SYNC Partner badge; set from the organiser chosen.
+  const [isPartner, setIsPartner] = useState(chosen.partner);
+  useEffect(() => setIsPartner(chosen.partner), [chosen.partner]);
   const [imageUrl, setImageUrl] = useState('');
 
   const reset = () => {
@@ -127,7 +134,7 @@ const AddPartnerEventDialog = ({ onAdded }: Props) => {
       return;
     }
     if (isOther && !organizer) {
-      toast({ title: 'Name the partner', description: 'It is shown as the organiser on the event.' });
+      toast({ title: 'Name the organiser', description: 'It is shown as the organiser on the event.' });
       return;
     }
 
@@ -160,7 +167,7 @@ const AddPartnerEventDialog = ({ onAdded }: Props) => {
       women_only: draft.women_only,
       lgbtq_friendly: !!draft.lgbtq_friendly,
       pet_friendly: !!draft.pet_friendly,
-      tags: featured ? ['sync-partner', 'featured'] : ['sync-partner'],
+      tags: [...(isPartner ? ['sync-partner'] : []), ...(featured ? ['featured'] : [])],
       classified: true,
       review_status: status,
       reviewed_at: status === 'approved' ? new Date().toISOString() : null,
@@ -202,14 +209,14 @@ const AddPartnerEventDialog = ({ onAdded }: Props) => {
     >
       <DialogTrigger asChild>
         <Button size="sm" variant="outline">
-          <Plus className="h-4 w-4 mr-1" /> Add partner event
+          <Plus className="h-4 w-4 mr-1" /> Add event
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add a partner event</DialogTitle>
+          <DialogTitle>Add an event</DialogTitle>
           <DialogDescription>
-            Paste the details as the partner shared them. SYNC drafts the listing; you check it before it goes in.
+            Paste the details as the organiser shared them. SYNC drafts the listing; you check it before it goes in.
           </DialogDescription>
         </DialogHeader>
 
@@ -217,7 +224,7 @@ const AddPartnerEventDialog = ({ onAdded }: Props) => {
           <div className="space-y-4">
             <div className="grid sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label>Partner</Label>
+                <Label>Organiser</Label>
                 <Select value={partner} onValueChange={setPartner}>
                   <SelectTrigger>
                     <SelectValue />
@@ -233,7 +240,7 @@ const AddPartnerEventDialog = ({ onAdded }: Props) => {
               </div>
               {isOther && (
                 <div className="space-y-1.5">
-                  <Label htmlFor="partner-name">Partner name</Label>
+                  <Label htmlFor="partner-name">Organiser name</Label>
                   <Input
                     id="partner-name"
                     value={partnerName}
@@ -371,6 +378,15 @@ const AddPartnerEventDialog = ({ onAdded }: Props) => {
                 onChange={(e) => setImageUrl(e.target.value)}
                 placeholder="Found from the link automatically, or paste an image address"
               />
+            </div>
+            <div className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
+              <div>
+                <Label htmlFor="sync-partner">SYNC partner</Label>
+                <p className="text-xs text-muted-foreground">
+                  Shows the SYNC Partner badge. Leave off for organisers who are not partners.
+                </p>
+              </div>
+              <Switch id="sync-partner" checked={isPartner} onCheckedChange={setIsPartner} />
             </div>
             <div className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
               <div>
