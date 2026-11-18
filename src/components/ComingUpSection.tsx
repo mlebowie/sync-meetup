@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import syncLogo from '@/assets/sync-logo.png';
-import { Calendar, MapPin, Clock, Bell, Mail, MessageSquare, X, Check, Eye, Send, CalendarPlus, Share2, Apple, MessageCircle, Link2, Users } from 'lucide-react';
+import { Calendar, MapPin, Clock, Bell, Mail, MessageSquare, X, Check, Eye, Send, CalendarPlus, Share2, Apple, MessageCircle, Link2, Users, UserPlus } from 'lucide-react';
 import { format } from 'date-fns';
 import { Event } from '@/types/event';
 import { Switch } from '@/components/ui/switch';
@@ -12,6 +12,8 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import EventDetailsModal from '@/components/EventDetailsModal';
 import EventGroupChatDialog from '@/components/EventGroupChatDialog';
+import InviteFriendsDialog from '@/components/InviteFriendsDialog';
+import InvitedSummary from '@/components/InvitedSummary';
 import { googleCalendarUrl, downloadIcs, shareStrings } from '@/lib/eventCalendar';
 
 interface Props {
@@ -73,6 +75,7 @@ const ComingUpCard = ({ event, prefs, onUpdate, onRemove }: CardProps) => {
   const [submitted, setSubmitted] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
   const { toast } = useToast();
   const share = shareStrings(event);
 
@@ -159,6 +162,20 @@ const ComingUpCard = ({ event, prefs, onUpdate, onRemove }: CardProps) => {
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Invite friends */}
+        <div className="mt-3 pt-3 border-t flex items-center gap-3">
+          <InvitedSummary event={event} emptyText="No one invited yet" className="flex-1" />
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-9 shrink-0 border-2 border-primary text-primary bg-primary/5 hover:bg-primary/10 hover:text-primary"
+            onClick={() => setInviteOpen(true)}
+          >
+            <UserPlus className="h-3.5 w-3.5 mr-1.5" />
+            Invite
+          </Button>
         </div>
 
         {/* Add to calendar / Share */}
@@ -290,6 +307,7 @@ const ComingUpCard = ({ event, prefs, onUpdate, onRemove }: CardProps) => {
         onOpenGroupChat={() => { setDetailsOpen(false); setChatOpen(true); }}
       />
       <EventGroupChatDialog event={event} open={chatOpen} onOpenChange={setChatOpen} />
+      <InviteFriendsDialog event={event} open={inviteOpen} onOpenChange={setInviteOpen} />
     </>
   );
 };

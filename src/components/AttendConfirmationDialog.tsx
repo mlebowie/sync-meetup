@@ -5,11 +5,14 @@ import { Event } from '@/types/event';
 import { Calendar, Apple, Share2, Mail, MessageCircle, Instagram, Link2, Check } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+import InviteFriendsPicker from './InviteFriendsPicker';
 
 interface Props {
   event: Event | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Called when the person starts picking friends to invite, so the card can hold off the auto-opening chat. */
+  onEngage?: () => void;
 }
 
 function parseEventDates(event: Event): { start: Date; end: Date } {
@@ -51,7 +54,7 @@ function buildIcs(event: Event, start: Date, end: Date) {
   ].join('\r\n');
 }
 
-const AttendConfirmationDialog = ({ event, open, onOpenChange }: Props) => {
+const AttendConfirmationDialog = ({ event, open, onOpenChange, onEngage }: Props) => {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
   if (!event) return null;
@@ -81,7 +84,7 @@ const AttendConfirmationDialog = ({ event, open, onOpenChange }: Props) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Check className="h-5 w-5 text-primary" />
@@ -96,6 +99,12 @@ const AttendConfirmationDialog = ({ event, open, onOpenChange }: Props) => {
         </DialogHeader>
 
         <div className="space-y-4">
+          <section aria-labelledby={`bring-${event.id}`}>
+            <h3 id={`bring-${event.id}`} className="text-base font-bold">Bring someone along?</h3>
+            <p className="text-sm text-muted-foreground mb-3">People you've met at SYNC events. They'll get an invite from you.</p>
+            <InviteFriendsPicker event={event} onEngage={onEngage} listClassName="max-h-56" />
+          </section>
+
           <div>
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Add to calendar</p>
             <div className="grid grid-cols-2 gap-2">

@@ -53,6 +53,13 @@
 - [x] Group interest choices by category and require 3–5 selections
 - [x] Use social style to rank matching event formats before showing the personalized feed
 
+## Invite a friend (Nov 2026)
+- [x] "Bring someone along?" in the pop-up after Attend: pick mutual connections, most events together first; people already going are shown but can't be picked
+- [x] "Invite friends" / "Invite more" on event cards once you're going, with who you invited
+- [x] Invite row under each event in Coming Up on the calendar page
+- [x] Bottom sheet on phones, dialog on desktop; "Copy event link" for friends not on SYNC; Undo in the sent toast
+- [ ] Deliver invites to the invited person (needs connections and attending in Supabase, below): `event_invites` table, a notification with Attend / Not this time, and accepted / pending status on the card
+
 ## ⚠️ Before inviting real users: move user data from the device to Supabase
 Today only events live in Supabase. Profiles, attending, wishlist, ratings, event photos and connections are saved in each person's browser, so users can't see each other and lose everything if they switch device or clear the browser.
 - [ ] Profiles table in Supabase (name, photo, interests, social style) with privacy rules for who sees what (e.g. date of birth)
