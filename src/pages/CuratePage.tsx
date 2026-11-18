@@ -150,9 +150,18 @@ const CuratePage = () => {
     [rows],
   );
   const visible = useMemo(
-    () => (sourceFilter === 'all' ? rows : rows.filter((r) => r.source === sourceFilter)),
+    () =>
+      sourceFilter === 'all'
+        ? rows
+        : sourceFilter === '__partners'
+          ? rows.filter((r) => (r.tags ?? []).includes('sync-partner'))
+          : sourceFilter === '__featured'
+            ? rows.filter((r) => (r.tags ?? []).includes('featured'))
+            : rows.filter((r) => r.source === sourceFilter),
     [rows, sourceFilter],
   );
+  const partnerCount = useMemo(() => rows.filter((r) => (r.tags ?? []).includes('sync-partner')).length, [rows]);
+  const featuredCount = useMemo(() => rows.filter((r) => (r.tags ?? []).includes('featured')).length, [rows]);
 
   const setStatus = async (ids: string[], status: ReviewStatus) => {
     setBusy(ids.length === 1 ? ids[0] : 'bulk');
@@ -476,6 +485,8 @@ const CuratePage = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All sources</SelectItem>
+                  <SelectItem value="__partners">SYNC partners ({partnerCount})</SelectItem>
+                  <SelectItem value="__featured">Featured ({featuredCount})</SelectItem>
                   {sources.map((s) => (
                     <SelectItem key={s} value={s}>
                       {SOURCE_LABELS[s] ?? s}
