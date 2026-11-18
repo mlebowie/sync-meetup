@@ -136,3 +136,21 @@ in `supabase/functions/scrape-events/index.ts`.
 - The collector treats a new listing as the same event as one already in SYNC when it is on the same Porto day,
   starts within an hour and the titles match (one extends the other, or 80% shared words). It records the page
   in that card's `also_on` ("Also on Meetup · Eventbrite") instead of adding a second card.
+
+## 15. Reusing published descriptions
+
+Every event published from /curate (or by the SYNC Curator) saves its wording in `event_templates`, one row per organiser and title. Templates outlive the events, which are removed two days after they happen.
+
+- When the collector queues a new date from the same organiser with the same series or a matching title, it uses the published description, category, host bio and filters, and flags the card "Description copied from the published …; check the details".
+- When the organiser has published events but none with a matching title (Dinnersmate's Wednesday and Friday dinners, say), the card is flagged "… has published events", and the Edit form lists the organiser's published descriptions with a **Use this** button.
+
+To see an organiser's templates in the SQL editor:
+
+```sql
+select title, last_starts_at, description from event_templates
+where organizer_key = match_key('Dinnersmate Porto') order by updated_at desc;
+```
+
+## 16. Fisga agenda (weekly)
+
+`fisga` is a source read straight from https://www.fisga.space/en/agenda (no Firecrawl or AI): every upcoming event page with "In English" goes to Waiting with its description, photo and date. Fisga lists no start times, so each card is flagged "Start time not listed on Fisga's page; add it" and starts at 19:00 until edited. It runs Mondays at 06:10 UTC (`sync-collect-fisga`); to run it now: `select public.run_event_collector('fisga');`

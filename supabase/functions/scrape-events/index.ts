@@ -15,12 +15,13 @@ const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const MAX_EVENTS_PER_PAGE = 30;
 const MAX_PAGES_PER_SOURCE = 2;
 /** Per-source page budget; Lu.ma needs more pages because each calendar is small. */
-const MAX_PAGES: Record<'eventbrite' | 'meetup' | 'luma' | 'agenda-porto' | 'porto-coffee-week', number> = {
+const MAX_PAGES: Record<SourceId, number> = {
   eventbrite: 5,
   meetup: 6,
   luma: 8,
   'agenda-porto': 9,
   'porto-coffee-week': 3,
+  fisga: 1,
 };
 const MAX_CLASSIFY_PER_RUN = 40;
 /** A run can never outlive the edge time limit (150s), so a short lease is enough. */
@@ -36,9 +37,12 @@ const STOP_VERIFY_MS = 80_000; // per-event date checks are skipped after this
 const STOP_EVENTS_MS = 125_000; // no further events are saved after this (saving is quick)
 const STOP_LABELS_MS = 105_000; // AI labelling only starts before this
 
-type SourceId = 'eventbrite' | 'meetup' | 'luma' | 'agenda-porto' | 'porto-coffee-week';
+type SourceId = 'eventbrite' | 'meetup' | 'luma' | 'agenda-porto' | 'porto-coffee-week' | 'fisga';
 
 const SOURCE_PAGES: Record<SourceId, string[]> = {
+  // Fisga's community agenda (Warehouse, Rua de Santos Pousada). Read directly,
+  // without Firecrawl or AI, once a week.
+  fisga: ['https://www.fisga.space/en/agenda'],
   eventbrite: [
     'https://www.eventbrite.com/d/portugal--porto/all-events/',
     'https://www.eventbrite.com/d/portugal--porto/events/?page=2',
@@ -239,6 +243,93 @@ interface RawEvent {
   event_language?: string;
   english_eligible?: boolean;
   language_evidence?: string;
+  /** Shown to the curator as a review note (for example a missing start time). */
+  review_hint?: string;
+}
+
+const decodeHtml = (s: string) =>
+  s
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>\s*/gi, '\n\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&#x27;|&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+
+/**
+ * Fisga's agenda is a plain Webflow page: the listing links to each event, and
+ * each event page carries its date (data-event-date), title, description, photo
+ * and tags such as "In English". It lists no start times, so every Fisga event
+ * goes to Waiting with a note to add the time.
+ */
+export function parseFisgaEvent(html: string, url: string): RawEvent | null {
+  const attr = (name: string) => new RegExp(`${name}="([^"]*)"`).exec(html)?.[1];
+  const title = attr('data-event-name');
+  const date = attr('data-event-date');
+  if (!title || !date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
+  const body = /class="event-details__description w-richtext">([\s\S]*?)<\/div>/.exec(html)?.[1] ?? '';
+  const perks = [...html.matchAll(/event-details__perks-item-name">([^<]+)</g)].map((m) => decodeHtml(m[1]));
+  // Fisga's own label (Cinema, Foodie Event, Lifestyle), kept in a hidden pill.
+  const label = /class="pill hide">([^<]+)</.exec(html)?.[1];
+  const petFriendly = perks.some((p) => /pet friendly/i.test(p));
+  const description = decodeHtml(body).replace(/%3C[\s\S]*$/, '').trim();
+  const signUp = /href="(https:\/\/[^"]*typeform\.com[^"]*)"/.exec(html)?.[1];
+  const english = perks.some((p) => /in english/i.test(p));
+  return {
+    title: decodeHtml(title),
+    source_title: decodeHtml(title),
+    description: signUp ? `${description}\n\nSign-up is required, using the form on Fisga's event page.` : description,
+    source_description: description,
+    url,
+    iso_date: date,
+    date_text: date,
+    venue: `Fisga ${decodeHtml(attr('data-event-local') ?? 'Warehouse')}`,
+    address: 'Rua de Santos Pousada 826, Porto',
+    city: 'Porto',
+    image_url: /<meta content="([^"]+)" property="og:image"/.exec(html)?.[1] ??
+      /<meta property="og:image" content="([^"]+)"/.exec(html)?.[1],
+    organizer: 'Fisga',
+    // The keyword rules read this too, so "pet friendly" sets the filter.
+    category: `${label ? decodeHtml(label) : ''}${petFriendly ? ' · pet friendly' : ''}`.trim(),
+    is_online: false,
+    english_eligible: english,
+    event_language: english ? 'English' : perks.filter((p) => /^in /i.test(p)).join(', '),
+    language_evidence: perks.filter((p) => /^in /i.test(p)).join(', '),
+    review_hint: "Start time not listed on Fisga's page; add it",
+  };
+}
+
+async function fisgaListing(page: string): Promise<RawEvent[]> {
+  const get = async (url: string) => {
+    const res = await fetch(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!res.ok) throw new Error(`Fisga returned ${res.status} for ${url}`);
+    return res.text();
+  };
+  const listing = await get(page);
+  const links = [
+    ...new Set([...listing.matchAll(/href="(\/en\/agenda\/[a-z0-9-]+)"/g)].map((m) => `https://www.fisga.space${m[1]}`)),
+  ].slice(0, 12);
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Lisbon' });
+  const events = await Promise.all(
+    links.map(async (url) => {
+      try {
+        return parseFisgaEvent(await get(url), url);
+      } catch (e) {
+        console.error(`Fisga event ${url}: ${(e as Error).message}`);
+        return null;
+      }
+    }),
+  );
+  // The listing also shows past events (its archive); keep today onwards.
+  return events.filter((e): e is RawEvent => !!e && e.iso_date! >= today);
 }
 
 class Denied extends Error {
@@ -513,6 +604,52 @@ export function similarTitles(a: Set<string>, b: Set<string>): boolean {
   if (onlyA === 0 && onlyB === 0) return true;
   if (onlyA === 0 || onlyB === 0) return shared >= 2;
   return shared / (shared + onlyA + onlyB) >= 0.8;
+}
+
+/** Same normalisation as the database's match_key(): lower case, letters and digits. */
+export function matchKey(text: string | null | undefined): string {
+  return (text ?? '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+export interface EventTemplate {
+  organizer_key: string;
+  title_key: string;
+  title: string;
+  series_key: string | null;
+  description: string;
+  category: string | null;
+  organizer_bio: string | null;
+  image_url: string | null;
+  women_only: boolean;
+  lgbtq_friendly: boolean;
+  pet_friendly: boolean;
+  updated_at: string;
+}
+
+/**
+ * The published wording to start a waiting event from: the same organiser's
+ * template for the same series or a matching title ("title"), or, when the
+ * organiser has published other events only, a pointer to them ("organiser").
+ */
+export function findTemplate(
+  templates: EventTemplate[],
+  organizer: string | null | undefined,
+  title: string,
+  seriesKey: string | null,
+): { kind: 'title'; template: EventTemplate } | { kind: 'organiser'; count: number } | null {
+  const org = matchKey(organizer);
+  if (!org) return null;
+  const mine = templates
+    .filter((t) => t.organizer_key === org)
+    .sort((a, b) => b.updated_at.localeCompare(a.updated_at));
+  if (!mine.length) return null;
+  const key = matchKey(title);
+  const tokens = titleTokens(title);
+  const same =
+    mine.find((t) => t.title_key === key) ??
+    mine.find((t) => seriesKey && t.series_key === seriesKey) ??
+    mine.find((t) => similarTitles(titleTokens(t.title), tokens));
+  return same ? { kind: 'title', template: same } : { kind: 'organiser', count: mine.length };
 }
 
 const WEEKDAY_WORDS: [RegExp, number][] = [
@@ -897,12 +1034,13 @@ Deno.serve(async (req) => {
   } catch {
     // no body — full run
   }
-  const allSources: SourceId[] = ['eventbrite', 'meetup', 'luma', 'agenda-porto', 'porto-coffee-week'];
+  const allSources: SourceId[] = ['eventbrite', 'meetup', 'luma', 'agenda-porto', 'porto-coffee-week', 'fisga'];
+  // Fisga runs only when asked for by name (its weekly schedule).
   const sourceIds: SourceId[] = paused
     ? ['eventbrite']
     : requested.length
       ? allSources.filter((s) => requested.includes(s))
-      : allSources;
+      : allSources.filter((s) => s !== 'fisga');
 
   RUN_STARTED.at = Date.now();
 
@@ -925,6 +1063,14 @@ Deno.serve(async (req) => {
     .from('events')
     .select('id,source,source_event_id,source_url,review_status,reviewed_at,title,starts_at')
     .gte('starts_at', new Date().toISOString());
+  // Wording of every event a curator published, so a new date of the same
+  // series starts from what was published instead of the platform's text.
+  const { data: templateRows } = await supabase
+    .from('event_templates')
+    .select(
+      'organizer_key,title_key,title,series_key,description,category,organizer_bio,image_url,women_only,lgbtq_friendly,pet_friendly,updated_at',
+    );
+  const templates = (templateRows ?? []) as EventTemplate[];
   // Every stored and newly saved event, for spotting the same event on another
   // platform (Luma, Meetup and Eventbrite often list the same run club).
   const sameEventIndex: { id?: string; key: string; day: string; at: number; tokens: Set<string>; hidden: boolean }[] =
@@ -1002,7 +1148,12 @@ Deno.serve(async (req) => {
         if (pausedReason || elapsed() > STOP_NEW_PAGES_MS) break;
         let raws: RawEvent[];
         try {
-          raws = paused ? (await scrapeListing(page)).slice(0, 5) : await scrapeListing(page);
+          raws =
+            source === 'fisga'
+              ? await fisgaListing(page)
+              : paused
+                ? (await scrapeListing(page)).slice(0, 5)
+                : await scrapeListing(page);
         } catch (e) {
           // Credit or permission problems stop the run; a single slow or broken
           // page is only noted, and the next page is tried.
@@ -1095,12 +1246,23 @@ Deno.serve(async (req) => {
           }
 
           const { recurrence, series_key } = recurrenceOf(raw);
+          const derived = { ...keywordDerive(raw), ...agendaFlags(raw, source) } as Record<string, unknown>;
+          // Start from the wording published for this organiser's earlier dates.
+          const match = findTemplate(templates, raw.organizer, raw.title, series_key);
+          const t = match?.kind === 'title' ? match.template : null;
+          const templateNote =
+            match?.kind === 'title'
+              ? `Description copied from the published "${match.template.title}"; check the details`
+              : match?.kind === 'organiser'
+                ? `${raw.organizer?.trim()} has published events; Edit → Published descriptions to reuse one`
+                : null;
+          const reviewNote = [dateNote, raw.review_hint, templateNote].filter(Boolean).join(' · ') || null;
           const row = {
             source,
             source_event_id: id,
             source_url: raw.url!,
             title: raw.title.trim().slice(0, 300),
-            description: (raw.description ?? '').slice(0, 4000) || null,
+            description: t?.description ?? ((raw.description ?? '').slice(0, 4000) || null),
             starts_at: starts.toISOString(),
             time_label: confirmed
               ? portoTimeLabel(confirmed)
@@ -1108,9 +1270,10 @@ Deno.serve(async (req) => {
 
             venue_name: raw.venue?.trim()?.slice(0, 200) || null,
             location: portoLocation(raw),
-            image_url: raw.image_url?.startsWith('http') ? raw.image_url : null,
+            image_url: raw.image_url?.startsWith('http') ? raw.image_url : (t?.image_url ?? null),
             organizer_name: raw.organizer?.trim()?.slice(0, 200) || null,
-            category: canonicalCategory(raw, source),
+            ...(t?.organizer_bio ? { organizer_bio: t.organizer_bio } : {}),
+            category: t?.category ?? canonicalCategory(raw, source),
             price_label: raw.price?.trim()?.slice(0, 60) || agendaPrice(raw, source),
             attendee_count:
               typeof raw.attendees === 'number' && raw.attendees > 0 ? Math.round(raw.attendees) : null,
@@ -1120,9 +1283,15 @@ Deno.serve(async (req) => {
                 : null,
             // A known event keeps its repeat settings (the curator may have set them).
             ...(known.has(`${source}:${id}`) ? {} : { recurrence, series_key }),
-            ...(dateNote ? { review_note: dateNote } : {}),
-            ...keywordDerive(raw),
-            ...agendaFlags(raw, source),
+            ...(reviewNote ? { review_note: reviewNote } : {}),
+            ...derived,
+            ...(t
+              ? {
+                  women_only: !!derived.women_only || t.women_only,
+                  lgbtq_friendly: !!derived.lgbtq_friendly || t.lgbtq_friendly,
+                  pet_friendly: !!derived.pet_friendly || t.pet_friendly,
+                }
+              : {}),
             last_seen_at: new Date().toISOString(),
           };
 

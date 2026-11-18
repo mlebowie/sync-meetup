@@ -14,6 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
+      event_templates: {
+        Row: {
+          id: string
+          organizer_key: string
+          title_key: string
+          organizer_name: string | null
+          title: string
+          series_key: string | null
+          description: string
+          category: string | null
+          organizer_bio: string | null
+          image_url: string | null
+          price_label: string | null
+          women_only: boolean
+          lgbtq_friendly: boolean
+          pet_friendly: boolean
+          last_event_id: string | null
+          last_starts_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          organizer_key: string
+          title_key: string
+          organizer_name?: string | null
+          title: string
+          series_key?: string | null
+          description: string
+          category?: string | null
+          organizer_bio?: string | null
+          image_url?: string | null
+          price_label?: string | null
+          women_only?: boolean
+          lgbtq_friendly?: boolean
+          pet_friendly?: boolean
+          last_event_id?: string | null
+          last_starts_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          organizer_key?: string
+          title_key?: string
+          organizer_name?: string | null
+          title?: string
+          series_key?: string | null
+          description?: string
+          category?: string | null
+          organizer_bio?: string | null
+          image_url?: string | null
+          price_label?: string | null
+          women_only?: boolean
+          lgbtq_friendly?: boolean
+          pet_friendly?: boolean
+          last_event_id?: string | null
+          last_starts_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       event_scrape_runs: {
         Row: {
           created_at: string
@@ -295,6 +355,10 @@ export type Database = {
       extend_event_series: {
         Args: { _horizon_days?: number; _series_key?: string }
         Returns: number
+      }
+      match_key: {
+        Args: { _text: string }
+        Returns: string
       }
       has_role: {
         Args: {
