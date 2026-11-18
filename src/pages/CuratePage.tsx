@@ -105,6 +105,7 @@ const CuratePage = () => {
   // Edit every upcoming date of a series, not just this one.
   const [applyAll, setApplyAll] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
+  const [draftPhotoBusy, setDraftPhotoBusy] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -174,32 +175,40 @@ const CuratePage = () => {
     toast({ title: on ? 'Featured on SYNC' : 'No longer featured' });
   };
 
-  const uploadPhoto = async (row: Row, file: File) => {
+  // Puts a photo in the event-images bucket and returns its public link, or null after a toast.
+  const storePhoto = async (eventId: string, file: File): Promise<string | null> => {
     if (!file.type.startsWith('image/')) {
       toast({ title: 'Choose an image file', description: 'JPG, PNG, WebP or GIF.' });
-      return;
+      return null;
     }
     if (file.size > 5 * 1024 * 1024) {
       toast({ title: 'That photo is over 5 MB', description: 'Try a smaller or compressed version.' });
-      return;
+      return null;
     }
-    setBusy(row.id);
     const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
-    const path = `${row.id}/${Date.now()}.${ext}`;
+    const path = `${eventId}/${Date.now()}.${ext}`;
     const { error: uploadError } = await supabase.storage
       .from('event-images')
       .upload(path, file, { contentType: file.type, upsert: true });
     if (uploadError) {
-      setBusy(null);
       toast({
         title: 'Could not upload the photo',
         description: /bucket/i.test(uploadError.message)
           ? 'The photo storage is not set up yet. Run the event images migration in Supabase first.'
           : uploadError.message,
       });
+      return null;
+    }
+    return supabase.storage.from('event-images').getPublicUrl(path).data.publicUrl;
+  };
+
+  const uploadPhoto = async (row: Row, file: File) => {
+    setBusy(row.id);
+    const imageUrl = await storePhoto(row.id, file);
+    if (!imageUrl) {
+      setBusy(null);
       return;
     }
-    const imageUrl = supabase.storage.from('event-images').getPublicUrl(path).data.publicUrl;
     const { error } = await supabase.from('events').update({ image_url: imageUrl }).eq('id', row.id);
     setBusy(null);
     if (error) {
@@ -559,12 +568,55 @@ const CuratePage = () => {
                             }
                             placeholder="Description"
                           />
-                          <Input
-                            type="url"
-                            value={draft.image_url ?? ''}
-                            onChange={(e) => setDraft((d) => ({ ...d, image_url: e.target.value }))}
-                            placeholder="Cover image link (https://…)"
-                          />
+                          <div className="flex items-center gap-2">
+                            {draft.image_url?.trim() && (
+                              <img
+                                src={draft.image_url.trim()}
+                                alt=""
+                                className="h-10 w-14 shrink-0 rounded object-cover"
+                              />
+                            )}
+                            <Input
+                              type="url"
+                              value={draft.image_url ?? ''}
+                              onChange={(e) => setDraft((d) => ({ ...d, image_url: e.target.value }))}
+                              placeholder="Cover image link (https://…) or upload"
+                            />
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              asChild
+                              disabled={draftPhotoBusy}
+                            >
+                              <label className="cursor-pointer shrink-0">
+                                {draftPhotoBusy ? (
+                                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                                ) : (
+                                  <ImagePlus className="h-4 w-4 mr-1" />
+                                )}
+                                Upload
+                                <input
+                                  type="file"
+                                  accept="image/jpeg,image/png,image/webp,image/gif"
+                                  className="sr-only"
+                                  disabled={draftPhotoBusy}
+                                  onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    e.target.value = '';
+                                    if (!file) return;
+                                    setDraftPhotoBusy(true);
+                                    const url = await storePhoto(row.id, file);
+                                    setDraftPhotoBusy(false);
+                                    if (url) {
+                                      setDraft((d) => ({ ...d, image_url: url }));
+                                      toast({ title: 'Photo uploaded', description: 'Press Save to keep it.' });
+                                    }
+                                  }}
+                                />
+                              </label>
+                            </Button>
+                          </div>
                           <Textarea
                             rows={3}
                             maxLength={1500}
