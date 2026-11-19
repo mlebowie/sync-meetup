@@ -13,6 +13,7 @@ import { useActivityHistory } from '@/context/ActivityHistoryContext';
 import { mockParticipants } from '@/data/mockData';
 import { useEvents } from '@/context/EventsContext';
 import { Event, PastAttendance } from '@/types/event';
+import { startTime24 } from '@/lib/startTime';
 
 /** Build a minimal Event from a past attendance so the recap dialog can run on it. */
 const toRecapEvent = (h: PastAttendance): Event => ({
@@ -178,7 +179,7 @@ const CalendarPage = () => {
                       <p className="font-medium truncate">{e.title}</p>
                       <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                         <Calendar className="h-3 w-3" />
-                        {format(e.date, 'EEE, MMM d')} · {e.time}
+                        {format(e.date, 'EEE, MMM d')} · {startTime24(e.time)}
                       </p>
                     </div>
                   </li>

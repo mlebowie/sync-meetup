@@ -1,4 +1,5 @@
 import { Event } from '@/types/event';
+import { time24 } from '@/lib/startTime';
 
 /**
  * Produces a rotating list of "upcoming" events.
@@ -40,13 +41,7 @@ function shuffle<T>(arr: T[], rand: () => number): T[] {
 }
 
 function formatTime(d: Date): string {
-  let h = d.getHours();
-  const m = d.getMinutes();
-  const suffix = h >= 12 ? 'PM' : 'AM';
-  h = h % 12;
-  if (h === 0) h = 12;
-  const mm = m.toString().padStart(2, '0');
-  return `${h}:${mm} ${suffix}`;
+  return time24(d);
 }
 
 // Preferred hour-of-day windows per event vibe, so a sunrise run stays in the

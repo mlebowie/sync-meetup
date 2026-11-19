@@ -3,6 +3,7 @@ import { Event, Participant, GroupSize, Recurrence } from '@/types/event';
 import { toVibe } from '@/lib/vibe';
 import { normalizeCategory } from '@/lib/categories';
 import { mockParticipants, mockWomenParticipantIds } from '@/data/mockData';
+import { startTime24, time24 } from '@/lib/startTime';
 
 export interface EventRow {
   id: string;
@@ -60,20 +61,9 @@ function facesFor(id: string, womenOnly = false): Participant[] {
 }
 
 function timeLabel(date: Date, raw: string | null): string {
-  if (raw && /\d/.test(raw)) {
-    const m = /^(\d{1,2}):(\d{2})$/.exec(raw.trim());
-    if (m) {
-      let h = Number(m[1]);
-      const suffix = h >= 12 ? 'PM' : 'AM';
-      h = h % 12 || 12;
-      return `${h}:${m[2]} ${suffix}`;
-    }
-    return raw;
-  }
-  let h = date.getHours();
-  const suffix = h >= 12 ? 'PM' : 'AM';
-  h = h % 12 || 12;
-  return `${h}:${date.getMinutes().toString().padStart(2, '0')} ${suffix}`;
+  // Start time only, 24-hour clock ("18:30"), even when the label is a range.
+  if (raw && /\d/.test(raw)) return startTime24(raw);
+  return time24(date);
 }
 
 export function rowToEvent(row: EventRow): Event {

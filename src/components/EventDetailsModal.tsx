@@ -13,6 +13,7 @@ import { useEventRatings } from '@/context/EventRatingContext';
 import { useToast } from '@/hooks/use-toast';
 import { vibeMeta } from '@/lib/vibe';
 import { shareEvent } from '@/lib/shareEvent';
+import { startTime24 } from '@/lib/startTime';
 
 /** "Meetup", "Eventbrite", "Lu.ma" or the site's name, for "Also on" links. */
 function platformName(url: string): string {
@@ -122,7 +123,7 @@ const EventDetailsModal = ({
             <div className="flex flex-col gap-0.5 text-sm md:text-base font-semibold leading-snug">
               <div className="flex items-center gap-5 whitespace-nowrap">
                 <span className="flex items-center gap-2"><Calendar06 className="h-4 w-4 shrink-0" />{format(event.date, 'EEE, MMM d')}</span>
-                <span className="flex items-center gap-2"><Clock01 className="h-4 w-4 shrink-0" />{event.time}</span>
+                <span className="flex items-center gap-2"><Clock01 className="h-4 w-4 shrink-0" />{startTime24(event.time)}</span>
               </div>
               <span className="flex items-center gap-2 min-w-0"><Marker02 className="h-4 w-4 shrink-0" /><span className="truncate">{event.location}</span></span>
             </div>

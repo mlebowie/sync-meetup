@@ -15,6 +15,7 @@ import EventGroupChatDialog from '@/components/EventGroupChatDialog';
 import InviteFriendsDialog from '@/components/InviteFriendsDialog';
 import InvitedSummary from '@/components/InvitedSummary';
 import { googleCalendarUrl, downloadIcs, shareStrings } from '@/lib/eventCalendar';
+import { startTime24 } from '@/lib/startTime';
 
 interface Props {
   allEvents: Event[];
@@ -135,7 +136,7 @@ const ComingUpCard = ({ event, prefs, onUpdate, onRemove }: CardProps) => {
               <Calendar className="h-3 w-3" />
               {format(event.date, 'EEE, MMM d')}
               <Clock className="h-3 w-3 ml-2" />
-              {event.time}
+              {startTime24(event.time)}
             </div>
             {event.location && (
               <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5 truncate">

@@ -5,6 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Input } from '@/components/ui/input';
 import { Search, X, CalendarDays, MapPin } from 'lucide-react';
 import { useSearch } from '@/context/SearchContext';
+import { startTime24 } from '@/lib/startTime';
 
 const HeaderSearch = () => {
   const { query, setQuery, results } = useSearch();
@@ -84,7 +85,7 @@ const select = (eventId: string) => {
                 <p className="text-xs text-muted-foreground mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5">
                   <span className="inline-flex items-center gap-1">
                     <CalendarDays className="h-3 w-3" />
-                    {e.date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} · {e.time}
+                    {e.date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} · {startTime24(e.time)}
                   </span>
                   <span className="inline-flex items-center gap-1">
                     <MapPin className="h-3 w-3" />
