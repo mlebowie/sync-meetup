@@ -24,6 +24,7 @@ import { cn } from '@/lib/utils';
 import { Calendar06, Clock01, Marker02 } from './icons/StratisIcons';
 import { useToast } from '@/hooks/use-toast';
 import { shareEvent } from '@/lib/shareEvent';
+import { startTime24 } from '@/lib/startTime';
 
 interface EventCardProps {
   event: Event;
@@ -268,7 +269,7 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
               </span>
               <span className="flex items-center gap-2">
                 <Clock01 className="h-4 w-4 shrink-0 text-primary-text" />
-                {event.time}
+                {startTime24(event.time)}
               </span>
             </div>
             <div className="flex items-center gap-2 min-w-0">

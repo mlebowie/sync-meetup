@@ -6,6 +6,7 @@ import { Event } from '@/types/event';
 import { Calendar, Apple, MessageCircle, Mail, Instagram, Link2, Check, Hourglass, Share2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+import { startTime24 } from '@/lib/startTime';
 
 interface Props {
   event: Event | null;
@@ -49,7 +50,7 @@ const WaitlistDialog = ({ event, open, onOpenChange }: Props) => {
   if (!event) return null;
   const { start, end } = parseEventDates(event);
   const shareUrl = `${window.location.origin}/?event=${event.id}`;
-  const shareText = `${event.title} on ${format(start, 'EEE, MMM d')} at ${event.time} — ${event.location}`;
+  const shareText = `${event.title} on ${format(start, 'EEE, MMM d')} at ${startTime24(event.time)} — ${event.location}`;
   const gcalUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&dates=${toGCalDate(start)}/${toGCalDate(end)}&details=${encodeURIComponent(event.description || '')}&location=${encodeURIComponent(event.location)}`;
 
   const joinWaitlist = () => {

@@ -6,6 +6,7 @@ import { Calendar, Apple, Share2, Mail, MessageCircle, Instagram, Link2, Check }
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import InviteFriendsPicker from './InviteFriendsPicker';
+import { startTime24 } from '@/lib/startTime';
 
 interface Props {
   event: Event | null;
@@ -61,7 +62,7 @@ const AttendConfirmationDialog = ({ event, open, onOpenChange, onEngage }: Props
 
   const { start, end } = parseEventDates(event);
   const shareUrl = `${window.location.origin}/?event=${event.id}`;
-  const shareText = `Join me at ${event.title} on ${format(start, 'EEE, MMM d')} at ${event.time} — ${event.location}`;
+  const shareText = `Join me at ${event.title} on ${format(start, 'EEE, MMM d')} at ${startTime24(event.time)} — ${event.location}`;
 
   const gcalUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&dates=${toGCalDate(start)}/${toGCalDate(end)}&details=${encodeURIComponent(event.description || '')}&location=${encodeURIComponent(event.location)}`;
 

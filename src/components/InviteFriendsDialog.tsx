@@ -8,6 +8,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
 import { shareStrings } from '@/lib/eventCalendar';
 import InviteFriendsPicker from './InviteFriendsPicker';
+import { startTime24 } from '@/lib/startTime';
 
 interface Props {
   event: Event | null;
@@ -22,7 +23,7 @@ const InviteFriendsDialog = ({ event, open, onOpenChange }: Props) => {
   const [copied, setCopied] = useState(false);
   if (!event) return null;
 
-  const subtitle = `${event.title} · ${format(event.date, 'EEE d MMM')}${event.time ? ` · ${event.time}` : ''}`;
+  const subtitle = `${event.title} · ${format(event.date, 'EEE d MMM')}${event.time ? ` · ${startTime24(event.time)}` : ''}`;
 
   const copyLink = async () => {
     const share = shareStrings(event);
