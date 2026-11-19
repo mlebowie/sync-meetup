@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Sparkles, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { ONBOARDING_INTERESTS } from '@/lib/userProfile';
 import { getFilterTourState, setFilterTourState, startFilterTour } from '@/lib/filterTour';
 
@@ -36,7 +36,7 @@ const FeedSetupBanner = ({ interests }: Props) => {
             <X className="h-4 w-4" />
           </button>
           <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-primary font-semibold">
-            <Sparkles className="h-3.5 w-3.5" /> Your feed is ready
+            Your feed is ready
           </div>
           <h3 className="text-lg font-semibold text-foreground mt-1">
             Your feed is set to: {labels || 'your interests'}

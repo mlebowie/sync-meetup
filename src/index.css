@@ -13,15 +13,20 @@
     --card-foreground: 20 25% 14%;
 
     /* Event card surface */
-    --event-card: 37 100% 87%;
+    --event-card: 33.9 100% 95.5%; /* cream #FFF5E8 (brand-cream) */
     --event-card-foreground: 20 30% 16%;
 
     --popover: 45 57% 98%;
     --popover-foreground: 20 25% 14%;
 
-    --primary: 10 71% 47%;
-    --primary-foreground: 45 57% 97%;
-    --primary-hover: 10 71% 39%;
+    /* Terracotta #C1694F (brand rust). Label is espresso #1F110C (4.7:1);
+       a cream/white label fails AA on this fill. Hover lightens, because
+       darkening the fill would drop the dark label below 4.5:1. */
+    --primary: 13.7 47.9% 53.3%;
+    --primary-foreground: 15.8 44.2% 8.4%;
+    --primary-hover: 14 48% 58%;
+    /* Text-safe terracotta for small text (rust-deep #974B35, 5.3:1 on cream) */
+    --primary-text: 13 48% 40%;
 
     --secondary: 42 45% 92%;
     --secondary-foreground: 20 25% 18%;
@@ -48,7 +53,7 @@
 
     --border: 40 25% 80%;
     --input: 40 25% 76%;
-    --ring: 10 71% 47%;
+    --ring: 13.7 47.9% 53.3%;
 
 
     --radius: 0.75rem;
@@ -60,7 +65,7 @@
     --gradient-hero: linear-gradient(135deg, hsl(20 30% 14%) 0%, hsl(75 22% 24%) 45%, hsl(10 71% 45%) 85%, hsl(37 80% 62%) 100%);
     --shadow-card: 0 2px 12px -4px hsl(20 30% 15% / 0.10);
     --shadow-card-hover: 0 8px 24px -8px hsl(20 30% 15% / 0.18);
-    --shadow-button: 0 2px 8px -2px hsl(10 71% 45% / 0.35);
+    --shadow-button: 0 2px 8px -2px hsl(14 48% 45% / 0.35);
 
     /* Vibe colors (AA with cream text, except social which pairs with dark text) */
     --vibe-chill: 75 27% 36%;
@@ -92,9 +97,11 @@
     --popover: 20 18% 13%;
     --popover-foreground: 45 40% 95%;
 
-    --primary: 10 71% 58%;
-    --primary-foreground: 20 25% 10%;
-    --primary-hover: 10 71% 66%;
+    --primary: 13.7 47.9% 53.3%;
+    --primary-foreground: 15.8 44.2% 8.4%;
+    --primary-hover: 14 48% 58%;
+    /* rust-soft #D49886 for small terracotta text on dark grounds */
+    --primary-text: 14 48% 68%;
 
     --secondary: 30 15% 18%;
     --secondary-foreground: 45 30% 92%;
@@ -120,7 +127,7 @@
 
     --border: 30 12% 24%;
     --input: 30 12% 24%;
-    --ring: 10 71% 58%;
+    --ring: 13.7 47.9% 53.3%;
 
     --gradient-hero: linear-gradient(135deg, hsl(20 25% 8%) 0%, hsl(75 18% 18%) 50%, hsl(10 65% 32%) 100%);
     --shadow-card: 0 4px 20px -4px hsl(0 0% 0% / 0.4);

@@ -253,7 +253,7 @@ const Onboarding = () => {
                       onClick={() => setAnswers(previous => ({ ...previous, [currentQuestion.key]: option.value }))}
                       className={cn(
                         'h-auto min-h-24 whitespace-normal rounded-lg px-5 py-4 text-left justify-start border-2',
-                        selected ? 'border-primary bg-primary text-primary-foreground hover:bg-primary-hover' : 'border-event-border bg-card hover:border-primary hover:bg-card',
+                        selected ? 'border-primary bg-primary text-primary-foreground hover:bg-primary-hover' : 'border-border bg-card hover:border-primary hover:bg-card',
                       )}
                       aria-pressed={selected}
                     >
@@ -271,13 +271,10 @@ const Onboarding = () => {
 
           {step === 3 && styleDetails && (
             <div className="animate-fade-in text-center">
-              <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-secondary text-primary">
-                <Sparkles className="h-6 w-6" aria-hidden="true" />
-              </div>
               <p className="mb-2 text-sm font-semibold uppercase text-primary">Your starting point</p>
               <h1 className="font-display text-4xl font-light text-foreground">{styleDetails.name}</h1>
               <p className="mx-auto mt-4 max-w-md text-base leading-relaxed text-muted-foreground">{styleDetails.description}</p>
-              <div className="mx-auto mt-8 max-w-md rounded-lg border border-event-border bg-event-card p-5 text-left">
+              <div className="mx-auto mt-8 max-w-md rounded-lg border border-border bg-event-card p-5 text-left">
                 <p className="font-semibold text-foreground">Not a permanent label</p>
                 <p className="mt-1 text-sm text-muted-foreground">Your recommendations will keep adapting as you attend, save, and revisit events.</p>
               </div>

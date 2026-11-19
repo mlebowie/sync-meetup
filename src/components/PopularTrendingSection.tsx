@@ -68,7 +68,7 @@ const PopularTrendingSection = ({ onAttend, onParticipantClick, onOpenGroupChat,
             <button
               type="button"
               onClick={() => setShowAll(v => !v)}
-              className="text-sm font-semibold text-primary hover:underline"
+              className="text-sm font-semibold text-primary-text hover:underline"
             >
               {showAll ? 'Show as carousel' : `See all (${visible.length})`}
             </button>

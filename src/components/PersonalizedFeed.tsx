@@ -5,7 +5,7 @@ import { getInterestKeywords, UserProfile } from '@/lib/userProfile';
 import { Event, GroupSize, Participant } from '@/types/event';
 import ExpandableEventGrid from './ExpandableEventGrid';
 import { Button } from '@/components/ui/button';
-import { Sparkles, Clock, MapPin, Users } from 'lucide-react';
+import { Clock, MapPin, Users } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 
@@ -82,7 +82,7 @@ const PersonalizedFeed = ({ profile, onAttend, onParticipantClick, onOpenGroupCh
       <div className="container px-4 md:px-6">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-primary font-semibold mb-2">
-            <Sparkles className="h-3.5 w-3.5" /> For you
+            For you
           </div>
           <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-1">
             Happening soon, picked for you

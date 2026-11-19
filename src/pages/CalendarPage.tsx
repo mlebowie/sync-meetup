@@ -91,7 +91,7 @@ const CalendarPage = () => {
 {attendedEvents.map(h => {
                 const photo = photoForAttendance(h, mockEvents);
                 return (
-                  <div key={h.eventId} className="rounded-xl border bg-card overflow-hidden hover:shadow-card-hover transition-shadow">
+                  <div key={h.eventId} className="rounded-xl border bg-event-card text-event-card-foreground overflow-hidden hover:shadow-card-hover transition-shadow">
                     {photo && (
                       <div className="h-32 w-full overflow-hidden">
                         <img src={photo} alt={h.title} className="h-full w-full object-cover" loading="lazy" />

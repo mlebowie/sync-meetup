@@ -131,7 +131,7 @@ const EventDetailsModal = ({
               </span>
             )}
             {event.partner && (
-              <span className="flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold bg-[#C1694F] text-white">
+              <span className="flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold bg-primary text-primary-foreground">
                 <BadgeCheck className="h-3 w-3" aria-hidden="true" />
                 SYNC Partner
               </span>

@@ -35,7 +35,7 @@ const FeaturedPartnerSection = ({ onAttend, onParticipantClick, onOpenGroupChat,
       <div className="container px-4 md:px-6">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-start gap-3 mb-5">
-            <div className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-[#C1694F]/15 text-[#C1694F] mt-0.5">
+            <div className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-primary/15 text-primary-text mt-0.5">
               <Star className="h-5 w-5" aria-hidden="true" />
             </div>
             <div>

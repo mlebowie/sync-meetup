@@ -2,7 +2,6 @@ import { Event, Participant } from '@/types/event';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
 import { rankEvents } from '@/lib/recommendations';
 import EventCard from './EventCard';
-import { Sparkles } from 'lucide-react';
 import { useMemo } from 'react';
 
 interface Props {
@@ -28,7 +27,6 @@ const RecommendedForYou = ({ events, onAttend, onParticipantClick, onOpenGroupCh
         <div className="flex items-baseline justify-between mb-5">
           <div>
             <h2 className="text-xl md:text-2xl font-bold text-foreground flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" />
               Picked from your pattern
             </h2>
             <p className="text-sm text-muted-foreground mt-1">

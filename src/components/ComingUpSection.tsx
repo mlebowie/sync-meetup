@@ -116,7 +116,7 @@ const ComingUpCard = ({ event, prefs, onUpdate, onRemove }: CardProps) => {
 
   return (
     <>
-      <div className="p-4 rounded-xl border bg-card hover:shadow-card-hover transition-shadow">
+      <div className="p-4 rounded-xl border bg-event-card text-event-card-foreground hover:shadow-card-hover transition-shadow">
         <div className="flex items-start gap-3">
           <img src={event.imageUrl} alt={event.title} className="h-16 w-16 rounded-lg object-cover shrink-0" />
           <div className="flex-1 min-w-0">
