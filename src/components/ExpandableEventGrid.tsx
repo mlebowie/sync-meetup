@@ -10,7 +10,6 @@ interface Props {
   onOpenGroupChat?: (e: Event) => void;
   guest?: boolean;
   /** Passed to every card: leave out the category pill. */
-  hideCategory?: boolean;
   /** Cards shown before expanding */
   initialCount?: number;
   /** How many extra cards each "View more results" click appends */
@@ -23,7 +22,6 @@ const ExpandableEventGrid = ({
   onParticipantClick,
   onOpenGroupChat,
   guest = false,
-  hideCategory = false,
   initialCount = 3,
   batchSize = 12,
 }: Props) => {
@@ -59,7 +57,6 @@ const ExpandableEventGrid = ({
               onParticipantClick={onParticipantClick}
               onOpenGroupChat={onOpenGroupChat}
               guest={guest}
-              hideCategory={hideCategory}
             />
           </div>
         ))}

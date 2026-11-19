@@ -12,7 +12,6 @@ import { Clock, Shuffle, RotateCcw } from 'lucide-react';
 interface Props {
   filters: FeedFilters;
   profileInterests: string[];
-  hideCategory?: boolean;
   onAttend: (id: string) => void;
   onParticipantClick?: (p: Participant) => void;
   onOpenGroupChat?: (e: Event) => void;
@@ -27,7 +26,7 @@ const SOON_OFFSETS = [180, 220, 270, 320, 360].map(m => m * 60 * 1000);
  * inclusivity filters apply; its time chips don't, because this section is
  * already about right now. If nothing matches, it says so and shows what else is on.
  */
-const HappeningSoonSection = ({ filters, profileInterests, hideCategory = false, onAttend, onParticipantClick, onOpenGroupChat }: Props) => {
+const HappeningSoonSection = ({ filters, profileInterests, onAttend, onParticipantClick, onOpenGroupChat }: Props) => {
   const { events: allEvents } = useEvents();
   const [mode, setMode] = useState<'soon' | 'random'>('soon');
 
@@ -107,7 +106,6 @@ const HappeningSoonSection = ({ filters, profileInterests, hideCategory = false,
               <CarouselItem key={e.id} className="pl-4 basis-full sm:basis-1/2 lg:basis-1/3">
                 <EventCard
                   event={e}
-                  hideCategory={hideCategory && mode === 'soon' && !noMatch}
                   onAttend={onAttend}
                   onParticipantClick={onParticipantClick}
                   onOpenGroupChat={onOpenGroupChat}

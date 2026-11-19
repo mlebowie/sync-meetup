@@ -15,7 +15,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
-        display: ['Space Grotesk', 'system-ui', 'sans-serif'],
+        display: ['Open Sauce One', 'system-ui', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -31,6 +31,11 @@ export default {
           hover: "hsl(var(--primary-hover))",
           text: "hsl(var(--primary-text))",
         },
+        sage: {
+          DEFAULT: "hsl(var(--sage))",
+          deep: "hsl(var(--sage-deep))",
+        },
+        peach: "hsl(var(--peach))",
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",

@@ -10,11 +10,10 @@ interface Props {
   onOpenGroupChat?: (e: Event) => void;
   guest?: boolean;
   /** Passed to every card: leave out the category pill. */
-  hideCategory?: boolean;
 }
 
 /** Horizontal snap-scrolling row of event cards with arrow controls. */
-const EventCarousel = ({ events, onAttend, onParticipantClick, onOpenGroupChat, guest = false, hideCategory = false }: Props) => {
+const EventCarousel = ({ events, onAttend, onParticipantClick, onOpenGroupChat, guest = false }: Props) => {
   const trackRef = useRef<HTMLDivElement>(null);
 
   const scrollBy = (dir: 1 | -1) => {
@@ -43,7 +42,6 @@ const EventCarousel = ({ events, onAttend, onParticipantClick, onOpenGroupChat, 
               onParticipantClick={onParticipantClick}
               onOpenGroupChat={onOpenGroupChat}
               guest={guest}
-              hideCategory={hideCategory}
             />
           </div>
         ))}

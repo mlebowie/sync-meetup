@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 @layer base {
   :root {
@@ -27,6 +27,11 @@
     --primary-hover: 14 48% 58%;
     /* Text-safe terracotta for small text (rust-deep #974B35, 5.3:1 on cream) */
     --primary-text: 13 48% 40%;
+    /* Sage (Figma event card): sage-deep #586A66 for metadata text, brand-sage #9EAFAB for tints */
+    --sage-deep: 166.7 9.3% 38%;
+    --sage: 165.9 9.6% 65.3%;
+    /* Peach #FCEBCA: secondary CTA fill, so it stays visible on the cream card */
+    --peach: 39.6 89.3% 89%;
 
     --secondary: 42 45% 92%;
     --secondary-foreground: 20 25% 18%;
@@ -102,6 +107,9 @@
     --primary-hover: 14 48% 58%;
     /* rust-soft #D49886 for small terracotta text on dark grounds */
     --primary-text: 14 48% 68%;
+    --sage-deep: 165.9 9.6% 65.3%;
+    --sage: 165.9 9.6% 65.3%;
+    --peach: 30 15% 22%;
 
     --secondary: 30 15% 18%;
     --secondary-foreground: 45 30% 92%;
@@ -158,8 +166,9 @@
     letter-spacing: 0.005em;
   }
 
+  /* Headings: Open Sauce One (brand). Body text stays Inter. */
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-family: 'Open Sauce One', system-ui, sans-serif;
     font-weight: 400;
     letter-spacing: -0.02em;
     line-height: 1.2;

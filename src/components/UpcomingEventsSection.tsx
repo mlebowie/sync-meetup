@@ -21,7 +21,6 @@ interface Props {
   /** The home feed's shared filters (interests, time, size, inclusivity) from the pinned bar. */
   filters: FeedFilters;
   profileInterests: string[];
-  hideCategory?: boolean;
   /** Parts of the pinned bar the filter tour points at. */
   barInterestsRef: RefObject<HTMLElement>;
   barInclusivityRef: RefObject<HTMLElement>;
@@ -49,7 +48,6 @@ const UpcomingEventsSection = ({
   profile,
   filters,
   profileInterests,
-  hideCategory = false,
   barInterestsRef,
   barInclusivityRef,
   onAttend,
@@ -308,7 +306,6 @@ const UpcomingEventsSection = ({
             </div>
             <ExpandableEventGrid
               events={filtered}
-              hideCategory={hideCategory}
               initialCount={query.trim() ? filtered.length : 3}
               onAttend={onAttend}
               onParticipantClick={onParticipantClick}

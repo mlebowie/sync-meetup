@@ -8,18 +8,18 @@ import {
 interface ParticipantAvatarsProps {
   participants: Participant[];
   maxVisible?: number;
-  totalCount?: number;
+  /** Overrides avatar size and ring (default: 32px with a card-coloured ring). */
+  avatarClassName?: string;
   onParticipantClick?: (participant: Participant) => void;
 }
 
 const ParticipantAvatars = ({
   participants,
   maxVisible = 4,
-  totalCount,
+  avatarClassName,
   onParticipantClick,
 }: ParticipantAvatarsProps) => {
   const visibleParticipants = participants.slice(0, maxVisible);
-  const remainingCount = (totalCount || participants.length) - maxVisible;
 
   return (
     <div className="flex items-center">
@@ -33,7 +33,7 @@ const ParticipantAvatars = ({
                   e.stopPropagation();
                   onParticipantClick?.(participant);
                 }}
-                className="relative w-8 h-8 rounded-full border-2 border-card overflow-hidden transition-transform hover:scale-110 hover:z-10 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
+                className={`relative ${avatarClassName ?? "w-8 h-8 border-2 border-card"} rounded-full overflow-hidden transition-transform hover:scale-110 hover:z-10 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary`}
                 style={{ zIndex: maxVisible - index }}
                 aria-label={`View ${participant.name}'s profile`}
               >
@@ -50,13 +50,6 @@ const ParticipantAvatars = ({
             </TooltipContent>
           </Tooltip>
         ))}
-        {remainingCount > 0 && (
-          <div className="relative w-8 h-8 rounded-full border-2 border-card bg-muted flex items-center justify-center">
-            <span className="text-xs font-semibold text-muted-foreground">
-              +{remainingCount}
-            </span>
-          </div>
-        )}
       </div>
     </div>
   );
