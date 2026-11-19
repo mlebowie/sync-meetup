@@ -13,7 +13,7 @@
     --card-foreground: 20 25% 14%;
 
     /* Event card surface */
-    --event-card: 39.6 89.3% 89%; /* cream #FCEBCA */
+    --event-card: 33.9 100% 95.5%; /* cream #FFF5E8 (brand-cream) */
     --event-card-foreground: 20 30% 16%;
 
     --popover: 45 57% 98%;
