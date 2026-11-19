@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Event, Participant } from '@/types/event';
-import { Calendar, MapPin, Users, Clock, ArrowRight, Check, MessageSquare, Repeat, Heart, TrendingUp, Hourglass, X, UserPlus } from 'lucide-react';
+import { Calendar, MapPin, Clock, ArrowRight, Check, MessageSquare, Repeat, Heart, TrendingUp, Hourglass, X, UserPlus } from 'lucide-react';
 import { format } from 'date-fns';
 import ParticipantAvatars from './ParticipantAvatars';
 import OrganizerPopover from './OrganizerPopover';
@@ -285,13 +285,10 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
             totalCount={event.currentParticipants}
             onParticipantClick={onParticipantClick}
           />
-          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-            <Users className="h-4 w-4" />
-            <span>{event.currentParticipants}/{event.maxParticipants}</span>
-            {isFull && (
-              <span className="ml-1 px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide bg-destructive/10 text-destructive">Full</span>
-            )}
-          </div>
+          {/* Attendee count (current/max) is organiser-only, planned for V2. */}
+          {isFull && (
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide bg-destructive/10 text-destructive">Full</span>
+          )}
         </div>
 
         {/* Actions */}
