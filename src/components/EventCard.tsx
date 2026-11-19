@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Event, Participant } from '@/types/event';
-import { Calendar, MapPin, Clock, MessageSquare, Heart, TrendingUp, UserPlus, Forward } from 'lucide-react';
+import { MessageSquare, Heart, TrendingUp, UserPlus, Forward } from 'lucide-react';
 import { format } from 'date-fns';
 import ParticipantAvatars from './ParticipantAvatars';
 import OrganizerPopover from './OrganizerPopover';
@@ -21,7 +21,9 @@ import { useAttending } from '@/context/AttendingContext';
 import { useSocial } from '@/context/SocialContext';
 import { seedGroupChat } from '@/lib/groupChatSeed';
 import { cn } from '@/lib/utils';
+import { Calendar06, Clock01, Marker02 } from './icons/StratisIcons';
 import { useToast } from '@/hooks/use-toast';
+import { shareEvent } from '@/lib/shareEvent';
 
 interface EventCardProps {
   event: Event;
@@ -125,19 +127,9 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
     }
   };
 
-  const handleShare = async (e: React.MouseEvent) => {
+  const handleShare = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const url = `${window.location.origin}/?q=${encodeURIComponent(event.title)}&event=${event.id}`;
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: event.title, url });
-        return;
-      }
-      await navigator.clipboard.writeText(url);
-      toast({ title: 'Link copied', description: 'Share it with a friend.' });
-    } catch {
-      /* share sheet dismissed */
-    }
+    void shareEvent(event, toast);
   };
 
   const confirmCancel = () => {
@@ -271,16 +263,16 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
           <div className="flex flex-col gap-1.5 text-[17px] font-semibold leading-[1.45] tracking-[-0.02em] text-sage-deep">
             <div className="flex items-center justify-between gap-3 whitespace-nowrap">
               <span className="flex items-center gap-2">
-                <Calendar className="h-[18px] w-[18px] shrink-0 text-primary-text" strokeWidth={2} aria-hidden="true" />
+                <Calendar06 className="h-[18px] w-[18px] shrink-0 text-primary-text" />
                 {format(event.date, 'EEE, MMM d')}
               </span>
               <span className="flex items-center gap-2">
-                <Clock className="h-[18px] w-[18px] shrink-0 text-primary-text" strokeWidth={2} aria-hidden="true" />
+                <Clock01 className="h-[18px] w-[18px] shrink-0 text-primary-text" />
                 {event.time}
               </span>
             </div>
             <div className="flex items-center gap-2 min-w-0">
-              <MapPin className="h-[18px] w-[18px] shrink-0 text-primary-text" strokeWidth={2} aria-hidden="true" />
+              <Marker02 className="h-[18px] w-[18px] shrink-0 text-primary-text" />
               <span className="truncate">{event.location}</span>
             </div>
           </div>

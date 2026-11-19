@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 @layer base {
   :root {
@@ -166,8 +166,9 @@
     letter-spacing: 0.005em;
   }
 
+  /* Headings: Open Sauce One (brand). Body text stays Inter. */
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-family: 'Open Sauce One', system-ui, sans-serif;
     font-weight: 400;
     letter-spacing: -0.02em;
     line-height: 1.2;
