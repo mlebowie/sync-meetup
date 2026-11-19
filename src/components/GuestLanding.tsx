@@ -6,7 +6,7 @@ import { useEvents } from '@/context/EventsContext';
 import { ONBOARDING_INTERESTS } from '@/lib/userProfile';
 import { Participant } from '@/types/event';
 import EventCarousel from './EventCarousel';
-import { Sparkles, ArrowRight, Quote } from 'lucide-react';
+import { ArrowRight, Quote } from 'lucide-react';
 
 interface Props {
   onAttend: (id: string) => void;
@@ -107,7 +107,7 @@ const GuestLanding = ({ onAttend, onParticipantClick }: Props) => {
         <div className="container px-4 md:px-6">
           <div className="max-w-4xl mx-auto rounded-2xl bg-gradient-to-r from-primary/15 via-accent/10 to-primary/15 p-8 md:p-10 text-center">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-3">
-              <Sparkles className="h-3.5 w-3.5" /> Get a feed picked for you
+              Get a feed picked for you
             </div>
             <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
               Create an account, add your interests, unlock your crew.

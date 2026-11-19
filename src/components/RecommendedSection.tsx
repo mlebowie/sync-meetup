@@ -5,7 +5,6 @@ import { FeedFilters, applyFeedFilters, scopeName } from '@/lib/feedFilters';
 import { Event, Participant } from '@/types/event';
 import EventCarousel from './EventCarousel';
 import ExpandableEventGrid from './ExpandableEventGrid';
-import { Sparkles } from 'lucide-react';
 
 interface Props {
   filters: FeedFilters;
@@ -38,7 +37,6 @@ const RecommendedSection = ({ filters, profileInterests, hideCategory = false, o
         <div className="flex flex-wrap items-end justify-between gap-3 mb-5">
           <div>
             <h2 className="text-xl md:text-2xl font-bold text-foreground flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" aria-hidden="true" />
               Recommended for you
             </h2>
             <p className="text-sm text-muted-foreground mt-1">

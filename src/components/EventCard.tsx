@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Event, Participant } from '@/types/event';
-import { Calendar, MapPin, Users, Clock, ArrowRight, Check, MessageSquare, Repeat, Heart, TrendingUp, Hourglass, X, BadgeCheck, UserPlus } from 'lucide-react';
+import { Calendar, MapPin, Users, Clock, ArrowRight, Check, MessageSquare, Repeat, Heart, TrendingUp, Hourglass, X, UserPlus } from 'lucide-react';
 import { format } from 'date-fns';
 import ParticipantAvatars from './ParticipantAvatars';
 import OrganizerPopover from './OrganizerPopover';
@@ -39,21 +39,8 @@ function ordinal(n: number) {
   return n + (s[(v - 20) % 10] || s[v] || s[0]);
 }
 
-const sourceColors: Record<string, string> = {
-  meetup: 'bg-red-700 text-red-50',
-  eventbrite: 'bg-orange-700 text-orange-50',
-  luma: 'bg-purple-700 text-purple-50',
-  'agenda-porto': 'bg-teal-800 text-teal-50',
-  fisga: 'bg-stone-800 text-stone-50',
-  'porto-coffee-week': 'bg-amber-900 text-amber-50',
-  'expat-girls-porto': 'bg-rose-800 text-rose-50',
-  partner: 'bg-stone-700 text-stone-50',
-};
 
 /** Display names for each listing site. */
-/** Sources that never get their own pill (partner listings are labelled SYNC Partner). */
-const HIDDEN_SOURCES = new Set<string>(['partner', 'expat-girls-porto']);
-
 export const sourceLabels: Record<string, string> = {
   meetup: 'Meetup',
   eventbrite: 'Eventbrite',
@@ -162,21 +149,9 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
     >
       {/* Image / attendee photo carousel */}
       <EventPhotoCarousel eventId={event.id} fallbackUrl={event.imageUrl} alt={event.title}>
-        {/* Top pills: one line only. Partner events show a single SYNC Partner pill
-            instead of their source; the category truncates if space runs out. */}
+        {/* Top pill: category only. Listing source and partner status are not shown on the card;
+            partner events surface through the Featured section and carousel order instead. */}
         <div className="absolute top-3 left-3 right-14 flex items-center gap-2 flex-nowrap overflow-hidden">
-          {event.partner || HIDDEN_SOURCES.has(event.source) ? (
-            event.partner && (
-              <span className="shrink-0 whitespace-nowrap flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold bg-[#C1694F] text-white">
-                <BadgeCheck className="h-3 w-3" aria-hidden="true" />
-                SYNC Partner
-              </span>
-            )
-          ) : (
-            <span className={`shrink-0 whitespace-nowrap px-2 py-1 rounded-md text-xs font-semibold ${sourceColors[event.source]}`}>
-              {sourceLabels[event.source] ?? event.source}
-            </span>
-          )}
           {!hideCategory && (
             <span className="min-w-0 truncate whitespace-nowrap px-2 py-1 rounded-md text-xs font-medium bg-card/95 text-card-foreground">
               {event.category}
@@ -204,9 +179,13 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
           )}
 
           {event.trending && (
-            <span className="px-2 py-1 rounded-md text-xs font-medium bg-accent text-accent-foreground flex items-center gap-1">
-              <TrendingUp className="h-3 w-3" />
-              Trending
+            <span
+              role="img"
+              aria-label="Trending"
+              title="Trending"
+              className="h-6 w-6 rounded-md bg-accent text-accent-foreground flex items-center justify-center"
+            >
+              <TrendingUp className="h-3.5 w-3.5" aria-hidden="true" />
             </span>
           )}
         </div>
@@ -238,7 +217,7 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
       <div className="p-5">
         <div className="flex items-center gap-2 mb-1.5 flex-wrap">
           {event.recurrence && event.recurrence !== 'one-off' && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-full bg-primary/10 text-primary">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-full bg-primary/10 text-primary-text">
               <Repeat className="h-3 w-3" />
               {event.recurrence.charAt(0).toUpperCase() + event.recurrence.slice(1)}
               {seriesTimes > 0 && ` · ${ordinal(seriesTimes + 1)} time for you`}
@@ -250,7 +229,7 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
             </span>
           )}
           {friendScore(event.id) !== null && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-full bg-primary/10 text-primary">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-full bg-primary/10 text-primary-text">
               <Heart className="h-3 w-3" />
               {friendScore(event.id)}% would bring a friend
             </span>
@@ -268,7 +247,7 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
               setDetailsOpen(true);
             }
           }}
-          className="text-lg font-bold text-foreground mb-1 line-clamp-1 group-hover:text-primary transition-colors cursor-pointer hover:underline"
+          className="text-lg font-bold text-foreground mb-1 line-clamp-1 group-hover:text-primary-text transition-colors cursor-pointer hover:underline"
         >
           {event.title}
         </h3>
@@ -285,12 +264,11 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
 
         {/* Details */}
         <div className="flex flex-col gap-2 mb-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-primary" />
-            <span>{format(event.date, 'EEEE, MMMM d')}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-accent-strong" />
+          <div className="flex items-center gap-2 whitespace-nowrap">
+            <Calendar className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+            <span>{format(event.date, 'EEE, MMM d')}</span>
+            <span aria-hidden="true">@</span>
+            <Clock className="h-4 w-4 shrink-0 text-accent-strong" aria-hidden="true" />
             <span>{event.time}</span>
           </div>
           <div className="flex items-center gap-2">
@@ -375,7 +353,7 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
             <InvitedSummary event={event} />
             <Button
               variant="outline"
-              className="w-full border-2 border-primary text-primary bg-primary/5 hover:bg-primary/10 hover:text-primary"
+              className="w-full border-2 border-primary text-primary-text bg-primary/5 hover:bg-primary/10 hover:text-primary-text"
               onClick={(e) => { e.stopPropagation(); setInviteOpen(true); }}
             >
               <UserPlus className="h-4 w-4 mr-2" />

@@ -14,8 +14,9 @@ const buttonVariants = cva(
         outline: "border border-foreground/30 bg-transparent text-foreground hover:bg-foreground/10",
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary-hover",
         ghost: "hover:bg-foreground/5 hover:text-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
-        hero: "bg-foreground text-background hover:bg-foreground/90 active:scale-[0.98]",
+        link: "text-primary-text underline-offset-4 hover:underline",
+        // Main CTA on landing/auth screens: same terracotta fill as `default`.
+        hero: "bg-primary text-primary-foreground hover:bg-primary-hover active:scale-[0.98]",
         accent: "gradient-accent text-accent-foreground hover:opacity-90 active:scale-[0.98]",
         attend: "bg-foreground text-background hover:bg-foreground/90 active:scale-[0.98]",
         tag: "bg-muted text-muted-foreground hover:bg-primary/20 hover:text-foreground font-normal",
