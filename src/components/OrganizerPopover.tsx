@@ -5,6 +5,8 @@ import { format } from 'date-fns';
 
 interface OrganizerPopoverProps {
   organizer: Organizer;
+  /** Overrides the trigger text style (e.g. the event card's organiser line). */
+  className?: string;
 }
 
 function StarRating({ rating, size = 14 }: { rating: number; size?: number }) {
@@ -26,16 +28,16 @@ function StarRating({ rating, size = 14 }: { rating: number; size?: number }) {
   );
 }
 
-const OrganizerPopover = ({ organizer }: OrganizerPopoverProps) => {
+const OrganizerPopover = ({ organizer, className }: OrganizerPopoverProps) => {
   return (
     <Popover>
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="text-sm text-muted-foreground hover:text-primary underline-offset-2 hover:underline transition-colors text-left"
+          className={className ?? "text-sm text-muted-foreground hover:text-primary underline-offset-2 hover:underline transition-colors text-left"}
           onClick={(e) => e.stopPropagation()}
         >
-          by <span className="font-medium">{organizer.name}</span>
+          by <span className={className ? undefined : "font-medium"}>{organizer.name}</span>
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-0" align="start" onClick={(e) => e.stopPropagation()}>

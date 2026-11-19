@@ -8,12 +8,15 @@ import {
 interface ParticipantAvatarsProps {
   participants: Participant[];
   maxVisible?: number;
+  /** Overrides avatar size and ring (default: 32px with a card-coloured ring). */
+  avatarClassName?: string;
   onParticipantClick?: (participant: Participant) => void;
 }
 
 const ParticipantAvatars = ({
   participants,
   maxVisible = 4,
+  avatarClassName,
   onParticipantClick,
 }: ParticipantAvatarsProps) => {
   const visibleParticipants = participants.slice(0, maxVisible);
@@ -30,7 +33,7 @@ const ParticipantAvatars = ({
                   e.stopPropagation();
                   onParticipantClick?.(participant);
                 }}
-                className="relative w-8 h-8 rounded-full border-2 border-card overflow-hidden transition-transform hover:scale-110 hover:z-10 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
+                className={`relative ${avatarClassName ?? "w-8 h-8 border-2 border-card"} rounded-full overflow-hidden transition-transform hover:scale-110 hover:z-10 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary`}
                 style={{ zIndex: maxVisible - index }}
                 aria-label={`View ${participant.name}'s profile`}
               >

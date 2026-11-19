@@ -2,13 +2,12 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Event, Participant } from '@/types/event';
-import { Calendar, MapPin, Clock, ArrowRight, Check, MessageSquare, Repeat, Heart, TrendingUp, Hourglass, X, UserPlus } from 'lucide-react';
+import { Calendar, MapPin, Clock, MessageSquare, Heart, TrendingUp, UserPlus, Forward } from 'lucide-react';
 import { format } from 'date-fns';
 import ParticipantAvatars from './ParticipantAvatars';
 import OrganizerPopover from './OrganizerPopover';
 import EventDetailsModal from './EventDetailsModal';
 import EventPhotoCarousel from './EventPhotoCarousel';
-import { useEventRatings } from '@/context/EventRatingContext';
 import AttendConfirmationDialog from './AttendConfirmationDialog';
 import CancelRegistrationDialog from './CancelRegistrationDialog';
 import WaitlistDialog from './WaitlistDialog';
@@ -22,6 +21,7 @@ import { useAttending } from '@/context/AttendingContext';
 import { useSocial } from '@/context/SocialContext';
 import { seedGroupChat } from '@/lib/groupChatSeed';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 interface EventCardProps {
   event: Event;
@@ -29,14 +29,8 @@ interface EventCardProps {
   onParticipantClick?: (participant: Participant) => void;
   onOpenGroupChat?: (event: Event) => void;
   guest?: boolean;
-  /** Leave out the category pill, e.g. when the list is already filtered to one interest. */
 }
 
-function ordinal(n: number) {
-  const s = ['th', 'st', 'nd', 'rd'];
-  const v = n % 100;
-  return n + (s[(v - 20) % 10] || s[v] || s[0]);
-}
 
 
 /** Display names for each listing site. */
@@ -69,11 +63,10 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
   const { getInvited } = useInvites();
   const armTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const chatTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const { seriesCount, crossedPathsWith } = useActivityHistory();
+  const { crossedPathsWith } = useActivityHistory();
+  const { toast } = useToast();
   const { isWishlisted, toggle: toggleWishlist } = useWishlist();
-  const { friendScore } = useEventRatings();
   const wishlisted = isWishlisted(event.id);
-  const seriesTimes = guest ? 0 : seriesCount(event.seriesId);
   const familiarCount = guest ? 0 : event.participants.filter(p => crossedPathsWith(p.id) > 0).length;
   const isFull = event.currentParticipants >= event.maxParticipants;
 
@@ -132,6 +125,21 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
     }
   };
 
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const url = `${window.location.origin}/?q=${encodeURIComponent(event.title)}&event=${event.id}`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: event.title, url });
+        return;
+      }
+      await navigator.clipboard.writeText(url);
+      toast({ title: 'Link copied', description: 'Share it with a friend.' });
+    } catch {
+      /* share sheet dismissed */
+    }
+  };
+
   const confirmCancel = () => {
     disarmCancel();
     cancelAutoChat();
@@ -152,184 +160,157 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
             Partners surface through the Featured section and carousel order; category is implied
             by the interest filter (onboarding or the sticky bar). */}
 
-        {/* Vibe badge */}
+        {/* Image pills (Figma "pill: vibe"): sage fill, cream label, full pill */}
         <div className="absolute bottom-3 left-3 right-3 flex items-center gap-2 flex-nowrap overflow-hidden [&>span]:shrink-0 [&>span]:whitespace-nowrap">
           <span
             title={vibeMeta(event.vibe).description}
-            className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium ${vibeMeta(event.vibe).color}`}
+            className="flex items-center gap-2 h-8 px-3.5 rounded-full text-sm font-semibold bg-sage-deep text-event-card"
           >
             <span aria-hidden>{vibeMeta(event.vibe).emoji}</span>
             {vibeMeta(event.vibe).label}
           </span>
           {event.womenOnly && (
-            <span className="px-2 py-1 rounded-md text-xs font-medium bg-pink-700 text-pink-50">Women only</span>
+            <span className="flex items-center h-8 px-3.5 rounded-full text-sm font-semibold bg-pink-700 text-pink-50">Women only</span>
           )}
           {event.lgbtqFriendly && (
-            <span className="px-2 py-1 rounded-md text-xs font-medium bg-purple-700 text-purple-50">LGBTQ+ friendly</span>
+            <span className="flex items-center h-8 px-3.5 rounded-full text-sm font-semibold bg-purple-700 text-purple-50">LGBTQ+ friendly</span>
           )}
           {event.petFriendly && (
-            <span className="px-2 py-1 rounded-md text-xs font-medium bg-emerald-800 text-emerald-50">Pet friendly</span>
+            <span className="flex items-center h-8 px-3.5 rounded-full text-sm font-semibold bg-emerald-800 text-emerald-50">Pet friendly</span>
           )}
-
           {event.trending && (
             <span
               role="img"
               aria-label="Trending"
               title="Trending"
-              className="h-6 w-6 rounded-md bg-accent text-accent-foreground flex items-center justify-center"
+              className="h-8 w-8 rounded-full bg-sage-deep text-event-card flex items-center justify-center"
             >
-              <TrendingUp className="h-3.5 w-3.5" aria-hidden="true" />
+              <TrendingUp className="h-4 w-4" aria-hidden="true" />
             </span>
           )}
         </div>
-
-        {/* Wishlist heart */}
-        {!guest && (
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); toggleWishlist(event.id); }}
-            aria-label={wishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
-            aria-pressed={wishlisted}
-            className={cn(
-              'absolute top-3 right-3 h-9 w-9 rounded-full flex items-center justify-center transition-all',
-              'bg-white/90 hover:bg-white shadow-md backdrop-blur-sm',
-              wishlisted && 'bg-white'
-            )}
-          >
-            <Heart
-              className={cn(
-                'h-5 w-5 transition-colors',
-                wishlisted ? 'fill-destructive text-destructive' : 'text-foreground'
-              )}
-            />
-          </button>
-        )}
       </EventPhotoCarousel>
 
-      {/* Content */}
-      <div className="p-5">
-        <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-          {event.recurrence && event.recurrence !== 'one-off' && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-full bg-primary/10 text-primary-text">
-              <Repeat className="h-3 w-3" />
-              {event.recurrence.charAt(0).toUpperCase() + event.recurrence.slice(1)}
-              {seriesTimes > 0 && ` · ${ordinal(seriesTimes + 1)} time for you`}
-            </span>
-          )}
-          {familiarCount > 0 && (
-            <span className="px-2 py-0.5 text-[11px] font-medium rounded-full bg-accent/15 text-accent-strong">
-              {familiarCount} familiar {familiarCount === 1 ? 'face' : 'faces'}
-            </span>
-          )}
-          {friendScore(event.id) !== null && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-full bg-primary/10 text-primary-text">
-              <Heart className="h-3 w-3" />
-              {friendScore(event.id)}% would bring a friend
-            </span>
-          )}
-        </div>
-<h3
-          role="button"
-          tabIndex={0}
-          aria-label={`View details for ${event.title}`}
-          onClick={(e) => { e.stopPropagation(); setDetailsOpen(true); }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              e.stopPropagation();
-              setDetailsOpen(true);
-            }
-          }}
-          className="text-lg font-bold text-foreground mb-1 line-clamp-1 group-hover:text-primary-text transition-colors cursor-pointer hover:underline"
-        >
-          {event.title}
-        </h3>
-        {event.organizer && (
-          <div className="mb-2">
-            <OrganizerPopover organizer={event.organizer} />
-          </div>
-        )}
-
-        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-          {event.description}
-        </p>
-
-
-        {/* Details */}
-        <div className="flex flex-col gap-2 mb-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2 whitespace-nowrap">
-            <Calendar className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-            <span>{format(event.date, 'EEE, MMM d')}</span>
-            <span aria-hidden="true">@</span>
-            <Clock className="h-4 w-4 shrink-0 text-accent-strong" aria-hidden="true" />
-            <span>{event.time}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <MapPin className="h-4 w-4 text-destructive" />
-            <span className="line-clamp-1">{event.location}</span>
-          </div>
-        </div>
-
-        {/* Participants */}
-        <div className="flex items-center justify-between mb-4">
-          <ParticipantAvatars
-            participants={event.participants}
-            maxVisible={4}
-            onParticipantClick={onParticipantClick}
-          />
-          {/* Attendee count (current/max) is organiser-only, planned for V2. */}
-          {isFull && (
-            <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide bg-destructive/10 text-destructive">Full</span>
-          )}
-        </div>
-
-        {/* Actions */}
-        <div className="flex gap-2" onMouseLeave={disarmCancel}>
-          <Button
-            variant={isAttending ? (cancelArmed ? 'destructive' : 'attend') : 'default'}
-            className="flex-1"
-            onClick={handleAttend}
-            onBlur={() => cancelArmed && disarmCancel()}
-          >
-            {isAttending ? (
-              cancelArmed ? (
-                <>
-                  <X className="h-4 w-4 mr-1" />
-                  Cancel registration?
-                </>
-              ) : (
-                <>
-                  <Check className="h-4 w-4 mr-1" />
-                  Attending
-                </>
-              )
-            ) : isFull ? (
-              <>
-                <Hourglass className="h-4 w-4 mr-1" />
-                Join Waitlist
-              </>
-            ) : (
-              <>
-                Attend
-                <ArrowRight className="h-4 w-4 ml-1" />
-              </>
+      {/* Content: matches the Figma "event card template" (Default variant) */}
+      <div className="p-6">
+        <div className="flex flex-col gap-4">
+          {/* Title row + organiser */}
+          <div>
+            <div className="flex items-start justify-between gap-3">
+              <h3
+                role="button"
+                tabIndex={0}
+                aria-label={`View details for ${event.title}`}
+                onClick={(e) => { e.stopPropagation(); setDetailsOpen(true); }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setDetailsOpen(true);
+                  }
+                }}
+                className="text-2xl font-semibold leading-[1.45] tracking-[-0.02em] text-primary-text line-clamp-2 cursor-pointer hover:underline"
+              >
+                {event.title}
+              </h3>
+              <div className="flex items-center gap-1 pt-1 shrink-0 -mr-1.5">
+                {!guest && (
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); toggleWishlist(event.id); }}
+                    aria-label={wishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
+                    aria-pressed={wishlisted}
+                    className="h-8 w-8 rounded-full flex items-center justify-center text-primary-text hover:bg-primary/10 transition-colors"
+                  >
+                    <Heart className={cn('h-5 w-5', wishlisted && 'fill-current')} />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={handleShare}
+                  aria-label={`Share ${event.title}`}
+                  className="h-8 w-8 rounded-full flex items-center justify-center text-primary-text hover:bg-primary/10 transition-colors"
+                >
+                  <Forward className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+            {event.organizer && (
+              <OrganizerPopover
+                organizer={event.organizer}
+                className="text-xl font-semibold leading-[1.45] tracking-[-0.02em] text-sage-deep text-left hover:underline underline-offset-2"
+              />
             )}
-          </Button>
+          </div>
+
+          {/* Attendees + familiar faces (no counts: organiser-only, V2) */}
+          {(event.participants.length > 0 || familiarCount > 0 || isFull) && (
+            <div className="flex items-center gap-3 flex-wrap">
+              <ParticipantAvatars
+                participants={event.participants}
+                maxVisible={4}
+                avatarClassName="w-6 h-6 border border-sage"
+                onParticipantClick={onParticipantClick}
+              />
+              {familiarCount > 0 && (
+                <span className="inline-flex items-center h-[30px] px-3 rounded-full border border-sage-deep bg-sage/20 text-sm font-semibold tracking-[-0.02em] text-sage-deep">
+                  {familiarCount} Familiar {familiarCount === 1 ? 'Face' : 'Faces'}
+                </span>
+              )}
+              {isFull && (
+                <span className="ml-auto px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide bg-destructive/10 text-destructive">Full</span>
+              )}
+            </div>
+          )}
+
+          <p className="text-lg font-medium leading-[1.4] tracking-[-0.005em] text-foreground line-clamp-3">
+            {event.description}
+          </p>
+
+          {/* Date + time on one line, venue below */}
+          <div className="flex flex-col gap-1.5 text-[17px] font-semibold leading-[1.45] tracking-[-0.02em] text-sage-deep">
+            <div className="flex items-center justify-between gap-3 whitespace-nowrap">
+              <span className="flex items-center gap-2">
+                <Calendar className="h-[18px] w-[18px] shrink-0 text-primary-text" strokeWidth={2} aria-hidden="true" />
+                {format(event.date, 'EEE, MMM d')}
+              </span>
+              <span className="flex items-center gap-2">
+                <Clock className="h-[18px] w-[18px] shrink-0 text-primary-text" strokeWidth={2} aria-hidden="true" />
+                {event.time}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 min-w-0">
+              <MapPin className="h-[18px] w-[18px] shrink-0 text-primary-text" strokeWidth={2} aria-hidden="true" />
+              <span className="truncate">{event.location}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Actions (Figma "Primary Action - Register"): secondary left, primary right, no icons */}
+        <div className="mt-5 flex gap-3" onMouseLeave={disarmCancel}>
           <Button
             variant="outline"
-            className="flex-1 bg-transparent"
+            className="flex-1 h-9 text-base font-medium tracking-[-0.005em] bg-peach border-primary-text text-primary-text hover:bg-peach hover:brightness-95 hover:text-primary-text"
             onClick={(e) => { e.stopPropagation(); setDetailsOpen(true); }}
           >
             View more
-            <ArrowRight className="h-4 w-4 ml-1" />
+          </Button>
+          <Button
+            variant={isAttending ? (cancelArmed ? 'destructive' : 'attend') : 'default'}
+            className="flex-1 h-9 text-base font-medium tracking-[-0.005em] shadow-none"
+            onClick={handleAttend}
+            onBlur={() => cancelArmed && disarmCancel()}
+          >
+            {isAttending ? (cancelArmed ? 'Cancel registration?' : 'Attending') : isFull ? 'Join Waitlist' : 'Register'}
           </Button>
 
           {isAttending && onOpenGroupChat && (
             <Button
               variant="outline"
-              className="px-3"
+              className="h-9 px-3"
               onClick={() => onOpenGroupChat(event)}
               title="Open group chat"
+              aria-label="Open group chat"
             >
               <MessageSquare className="h-4 w-4" />
             </Button>
