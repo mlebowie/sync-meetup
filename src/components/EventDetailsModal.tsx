@@ -94,13 +94,13 @@ const EventDetailsModal = ({
           eventId={event.id}
           fallbackUrl={event.imageUrl}
           alt={event.title}
-          className="h-64 shrink-0"
+          className="h-56 md:h-64 shrink-0"
         >
           {/* Top-left pills (Figma "pill: vibe"): vibe + ratings */}
           <div className="absolute top-3 left-3 right-14 flex items-center gap-2 flex-wrap">
             <span
               title={vibeMeta(event.vibe).description}
-              className="flex items-center gap-2 h-8 px-3.5 rounded-full text-sm font-semibold bg-sage-deep text-event-card"
+              className="flex items-center gap-1.5 h-7 px-3 rounded-full text-xs font-semibold bg-sage-deep text-event-card"
             >
               <span aria-hidden>{vibeMeta(event.vibe).emoji}</span>
               {vibeMeta(event.vibe).label}
@@ -110,37 +110,37 @@ const EventDetailsModal = ({
                 type="button"
                 onClick={() => testimonialsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
                 aria-label="Jump to testimonials"
-                className="flex items-center h-8 px-3.5 rounded-full text-sm font-semibold bg-sage-deep text-event-card hover:underline underline-offset-2"
+                className="flex items-center h-7 px-3 rounded-full text-xs font-semibold bg-sage-deep text-event-card hover:underline underline-offset-2"
               >
                 {friendScore(event.id)}% would bring a friend · {ratingCount(event.id)} ratings
               </button>
             )}
           </div>
           {/* Title + date, time and venue over the photo, in cream */}
-          <div className="absolute bottom-4 left-6 right-6 text-event-card pointer-events-none">
-            <h2 className="text-2xl font-bold leading-[1.45] tracking-[-0.02em] mb-1 line-clamp-2">{event.title}</h2>
-            <div className="flex flex-col gap-1 text-[17px] font-semibold leading-[1.45] tracking-[-0.02em]">
+          <div className="absolute bottom-4 left-5 right-5 md:left-6 md:right-6 text-event-card pointer-events-none">
+            <h2 className="text-xl md:text-2xl font-bold leading-snug tracking-[-0.01em] mb-1 line-clamp-2">{event.title}</h2>
+            <div className="flex flex-col gap-0.5 text-sm md:text-base font-semibold leading-snug">
               <div className="flex items-center gap-5 whitespace-nowrap">
-                <span className="flex items-center gap-2"><Calendar06 className="h-[18px] w-[18px] shrink-0" />{format(event.date, 'EEE, MMM d')}</span>
-                <span className="flex items-center gap-2"><Clock01 className="h-[18px] w-[18px] shrink-0" />{event.time}</span>
+                <span className="flex items-center gap-2"><Calendar06 className="h-4 w-4 shrink-0" />{format(event.date, 'EEE, MMM d')}</span>
+                <span className="flex items-center gap-2"><Clock01 className="h-4 w-4 shrink-0" />{event.time}</span>
               </div>
-              <span className="flex items-center gap-2 min-w-0"><Marker02 className="h-[18px] w-[18px] shrink-0" /><span className="truncate">{event.location}</span></span>
+              <span className="flex items-center gap-2 min-w-0"><Marker02 className="h-4 w-4 shrink-0" /><span className="truncate">{event.location}</span></span>
             </div>
           </div>
         </EventPhotoCarousel>
 
         {/* Scrollable body */}
-        <div className="overflow-y-auto p-6 space-y-7">
+        <div className="overflow-y-auto p-5 md:p-6 space-y-6">
           {/* Description */}
           <section>
-            <h3 className="text-lg font-bold leading-[1.4] tracking-[-0.005em] text-foreground mb-2">About this event</h3>
-            <p className="text-lg font-medium leading-[1.4] tracking-[-0.005em] text-foreground whitespace-pre-line">{extendedDescription}</p>
+            <h3 className="text-base md:text-lg font-bold leading-snug text-foreground mb-2">About this event</h3>
+            <p className="text-sm md:text-base leading-relaxed text-foreground whitespace-pre-line">{extendedDescription}</p>
             {(event.registerUrl || event.sourceUrl) && (
               <a
                 href={event.partner ? (event.registerUrl || event.sourceUrl) : event.sourceUrl || event.registerUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-3 inline-flex items-center gap-1.5 text-base font-semibold text-primary-text underline-offset-2 hover:underline"
+                className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-text underline-offset-2 hover:underline"
               >
                 {event.partner || event.source === 'partner' ? 'Register' : `View on ${sourceNames[event.source] ?? event.source}`}
                 <ExternalLink className="h-4 w-4" aria-hidden="true" />
@@ -175,7 +175,7 @@ const EventDetailsModal = ({
           {/* Host bio */}
           {org && (
             <section>
-              <h3 className="text-lg font-bold leading-[1.4] tracking-[-0.005em] text-foreground mb-2">Hosted by</h3>
+              <h3 className="text-base md:text-lg font-bold leading-snug text-foreground mb-2">Hosted by</h3>
               <div className="flex items-start gap-3 p-4 rounded-xl bg-peach/60 border border-sage/40">
                 {org.avatar && (
                   <button onClick={() => setOrgOpen(true)} className="shrink-0">
@@ -234,7 +234,7 @@ const EventDetailsModal = ({
                       {org.rating.toFixed(1)} ({org.reviewCount} reviews)
                     </span>
                   </div>
-                  <p className="text-sm text-sage-deep mt-0.5">
+                  <p className="text-xs md:text-sm text-sage-deep mt-0.5">
                     {org.eventsHosted} events hosted · {org.location}
                   </p>
                   <button onClick={() => setOrgOpen(true)} className="text-sm font-semibold text-primary-text hover:underline mt-1">
@@ -247,9 +247,9 @@ const EventDetailsModal = ({
 
           {/* Venue */}
           <section>
-            <h3 className="text-lg font-bold leading-[1.4] tracking-[-0.005em] text-foreground mb-2">Venue</h3>
-            <div className="flex items-start gap-2 text-base text-sage-deep">
-              <Marker02 className="h-[18px] w-[18px] mt-0.5 text-primary-text shrink-0" />
+            <h3 className="text-base md:text-lg font-bold leading-snug text-foreground mb-2">Venue</h3>
+            <div className="flex items-start gap-2 text-sm md:text-base text-sage-deep">
+              <Marker02 className="h-4 w-4 mt-0.5 text-primary-text shrink-0" />
               <div className="flex-1">
                 <p className="font-semibold">{event.location}</p>
                 <button className="text-sm font-semibold text-primary-text hover:underline mt-1">View on map</button>
@@ -259,20 +259,20 @@ const EventDetailsModal = ({
 
           {/* Testimonials */}
           <section ref={testimonialsRef} id={`event-testimonials-${event.id}`} className="scroll-mt-4">
-            <h3 className="text-lg font-bold leading-[1.4] tracking-[-0.005em] text-foreground mb-2">What people said</h3>
+            <h3 className="text-base md:text-lg font-bold leading-snug text-foreground mb-2">What people said</h3>
             <div className="space-y-2">
               {org?.recentReview && (
                 <div className="p-4 rounded-xl border border-sage/40 bg-white/60">
                   <Quote className="h-4 w-4 text-primary-text mb-1" />
-                  <p className="text-base font-medium text-foreground">"{org.recentReview.text}"</p>
-                  <p className="text-sm font-semibold text-sage-deep mt-1">— {org.recentReview.author}</p>
+                  <p className="text-sm md:text-base text-foreground">"{org.recentReview.text}"</p>
+                  <p className="text-xs md:text-sm font-semibold text-sage-deep mt-1">— {org.recentReview.author}</p>
                 </div>
               )}
               {extraTestimonials.map((t, i) => (
                 <div key={i} className="p-4 rounded-xl border border-sage/40 bg-white/60">
                   <Quote className="h-4 w-4 text-primary-text mb-1" />
-                  <p className="text-base font-medium text-foreground">"{t.text}"</p>
-                  <p className="text-sm font-semibold text-sage-deep mt-1">— {t.author}</p>
+                  <p className="text-sm md:text-base text-foreground">"{t.text}"</p>
+                  <p className="text-xs md:text-sm font-semibold text-sage-deep mt-1">— {t.author}</p>
                 </div>
               ))}
             </div>
@@ -281,7 +281,7 @@ const EventDetailsModal = ({
           {/* Attendees */}
           <section>
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-lg font-bold leading-[1.4] tracking-[-0.005em] text-foreground">Who's going</h3>
+              <h3 className="text-base md:text-lg font-bold leading-snug text-foreground">Who's going</h3>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {event.participants.map((p) => (
@@ -304,16 +304,16 @@ const EventDetailsModal = ({
         </div>
 
         {/* Sticky CTAs (Figma): full-width Register, message pill, heart, share */}
-        <div className="shrink-0 border-t border-sage/40 bg-event-card px-6 py-3 flex items-center gap-3">
+        <div className="shrink-0 border-t border-sage/40 bg-event-card px-5 md:px-6 py-3 flex items-center gap-2.5">
           {guest ? (
-            <Button className="flex-1 h-9 text-base font-medium shadow-none" onClick={() => onOpenChange(false)}>
+            <Button className="flex-1 h-9 text-sm font-medium shadow-none" onClick={() => onOpenChange(false)}>
               Sign up to attend
             </Button>
           ) : (
             <>
               <Button
                 variant={isAttending ? (cancelArmed ? 'destructive' : 'attend') : 'default'}
-                className="flex-1 h-9 text-base font-medium tracking-[-0.005em] shadow-none"
+                className="flex-1 h-9 text-sm font-medium shadow-none"
                 onClick={onAttend}
               >
                 {isAttending ? (cancelArmed ? 'Cancel registration?' : 'Attending') : 'Register'}
@@ -324,7 +324,7 @@ const EventDetailsModal = ({
                 disabled={!isAttending || !onOpenGroupChat}
                 title={isAttending ? 'Message group' : 'Attend to unlock chat'}
                 aria-label={isAttending ? 'Message group' : 'Attend to unlock chat'}
-                className="h-9 w-14 rounded-full border border-sage-deep text-sage-deep flex items-center justify-center hover:bg-sage/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="h-9 w-12 rounded-full border border-sage-deep text-sage-deep flex items-center justify-center hover:bg-sage/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <MessageSquare className="h-4 w-4" />
               </button>
@@ -336,7 +336,7 @@ const EventDetailsModal = ({
                 title={wishlisted ? 'Saved' : 'Save to favorites'}
                 className="h-9 w-9 rounded-full flex items-center justify-center text-primary-text hover:bg-primary/10 transition-colors"
               >
-                <Heart className={cn('h-5 w-5', wishlisted && 'fill-current')} />
+                <Heart className={cn('h-[18px] w-[18px]', wishlisted && 'fill-current')} />
               </button>
             </>
           )}
@@ -346,7 +346,7 @@ const EventDetailsModal = ({
             aria-label={`Share ${event.title}`}
             className="h-9 w-9 rounded-full flex items-center justify-center text-primary-text hover:bg-primary/10 transition-colors"
           >
-            <Forward className="h-5 w-5" />
+            <Forward className="h-[18px] w-[18px]" />
           </button>
         </div>
       </DialogContent>

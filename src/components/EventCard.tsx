@@ -156,36 +156,36 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
         <div className="absolute bottom-3 left-3 right-3 flex items-center gap-2 flex-nowrap overflow-hidden [&>span]:shrink-0 [&>span]:whitespace-nowrap">
           <span
             title={vibeMeta(event.vibe).description}
-            className="flex items-center gap-2 h-8 px-3.5 rounded-full text-sm font-semibold bg-sage-deep text-event-card"
+            className="flex items-center gap-1.5 h-7 px-3 rounded-full text-xs font-semibold bg-sage-deep text-event-card"
           >
             <span aria-hidden>{vibeMeta(event.vibe).emoji}</span>
             {vibeMeta(event.vibe).label}
           </span>
           {event.womenOnly && (
-            <span className="flex items-center h-8 px-3.5 rounded-full text-sm font-semibold bg-pink-700 text-pink-50">Women only</span>
+            <span className="flex items-center h-7 px-3 rounded-full text-xs font-semibold bg-pink-700 text-pink-50">Women only</span>
           )}
           {event.lgbtqFriendly && (
-            <span className="flex items-center h-8 px-3.5 rounded-full text-sm font-semibold bg-purple-700 text-purple-50">LGBTQ+ friendly</span>
+            <span className="flex items-center h-7 px-3 rounded-full text-xs font-semibold bg-purple-700 text-purple-50">LGBTQ+ friendly</span>
           )}
           {event.petFriendly && (
-            <span className="flex items-center h-8 px-3.5 rounded-full text-sm font-semibold bg-emerald-800 text-emerald-50">Pet friendly</span>
+            <span className="flex items-center h-7 px-3 rounded-full text-xs font-semibold bg-emerald-800 text-emerald-50">Pet friendly</span>
           )}
           {event.trending && (
             <span
               role="img"
               aria-label="Trending"
               title="Trending"
-              className="h-8 w-8 rounded-full bg-sage-deep text-event-card flex items-center justify-center"
+              className="h-7 w-7 rounded-full bg-sage-deep text-event-card flex items-center justify-center"
             >
-              <TrendingUp className="h-4 w-4" aria-hidden="true" />
+              <TrendingUp className="h-3.5 w-3.5" aria-hidden="true" />
             </span>
           )}
         </div>
       </EventPhotoCarousel>
 
       {/* Content: matches the Figma "event card template" (Default variant) */}
-      <div className="p-6">
-        <div className="flex flex-col gap-4">
+      <div className="p-5 md:p-6">
+        <div className="flex flex-col gap-3 md:gap-4">
           {/* Title row + organiser */}
           <div>
             <div className="flex items-start justify-between gap-3">
@@ -201,11 +201,11 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
                     setDetailsOpen(true);
                   }
                 }}
-                className="text-2xl font-semibold leading-[1.45] tracking-[-0.02em] text-primary-text line-clamp-2 cursor-pointer hover:underline"
+                className="text-lg md:text-xl font-semibold leading-snug tracking-[-0.01em] text-primary-text line-clamp-2 cursor-pointer hover:underline"
               >
                 {event.title}
               </h3>
-              <div className="flex items-center gap-1 pt-1 shrink-0 -mr-1.5">
+              <div className="flex items-center gap-0.5 shrink-0 -mr-1.5 -mt-0.5">
                 {!guest && (
                   <button
                     type="button"
@@ -214,7 +214,7 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
                     aria-pressed={wishlisted}
                     className="h-8 w-8 rounded-full flex items-center justify-center text-primary-text hover:bg-primary/10 transition-colors"
                   >
-                    <Heart className={cn('h-5 w-5', wishlisted && 'fill-current')} />
+                    <Heart className={cn('h-[18px] w-[18px]', wishlisted && 'fill-current')} />
                   </button>
                 )}
                 <button
@@ -223,14 +223,14 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
                   aria-label={`Share ${event.title}`}
                   className="h-8 w-8 rounded-full flex items-center justify-center text-primary-text hover:bg-primary/10 transition-colors"
                 >
-                  <Forward className="h-5 w-5" />
+                  <Forward className="h-[18px] w-[18px]" />
                 </button>
               </div>
             </div>
             {event.organizer && (
               <OrganizerPopover
                 organizer={event.organizer}
-                className="text-xl font-semibold leading-[1.45] tracking-[-0.02em] text-sage-deep text-left hover:underline underline-offset-2"
+                className="mt-0.5 text-sm md:text-base font-semibold leading-snug text-sage-deep text-left hover:underline underline-offset-2"
               />
             )}
           </div>
@@ -245,7 +245,7 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
                 onParticipantClick={onParticipantClick}
               />
               {familiarCount > 0 && (
-                <span className="inline-flex items-center h-[30px] px-3 rounded-full border border-sage-deep bg-sage/20 text-sm font-semibold tracking-[-0.02em] text-sage-deep">
+                <span className="inline-flex items-center h-6 px-2.5 rounded-full border border-sage-deep bg-sage/20 text-xs font-semibold text-sage-deep">
                   {familiarCount} Familiar {familiarCount === 1 ? 'Face' : 'Faces'}
                 </span>
               )}
@@ -255,41 +255,41 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
             </div>
           )}
 
-          <p className="text-lg font-medium leading-[1.4] tracking-[-0.005em] text-foreground line-clamp-3">
+          <p className="text-sm md:text-[15px] leading-relaxed text-foreground line-clamp-2">
             {event.description}
           </p>
 
           {/* Date + time on one line, venue below */}
-          <div className="flex flex-col gap-1.5 text-[17px] font-semibold leading-[1.45] tracking-[-0.02em] text-sage-deep">
+          <div className="flex flex-col gap-1 text-sm font-semibold leading-snug text-sage-deep">
             <div className="flex items-center justify-between gap-3 whitespace-nowrap">
               <span className="flex items-center gap-2">
-                <Calendar06 className="h-[18px] w-[18px] shrink-0 text-primary-text" />
+                <Calendar06 className="h-4 w-4 shrink-0 text-primary-text" />
                 {format(event.date, 'EEE, MMM d')}
               </span>
               <span className="flex items-center gap-2">
-                <Clock01 className="h-[18px] w-[18px] shrink-0 text-primary-text" />
+                <Clock01 className="h-4 w-4 shrink-0 text-primary-text" />
                 {event.time}
               </span>
             </div>
             <div className="flex items-center gap-2 min-w-0">
-              <Marker02 className="h-[18px] w-[18px] shrink-0 text-primary-text" />
+              <Marker02 className="h-4 w-4 shrink-0 text-primary-text" />
               <span className="truncate">{event.location}</span>
             </div>
           </div>
         </div>
 
         {/* Actions (Figma "Primary Action - Register"): secondary left, primary right, no icons */}
-        <div className="mt-5 flex gap-3" onMouseLeave={disarmCancel}>
+        <div className="mt-4 md:mt-5 flex gap-2.5" onMouseLeave={disarmCancel}>
           <Button
             variant="outline"
-            className="flex-1 h-9 text-base font-medium tracking-[-0.005em] bg-peach border-primary-text text-primary-text hover:bg-peach hover:brightness-95 hover:text-primary-text"
+            className="flex-1 h-9 text-sm font-medium bg-peach border-primary-text text-primary-text hover:bg-peach hover:brightness-95 hover:text-primary-text"
             onClick={(e) => { e.stopPropagation(); setDetailsOpen(true); }}
           >
             View more
           </Button>
           <Button
             variant={isAttending ? (cancelArmed ? 'destructive' : 'attend') : 'default'}
-            className="flex-1 h-9 text-base font-medium tracking-[-0.005em] shadow-none"
+            className="flex-1 h-9 text-sm font-medium shadow-none"
             onClick={handleAttend}
             onBlur={() => cancelArmed && disarmCancel()}
           >
