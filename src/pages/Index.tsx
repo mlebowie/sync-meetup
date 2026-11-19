@@ -27,7 +27,7 @@ import syncWordmark from '@/assets/sync-wordmark-v2.png';
 import { MessageCircle, Sparkles } from 'lucide-react';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
 import { getUserProfile, saveUserProfile } from '@/lib/userProfile';
-import { DEFAULT_FEED_FILTERS, FeedFilters, hidesCategoryPill } from '@/lib/feedFilters';
+import { DEFAULT_FEED_FILTERS, FeedFilters } from '@/lib/feedFilters';
 import { getReflectionCandidate } from '@/lib/reflection';
 import { useSearchParams } from 'react-router-dom';
 import { useSearch } from '@/context/SearchContext';
@@ -56,7 +56,6 @@ const Index = () => {
     window.addEventListener('sync:profile-changed', onProfileChanged);
     return () => window.removeEventListener('sync:profile-changed', onProfileChanged);
   }, []);
-  const hideCategory = hidesCategoryPill(feedFilters);
   const barInterestsRef = useRef<HTMLDivElement>(null);
   const barInclusivityRef = useRef<HTMLDivElement>(null);
 
@@ -240,7 +239,6 @@ const Index = () => {
           <HappeningSoonSection
             filters={feedFilters}
             profileInterests={profileInterests}
-            hideCategory={hideCategory}
             onAttend={handleAttend}
             onParticipantClick={handleParticipantClick}
             onOpenGroupChat={handleOpenGroupChat}
@@ -250,7 +248,6 @@ const Index = () => {
           <RecommendedSection
             filters={feedFilters}
             profileInterests={profileInterests}
-            hideCategory={hideCategory}
             onAttend={handleAttend}
             onParticipantClick={handleParticipantClick}
             onOpenGroupChat={handleOpenGroupChat}
@@ -260,7 +257,6 @@ const Index = () => {
           <PopularTrendingSection
             interests={profileInterests}
             feedFilters={feedFilters}
-            hideCategory={hideCategory}
             onAttend={handleAttend}
             onParticipantClick={handleParticipantClick}
             onOpenGroupChat={handleOpenGroupChat}
@@ -280,7 +276,6 @@ const Index = () => {
             profile={profile!}
             filters={feedFilters}
             profileInterests={profileInterests}
-            hideCategory={hideCategory}
             barInterestsRef={barInterestsRef}
             barInclusivityRef={barInclusivityRef}
             onAttend={handleAttend}

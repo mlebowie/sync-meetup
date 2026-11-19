@@ -4,7 +4,6 @@ import {
   DEFAULT_FEED_FILTERS,
   activeFilterCount,
   applyFeedFilters,
-  hidesCategoryPill,
   scopeName,
 } from '@/lib/feedFilters';
 
@@ -57,11 +56,6 @@ describe('feed filters', () => {
     expect(ids(applyFeedFilters(events, { ...DEFAULT_FEED_FILTERS, womenOnly: true }, mine))).toEqual(['yoga']);
   });
 
-  it('hides the category pill only when exactly one interest is selected', () => {
-    expect(hidesCategoryPill(DEFAULT_FEED_FILTERS)).toBe(false);
-    expect(hidesCategoryPill({ ...DEFAULT_FEED_FILTERS, interests: ['sports'] })).toBe(true);
-    expect(hidesCategoryPill({ ...DEFAULT_FEED_FILTERS, interests: ['sports', 'games'] })).toBe(false);
-  });
 
   it('counts active chips for "Clear filters"', () => {
     expect(activeFilterCount(DEFAULT_FEED_FILTERS)).toBe(0);

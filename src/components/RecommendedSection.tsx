@@ -9,14 +9,13 @@ import ExpandableEventGrid from './ExpandableEventGrid';
 interface Props {
   filters: FeedFilters;
   profileInterests: string[];
-  hideCategory?: boolean;
   onAttend: (id: string) => void;
   onParticipantClick?: (p: Participant) => void;
   onOpenGroupChat?: (e: Event) => void;
 }
 
 /** Filtered events, ranked by how many people you've crossed paths with are going. */
-const RecommendedSection = ({ filters, profileInterests, hideCategory = false, onAttend, onParticipantClick, onOpenGroupChat }: Props) => {
+const RecommendedSection = ({ filters, profileInterests, onAttend, onParticipantClick, onOpenGroupChat }: Props) => {
   const { events } = useEvents();
   const { crossedPathsWith } = useActivityHistory();
   const [showAll, setShowAll] = useState(false);
@@ -57,7 +56,6 @@ const RecommendedSection = ({ filters, profileInterests, hideCategory = false, o
         ) : showAll ? (
           <ExpandableEventGrid
             events={shown}
-            hideCategory={hideCategory}
             onAttend={onAttend}
             onParticipantClick={onParticipantClick}
             onOpenGroupChat={onOpenGroupChat}
@@ -65,7 +63,6 @@ const RecommendedSection = ({ filters, profileInterests, hideCategory = false, o
         ) : (
           <EventCarousel
             events={shown}
-            hideCategory={hideCategory}
             onAttend={onAttend}
             onParticipantClick={onParticipantClick}
             onOpenGroupChat={onOpenGroupChat}

@@ -18,13 +18,12 @@ interface Props {
   interests?: string[];
   /** The home feed's shared filters. When given, the section follows them instead of its own chips. */
   feedFilters?: FeedFilters;
-  hideCategory?: boolean;
 }
 
 // Spread trending one-off events across the next 7–14 days.
 const TRENDING_OFFSETS = [3, 5, 7, 10, 12, 14, 16, 18, 20, 22].map(d => d * 24 * 60 * 60 * 1000);
 
-const PopularTrendingSection = ({ onAttend, onParticipantClick, onOpenGroupChat, guest = false, interests = [], feedFilters, hideCategory = false }: Props) => {
+const PopularTrendingSection = ({ onAttend, onParticipantClick, onOpenGroupChat, guest = false, interests = [], feedFilters }: Props) => {
   const { events: mockEvents } = useEvents();
   const trendingEvents: Event[] = useMemo(() => {
     const now = Date.now();
@@ -87,7 +86,6 @@ const PopularTrendingSection = ({ onAttend, onParticipantClick, onOpenGroupChat,
               onParticipantClick={onParticipantClick}
               onOpenGroupChat={onOpenGroupChat}
               guest={guest}
-              hideCategory={hideCategory}
             />
           ) : (
             <EventCarousel
@@ -96,7 +94,6 @@ const PopularTrendingSection = ({ onAttend, onParticipantClick, onOpenGroupChat,
               onParticipantClick={onParticipantClick}
               onOpenGroupChat={onOpenGroupChat}
               guest={guest}
-              hideCategory={hideCategory}
             />
           )}
         </div>

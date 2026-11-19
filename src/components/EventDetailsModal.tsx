@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Event, Participant } from '@/types/event';
-import { Calendar, Clock, MapPin, Users, Star, Check, MessageSquare, Heart, ArrowRight, Quote, Instagram, Linkedin, Mail, Lock, X, BadgeCheck, MessageCircle } from 'lucide-react';
+import { Calendar, Clock, MapPin, Star, Check, MessageSquare, Heart, ArrowRight, Quote, Instagram, Linkedin, Mail, Lock, X, BadgeCheck, MessageCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { useWishlist } from '@/context/WishlistContext';
 import { cn } from '@/lib/utils';
@@ -302,10 +302,6 @@ const EventDetailsModal = ({
           <section>
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-sm font-semibold text-foreground">Who's going</h3>
-              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                <Users className="h-3.5 w-3.5" />
-                {event.currentParticipants}/{event.maxParticipants}
-              </span>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {event.participants.map((p) => (

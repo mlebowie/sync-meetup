@@ -30,7 +30,6 @@ interface EventCardProps {
   onOpenGroupChat?: (event: Event) => void;
   guest?: boolean;
   /** Leave out the category pill, e.g. when the list is already filtered to one interest. */
-  hideCategory?: boolean;
 }
 
 function ordinal(n: number) {
@@ -53,7 +52,7 @@ export const sourceLabels: Record<string, string> = {
 };
 
 
-const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest = false, hideCategory = false }: EventCardProps) => {
+const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest = false }: EventCardProps) => {
   const navigate = useNavigate();
   const { isAttending: isAttendingFn, toggle: toggleAttending } = useAttending();
   const { ensureGroupChat } = useSocial();
@@ -149,15 +148,9 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
     >
       {/* Image / attendee photo carousel */}
       <EventPhotoCarousel eventId={event.id} fallbackUrl={event.imageUrl} alt={event.title}>
-        {/* Top pill: category only. Listing source and partner status are not shown on the card;
-            partner events surface through the Featured section and carousel order instead. */}
-        <div className="absolute top-3 left-3 right-14 flex items-center gap-2 flex-nowrap overflow-hidden">
-          {!hideCategory && (
-            <span className="min-w-0 truncate whitespace-nowrap px-2 py-1 rounded-md text-xs font-medium bg-card/95 text-card-foreground">
-              {event.category}
-            </span>
-          )}
-        </div>
+        {/* No top pills: listing source, partner status and category are not shown on the card.
+            Partners surface through the Featured section and carousel order; category is implied
+            by the interest filter (onboarding or the sticky bar). */}
 
         {/* Vibe badge */}
         <div className="absolute bottom-3 left-3 right-3 flex items-center gap-2 flex-nowrap overflow-hidden [&>span]:shrink-0 [&>span]:whitespace-nowrap">
@@ -282,7 +275,6 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
           <ParticipantAvatars
             participants={event.participants}
             maxVisible={4}
-            totalCount={event.currentParticipants}
             onParticipantClick={onParticipantClick}
           />
           {/* Attendee count (current/max) is organiser-only, planned for V2. */}

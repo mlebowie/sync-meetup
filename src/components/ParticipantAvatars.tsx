@@ -8,18 +8,15 @@ import {
 interface ParticipantAvatarsProps {
   participants: Participant[];
   maxVisible?: number;
-  totalCount?: number;
   onParticipantClick?: (participant: Participant) => void;
 }
 
 const ParticipantAvatars = ({
   participants,
   maxVisible = 4,
-  totalCount,
   onParticipantClick,
 }: ParticipantAvatarsProps) => {
   const visibleParticipants = participants.slice(0, maxVisible);
-  const remainingCount = (totalCount || participants.length) - maxVisible;
 
   return (
     <div className="flex items-center">
@@ -50,13 +47,6 @@ const ParticipantAvatars = ({
             </TooltipContent>
           </Tooltip>
         ))}
-        {remainingCount > 0 && (
-          <div className="relative w-8 h-8 rounded-full border-2 border-card bg-muted flex items-center justify-center">
-            <span className="text-xs font-semibold text-muted-foreground">
-              +{remainingCount}
-            </span>
-          </div>
-        )}
       </div>
     </div>
   );

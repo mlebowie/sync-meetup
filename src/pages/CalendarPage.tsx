@@ -181,9 +181,6 @@ const CalendarPage = () => {
                         {format(e.date, 'EEE, MMM d')} · {e.time}
                       </p>
                     </div>
-                    <span className="text-xs text-muted-foreground shrink-0 ml-3">
-                      {e.currentParticipants}/{e.maxParticipants}
-                    </span>
                   </li>
                 ))}
             </ul>

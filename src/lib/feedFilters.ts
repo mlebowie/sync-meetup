@@ -50,7 +50,6 @@ export const scopeName = (f: FeedFilters) =>
  * When exactly one interest is selected, every card on the page shares that
  * category, so cards drop their category pill.
  */
-export const hidesCategoryPill = (f: FeedFilters) => f.interests.length === 1;
 
 export const applyFeedFilters = (
   events: Event[],
