@@ -29,9 +29,11 @@ import { useActivityHistory } from '@/context/ActivityHistoryContext';
 import { getUserProfile, saveUserProfile } from '@/lib/userProfile';
 import { DEFAULT_FEED_FILTERS, FeedFilters } from '@/lib/feedFilters';
 import { getReflectionCandidate } from '@/lib/reflection';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSearch } from '@/context/SearchContext';
 import { useAttending } from '@/context/AttendingContext';
+import EventCard from '@/components/EventCard';
+import { getPendingIntent } from '@/lib/pendingIntent';
 
 const Index = () => {
   const { toast } = useToast();
@@ -43,6 +45,19 @@ const Index = () => {
   const profile = getUserProfile();
   const isGuest = !profile;
   const { events } = useEvents();
+  // Just signed up from an event? Pin it at the top so its card can finish the
+  // action (register, tickets, waitlist), even if it isn't in the new feed.
+  const [resumeEventId] = useState(() => getPendingIntent()?.eventId ?? null);
+  const resumeEvent = resumeEventId ? events.find(e => e.id === resumeEventId) ?? null : null;
+
+  // Safety net: back from Google sign-in on the home page (if /signup isn't an
+  // allowed redirect) with no interests yet — interests are required, so ask now.
+  const navigateHome = useNavigate();
+  useEffect(() => {
+    if (resumeEventId && profile && profile.interests.length === 0) {
+      navigateHome('/signup?via=google', { replace: true });
+    }
+  }, [resumeEventId, profile, navigateHome]);
 
   // One set of filters for the whole feed, edited from the pinned bar.
   const [feedFilters, setFeedFilters] = useState<FeedFilters>(DEFAULT_FEED_FILTERS);
@@ -187,6 +202,24 @@ const Index = () => {
         <>
           {/* 0) First-run tutorial banner */}
           <FeedSetupBanner interests={profileInterests} />
+
+          {resumeEvent && (
+            <section className="pt-6" aria-labelledby="resume-event-title">
+              <div className="container px-4 md:px-6">
+                <div className="max-w-md">
+                  <h2 id="resume-event-title" className="text-lg md:text-xl font-bold text-foreground mb-3">
+                    The event you picked
+                  </h2>
+                  <EventCard
+                    event={resumeEvent}
+                    onAttend={handleAttend}
+                    onParticipantClick={handleParticipantClick}
+                    onOpenGroupChat={handleOpenGroupChat}
+                  />
+                </div>
+              </div>
+            </section>
+          )}
 
           {/* 0b) Try your first event · Porto this month · Your activity log */}
           <MemberStartSection
