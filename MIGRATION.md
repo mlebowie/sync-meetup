@@ -154,3 +154,11 @@ where organizer_key = match_key('Dinnersmate Porto') order by updated_at desc;
 ## 16. Fisga agenda (weekly)
 
 `fisga` is a source read straight from https://www.fisga.space/en/agenda (no Firecrawl or AI): every upcoming event page with "In English" goes to Waiting with its description, photo and date. Fisga lists no start times, so each card is flagged "Start time not listed on Fisga's page; add it" and starts at 19:00 until edited. It runs Mondays at 06:10 UTC (`sync-collect-fisga`); to run it now: `select public.run_event_collector('fisga');`
+
+## 17. More sources for thin interests
+
+- `ma-to` (ma.to's Porto listings: all events, workshops, live music, this weekend) runs Mondays and Thursdays at 06:25 UTC (`sync-collect-ma-to`).
+- Focus `groups` reads six Meetup groups directly (LOOK.Sharp, Salsa Bachata Kizomba in Porto, Porto Future Tech, 351 Startup Association, Digital Nomads Porto, a weekly language exchange) every day at 06:20 UTC (`sync-collect-meetup-groups`). The languages runs also read three Porto language groups.
+- Events whose link is a listing page (an Agenda Porto section, a ma.to list) are keyed by title and day so they cannot overwrite each other, and are flagged to check price and time on the event's own page.
+
+Run once by hand: `select public.run_event_collector('meetup', 'groups'); select public.run_event_collector('ma-to');`

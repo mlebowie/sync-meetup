@@ -22,6 +22,7 @@ const MAX_PAGES: Record<SourceId, number> = {
   'agenda-porto': 9,
   'porto-coffee-week': 3,
   fisga: 1,
+  'ma-to': 4,
 };
 const MAX_CLASSIFY_PER_RUN = 40;
 /** A run can never outlive the edge time limit (150s), so a short lease is enough. */
@@ -37,12 +38,20 @@ const STOP_VERIFY_MS = 80_000; // per-event date checks are skipped after this
 const STOP_EVENTS_MS = 125_000; // no further events are saved after this (saving is quick)
 const STOP_LABELS_MS = 105_000; // AI labelling only starts before this
 
-type SourceId = 'eventbrite' | 'meetup' | 'luma' | 'agenda-porto' | 'porto-coffee-week' | 'fisga';
+type SourceId = 'eventbrite' | 'meetup' | 'luma' | 'agenda-porto' | 'porto-coffee-week' | 'fisga' | 'ma-to';
 
 const SOURCE_PAGES: Record<SourceId, string[]> = {
   // Fisga's community agenda (Warehouse, Rua de Santos Pousada). Read directly,
   // without Firecrawl or AI, once a week.
   fisga: ['https://www.fisga.space/en/agenda'],
+  // ma.to, where Porto venues post their own events: pop-ups, markets,
+  // workshops and gigs. Read twice a week.
+  'ma-to': [
+    'https://ma.to/events/porto',
+    'https://ma.to/events/porto/anytime/workshops',
+    'https://ma.to/events/porto/anytime/live-music',
+    'https://ma.to/events/porto/this-weekend',
+  ],
   eventbrite: [
     'https://www.eventbrite.com/d/portugal--porto/all-events/',
     'https://www.eventbrite.com/d/portugal--porto/events/?page=2',
@@ -92,8 +101,8 @@ const SOURCE_PAGES: Record<SourceId, string[]> = {
  * Themed runs: each focus has its own short page list so a single run stays
  * inside the edge time limit. Called with { sources: [...], focus: '...' }.
  */
-type Focus = 'general' | 'sports' | 'languages' | 'outdoors';
-const FOCUSES: Focus[] = ['general', 'sports', 'languages', 'outdoors'];
+type Focus = 'general' | 'sports' | 'languages' | 'outdoors' | 'groups';
+const FOCUSES: Focus[] = ['general', 'sports', 'languages', 'outdoors', 'groups'];
 
 const THEMED_PAGES: Record<Exclude<Focus, 'general'>, Partial<Record<SourceId, string[]>>> = {
   // Racket sports first, then other team and court sports.
@@ -117,10 +126,26 @@ const THEMED_PAGES: Record<Exclude<Focus, 'general'>, Partial<Record<SourceId, s
       'https://www.meetup.com/find/?location=pt--Porto&source=EVENTS&keywords=language%20exchange&distance=tenMiles',
       'https://www.meetup.com/find/?location=pt--Porto&source=EVENTS&keywords=portuguese%20conversation&distance=tenMiles',
       'https://www.meetup.com/find/?location=pt--Porto&source=EVENTS&keywords=language%20cafe%20tandem&distance=tenMiles',
+      // Porto language groups, read directly.
+      'https://www.meetup.com/porto-language-culture-meetup/events/',
+      'https://www.meetup.com/learning-portuguese/events/',
+      'https://www.meetup.com/portuguese-language-culture/events/',
     ],
     eventbrite: [
       'https://www.eventbrite.com/d/portugal--porto/language-exchange/',
       'https://www.eventbrite.com/d/portugal--porto/language/',
+    ],
+  },
+  // Meetup groups that run regular events in thin interests: games, dance,
+  // tech and newcomer socials. Read daily, straight from each group's page.
+  groups: {
+    meetup: [
+      'https://www.meetup.com/looksharp/events/',
+      'https://www.meetup.com/salsa-bachata-kizomba-in-porto/events/',
+      'https://www.meetup.com/porto-future-tech/events/',
+      'https://www.meetup.com/351-the-portuguese-startup-association/events/',
+      'https://www.meetup.com/digitalnomadsporto/events/',
+      'https://www.meetup.com/meetup-group-bgohyoju/events/',
     ],
   },
   // Guided walks in Porto and short trips from Porto to nearby towns.
@@ -150,6 +175,7 @@ const LUMA_QUERIES: Record<Focus, string[]> = {
   ],
   languages: ['site:luma.com OR site:lu.ma Porto "language exchange" OR "language cafe" OR tandem'],
   outdoors: ['site:luma.com OR site:lu.ma Porto "walking tour" OR "guided walk" OR "day trip" OR hike'],
+  groups: [],
 };
 
 /**
@@ -529,9 +555,23 @@ function canonicalHost(host: string): string {
   return host.toLowerCase();
 }
 
+/** True when an event's link is a listing page rather than the event itself. */
+export function isListingUrl(source: SourceId, url: string | null | undefined): boolean {
+  if (!url) return false;
+  if (source === 'agenda-porto') return !/\/evento\//.test(url);
+  if (source === 'ma-to') return !/ma\.to\/event\//.test(url);
+  return false;
+}
+
 function sourceEventId(source: SourceId, raw: RawEvent): string | null {
   const url = raw.url?.trim();
   if (!url) return null;
+  // Several events read from one listing page share its link, so key them by
+  // title and day instead, or each would overwrite the last.
+  if (isListingUrl(source, url)) {
+    const day = raw.iso_date ?? raw.date_text ?? '';
+    return `${source}:${matchKey(raw.title).replace(/ /g, '-')}:${day}`.slice(0, 200);
+  }
   try {
     const u = new URL(url);
     return `${canonicalHost(u.host)}${u.pathname}`.replace(/\/$/, '').slice(0, 200);
@@ -1034,13 +1074,13 @@ Deno.serve(async (req) => {
   } catch {
     // no body — full run
   }
-  const allSources: SourceId[] = ['eventbrite', 'meetup', 'luma', 'agenda-porto', 'porto-coffee-week', 'fisga'];
-  // Fisga runs only when asked for by name (its weekly schedule).
+  const allSources: SourceId[] = ['eventbrite', 'meetup', 'luma', 'agenda-porto', 'porto-coffee-week', 'fisga', 'ma-to'];
+  // Fisga and ma.to run only when asked for by name (their own schedules).
   const sourceIds: SourceId[] = paused
     ? ['eventbrite']
     : requested.length
       ? allSources.filter((s) => requested.includes(s))
-      : allSources.filter((s) => s !== 'fisga');
+      : allSources.filter((s) => s !== 'fisga' && s !== 'ma-to');
 
   RUN_STARTED.at = Date.now();
 
@@ -1256,7 +1296,10 @@ Deno.serve(async (req) => {
               : match?.kind === 'organiser'
                 ? `${raw.organizer?.trim()} has published events; Edit → Published descriptions to reuse one`
                 : null;
-          const reviewNote = [dateNote, raw.review_hint, templateNote].filter(Boolean).join(' · ') || null;
+          const linkNote = isListingUrl(source, raw.url)
+            ? "Link goes to a listing page, not the event's own page; check price and time there"
+            : null;
+          const reviewNote = [dateNote, raw.review_hint, linkNote, templateNote].filter(Boolean).join(' · ') || null;
           const row = {
             source,
             source_event_id: id,
