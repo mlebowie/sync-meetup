@@ -59,6 +59,6 @@ export function sharedEventsLabel(count: number): string {
   return count === 1 ? 'Met at 1 event' : `Met at ${count} events`;
 }
 
-/** "Priya N." → "PN", for avatar fallbacks. */
+/** "Priya N." → "PN", for avatar fallbacks. Skips tokens like "(host)". */
 export const initials = (name: string) =>
-  name.split(/\s+/).map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
+  name.split(/\s+/).filter(w => /^\p{L}/u.test(w)).map(w => w[0]).slice(0, 2).join('').toUpperCase();

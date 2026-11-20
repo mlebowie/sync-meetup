@@ -3,6 +3,8 @@ import { Event, Participant } from '@/types/event';
 import { seedGroupChat, getIcebreaker } from '@/lib/groupChatSeed';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { initials } from '@/lib/invites';
 import { Input } from '@/components/ui/input';
 import { useSocial } from '@/context/SocialContext';
 import { Send, Sparkles, Image as ImageIcon, Clock, AlarmClock } from 'lucide-react';
@@ -155,7 +157,10 @@ const EventGroupChatDialog = ({ event, open, onOpenChange }: Props) => {
                 <div key={m.id} className={`flex gap-2 ${isMe ? 'flex-row-reverse' : ''}`}>
                   {!isMe && (
                     <button type="button" onClick={openProfile} className="shrink-0 rounded-full focus:outline-none focus:ring-2 focus:ring-primary">
-                      <img src={m.authorAvatar} alt={m.authorName} className="w-7 h-7 rounded-full object-cover" />
+                      <Avatar className="h-7 w-7">
+                        <AvatarImage src={m.authorAvatar || undefined} alt={m.authorName} className="object-cover" />
+                        <AvatarFallback className="text-[10px] font-semibold bg-secondary text-secondary-foreground">{initials(m.authorName)}</AvatarFallback>
+                      </Avatar>
                     </button>
                   )}
                   <div className={`max-w-[75%] ${isMe ? 'items-end' : 'items-start'} flex flex-col`}>
