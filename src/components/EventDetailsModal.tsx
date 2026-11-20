@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Event, Participant } from '@/types/event';
-import { Star, MessageSquare, Heart, Quote, Instagram, Linkedin, Mail, Lock, MessageCircle, Forward, ExternalLink } from 'lucide-react';
+import { Star, MessageSquare, Heart, Quote, Instagram, Linkedin, Mail, Lock, MessageCircle, Forward, ExternalLink, Ticket } from 'lucide-react';
 import { format } from 'date-fns';
 import { useWishlist } from '@/context/WishlistContext';
 import { cn } from '@/lib/utils';
@@ -35,6 +35,10 @@ interface EventDetailsModalProps {
   isAttending: boolean;
   cancelArmed?: boolean;
   onAttend: () => void;
+  /** Label for the main button (e.g. "Register", "Get tickets"), from the card. */
+  primaryLabel?: string;
+  /** Price shown on the photo, e.g. "€15" or "Free". */
+  priceLabel?: string;
   onOpenGroupChat?: (event: Event) => void;
   onParticipantClick?: (participant: Participant) => void;
   guest?: boolean;
@@ -68,7 +72,7 @@ function syntheticTestimonials(event: Event) {
 }
 
 const EventDetailsModal = ({
-  event, open, onOpenChange, isAttending, cancelArmed = false, onAttend, onOpenGroupChat, onParticipantClick, guest = false,
+  event, open, onOpenChange, isAttending, cancelArmed = false, onAttend, primaryLabel, priceLabel, onOpenGroupChat, onParticipantClick, guest = false,
 }: EventDetailsModalProps) => {
   const { isWishlisted, toggle: toggleWishlist } = useWishlist();
   const { friendScore, ratingCount } = useEventRatings();
@@ -115,6 +119,12 @@ const EventDetailsModal = ({
               >
                 {friendScore(event.id)}% would bring a friend · {ratingCount(event.id)} ratings
               </button>
+            )}
+            {priceLabel && (
+              <span className="flex items-center gap-1.5 h-7 px-3 rounded-full text-xs font-bold bg-event-card text-primary-text">
+                <Ticket className="h-3.5 w-3.5" aria-hidden="true" />
+                {priceLabel}
+              </span>
             )}
           </div>
           {/* Title + date, time and venue over the photo, in cream */}
@@ -317,7 +327,7 @@ const EventDetailsModal = ({
                 className="flex-1 h-9 text-sm font-medium shadow-none"
                 onClick={onAttend}
               >
-                {isAttending ? (cancelArmed ? 'Cancel registration?' : 'Attending') : 'Register'}
+                {primaryLabel ?? (isAttending ? (cancelArmed ? 'Cancel registration?' : 'Attending') : 'Register')}
               </Button>
               <button
                 type="button"

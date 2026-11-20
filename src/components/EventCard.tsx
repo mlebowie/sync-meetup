@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Event, Participant } from '@/types/event';
-import { MessageSquare, Heart, TrendingUp, UserPlus, Forward } from 'lucide-react';
+import { MessageSquare, Heart, TrendingUp, UserPlus, Forward, Ticket } from 'lucide-react';
 import { format } from 'date-fns';
 import ParticipantAvatars from './ParticipantAvatars';
 import OrganizerPopover from './OrganizerPopover';
@@ -24,6 +24,9 @@ import { cn } from '@/lib/utils';
 import { Calendar06, Clock01, Marker02 } from './icons/StratisIcons';
 import { useToast } from '@/hooks/use-toast';
 import { shareEvent } from '@/lib/shareEvent';
+import { priceInfo, isPaid } from '@/lib/price';
+import { ticketUrl, isTicketPending, setTicketPending } from '@/lib/ticketing';
+import TicketSheet from './TicketSheet';
 import { startTime24 } from '@/lib/startTime';
 
 interface EventCardProps {
@@ -63,6 +66,15 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
   const [cancelArmed, setCancelArmed] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [ticketOpen, setTicketOpen] = useState(false);
+  const [ticketPending, setPendingState] = useState(() => isTicketPending(event.id));
+  const price = priceInfo(event.priceLabel);
+  // Paid events with a ticket link go through "Get tickets" instead of registering in one tap.
+  const paid = isPaid(price) && !!ticketUrl(event);
+  const markTicketPending = (pending: boolean) => {
+    setTicketPending(event.id, pending);
+    setPendingState(pending);
+  };
   const { getInvited } = useInvites();
   const armTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const chatTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -72,6 +84,9 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
   const wishlisted = isWishlisted(event.id);
   const familiarCount = guest ? 0 : event.participants.filter(p => crossedPathsWith(p.id) > 0).length;
   const isFull = event.currentParticipants >= event.maxParticipants;
+  const primaryLabel = isAttending
+    ? (cancelArmed ? 'Cancel registration?' : 'Attending')
+    : isFull ? 'Join Waitlist' : paid ? 'Get tickets' : 'Register';
 
   const disarmCancel = () => {
     if (armTimer.current) clearTimeout(armTimer.current);
@@ -112,6 +127,15 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
       }
       return;
     }
+    if (paid) {
+      setTicketOpen(true);
+      return;
+    }
+    registerAttendance();
+  };
+
+  /** Marks the person as going and opens the confirmation (and, after 10s, the group chat). */
+  const registerAttendance = () => {
     toggleAttending(event.id);
     onAttend?.(event.id);
     ensureGroupChat(event.id, seedGroupChat(event));
@@ -179,6 +203,13 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
               className="h-7 w-7 rounded-full bg-sage-deep text-event-card flex items-center justify-center"
             >
               <TrendingUp className="h-3.5 w-3.5" aria-hidden="true" />
+            </span>
+          )}
+          {/* Price (Figma option B): cream tag on the photo, right-aligned */}
+          {price && (
+            <span className="ml-auto flex items-center gap-1.5 h-7 px-3 rounded-full text-xs font-bold bg-event-card text-primary-text">
+              <Ticket className="h-3.5 w-3.5" aria-hidden="true" />
+              {price.label}
             </span>
           )}
         </div>
@@ -279,7 +310,38 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
           </div>
         </div>
 
-        {/* Actions (Figma "Primary Action - Register"): secondary left, primary right, no icons */}
+        {/* Back from the ticket site (Figma "2 · Back on SYNC"): ask once, in place of the buttons */}
+        {paid && ticketPending && !isAttending && !guest ? (
+          <div className="mt-4 md:mt-5 rounded-xl border border-sage bg-sage/20 px-4 py-3.5 flex flex-col gap-2.5">
+            <p className="font-display text-[15px] font-semibold text-foreground">Got your ticket?</p>
+            <p className="text-[13px] leading-relaxed text-muted-foreground">
+              Mark yourself as going to join the group chat and see who else will be there.
+            </p>
+            <div className="flex gap-2.5">
+              <Button
+                variant="outline"
+                className="flex-1 h-9 text-sm font-medium bg-peach border-primary-text text-primary-text hover:bg-peach hover:brightness-95 hover:text-primary-text"
+                onClick={(e) => { e.stopPropagation(); markTicketPending(false); }}
+              >
+                Not yet
+              </Button>
+              <Button
+                className="flex-1 h-9 text-sm font-medium shadow-none"
+                onClick={(e) => { e.stopPropagation(); markTicketPending(false); registerAttendance(); }}
+              >
+                I'm going
+              </Button>
+            </div>
+            <button
+              type="button"
+              className="self-center text-sm font-semibold text-primary-text hover:underline underline-offset-2"
+              onClick={(e) => { e.stopPropagation(); setTicketOpen(true); }}
+            >
+              Open the ticket site again
+            </button>
+          </div>
+        ) : (
+        /* Actions (Figma "Primary Action - Register"): secondary left, primary right, no icons */
         <div className="mt-4 md:mt-5 flex gap-2.5" onMouseLeave={disarmCancel}>
           <Button
             variant="outline"
@@ -294,7 +356,7 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
             onClick={handleAttend}
             onBlur={() => cancelArmed && disarmCancel()}
           >
-            {isAttending ? (cancelArmed ? 'Cancel registration?' : 'Attending') : isFull ? 'Join Waitlist' : 'Register'}
+            {primaryLabel}
           </Button>
 
           {isAttending && onOpenGroupChat && (
@@ -309,6 +371,7 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
             </Button>
           )}
         </div>
+        )}
 
         {/* Invite friends, once you're going */}
         {isAttending && !guest && (
@@ -329,6 +392,13 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
       <AttendConfirmationDialog event={event} open={confirmOpen} onOpenChange={setConfirmOpen} onEngage={cancelAutoChat} />
       <InviteFriendsDialog event={event} open={inviteOpen} onOpenChange={setInviteOpen} />
       <WaitlistDialog event={event} open={waitlistOpen} onOpenChange={setWaitlistOpen} />
+      <TicketSheet
+        event={event}
+        price={price}
+        open={ticketOpen}
+        onOpenChange={setTicketOpen}
+        onContinue={() => { markTicketPending(true); setDetailsOpen(false); }}
+      />
       <CancelRegistrationDialog
         event={event}
         open={cancelOpen}
@@ -343,6 +413,8 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
         isAttending={isAttending}
         cancelArmed={cancelArmed}
         onAttend={handleAttend}
+        primaryLabel={primaryLabel}
+        priceLabel={price?.label}
         onOpenGroupChat={onOpenGroupChat}
         onParticipantClick={onParticipantClick}
         guest={guest}
