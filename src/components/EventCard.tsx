@@ -23,10 +23,13 @@ import { seedGroupChat } from '@/lib/groupChatSeed';
 import { cn } from '@/lib/utils';
 import { Calendar06, Clock01, Marker02 } from './icons/StratisIcons';
 import { useToast } from '@/hooks/use-toast';
+import { getUserProfile } from '@/lib/userProfile';
 import { shareEvent } from '@/lib/shareEvent';
 import { priceInfo, isPaid } from '@/lib/price';
 import { ticketUrl, isTicketPending, setTicketPending } from '@/lib/ticketing';
 import TicketSheet from './TicketSheet';
+import SignupSheet from './SignupSheet';
+import { takePendingIntent, IntentAction } from '@/lib/pendingIntent';
 import { startTime24 } from '@/lib/startTime';
 
 interface EventCardProps {
@@ -67,6 +70,7 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
   const [cancelOpen, setCancelOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [ticketOpen, setTicketOpen] = useState(false);
+  const [signupAction, setSignupAction] = useState<IntentAction | null>(null);
   const [ticketPending, setPendingState] = useState(() => isTicketPending(event.id));
   const price = priceInfo(event.priceLabel);
   // Paid events with a ticket link go through "Get tickets" instead of registering in one tap.
@@ -80,6 +84,7 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
   const chatTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { crossedPathsWith } = useActivityHistory();
   const { toast } = useToast();
+  const cardRef = useRef<HTMLDivElement>(null);
   const { isWishlisted, toggle: toggleWishlist } = useWishlist();
   const wishlisted = isWishlisted(event.id);
   const familiarCount = guest ? 0 : event.participants.filter(p => crossedPathsWith(p.id) > 0).length;
@@ -104,12 +109,38 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
     if (chatTimer.current) clearTimeout(chatTimer.current);
   }, []);
 
+  // Just signed up from this event? Finish what they started: register,
+  // open the ticket sheet or join the waitlist.
+  useEffect(() => {
+    if (guest) return;
+    const intent = takePendingIntent(event.id);
+    if (!intent) return;
+    const name = getUserProfile()?.firstName;
+    const t = setTimeout(() => {
+      cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (intent.action === 'tickets' && paid) {
+        toast({ title: name ? `Welcome to SYNC, ${name}` : 'Welcome to SYNC', description: 'Next, get your tickets.' });
+        setTicketOpen(true);
+      } else if (intent.action === 'waitlist' || (isFull && !isAttending)) {
+        toast({ title: name ? `Welcome to SYNC, ${name}` : 'Welcome to SYNC' });
+        setWaitlistOpen(true);
+      } else if (!isAttending) {
+        toast({ title: name ? `Welcome to SYNC, ${name}` : 'Welcome to SYNC', description: `You're registered for ${event.title}.` });
+        registerAttendance();
+      }
+    }, 400);
+    return () => clearTimeout(t);
+    // Runs once when this card first renders for a signed-in member.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [guest, event.id]);
+
   // Reset the armed state if the user leaves the event (or re-joins elsewhere)
   useEffect(() => { if (!isAttending) disarmCancel(); }, [isAttending]);
 
   const handleAttend = () => {
     if (guest) {
-      navigate('/onboarding');
+      // Ask for an account first, right here on the event (Figma G1/G2).
+      setSignupAction(isFull ? 'waitlist' : paid ? 'tickets' : 'register');
       return;
     }
     if (isFull && !isAttending) {
@@ -167,6 +198,7 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
 
   return (
     <div
+      ref={cardRef}
       className="group bg-event-card text-event-card-foreground rounded-2xl shadow-card hover:shadow-card-hover transition-all duration-300 overflow-hidden"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -392,6 +424,15 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
       <AttendConfirmationDialog event={event} open={confirmOpen} onOpenChange={setConfirmOpen} onEngage={cancelAutoChat} />
       <InviteFriendsDialog event={event} open={inviteOpen} onOpenChange={setInviteOpen} />
       <WaitlistDialog event={event} open={waitlistOpen} onOpenChange={setWaitlistOpen} />
+      {signupAction && (
+        <SignupSheet
+          event={event}
+          action={signupAction}
+          priceLabel={price?.label}
+          open={!!signupAction}
+          onOpenChange={(o) => { if (!o) setSignupAction(null); }}
+        />
+      )}
       <TicketSheet
         event={event}
         price={price}

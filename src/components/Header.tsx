@@ -80,7 +80,7 @@ const Header = ({ onOpenMessages }: HeaderProps) => {
                 <Link to="/login">Log in</Link>
               </Button>
               <Button variant="hero" size="sm" asChild>
-                <Link to="/onboarding">Register</Link>
+                <Link to="/signup">Register</Link>
               </Button>
             </>
           ) : (

@@ -10,6 +10,7 @@ import Profile from "./pages/Profile";
 import Connections from "./pages/Connections";
 import CalendarPage from "./pages/CalendarPage";
 import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 import CuratePage from "./pages/CuratePage";
 import AuthProfileSync from "./components/AuthProfileSync";
 import RequireProfile from "./components/RequireProfile";
@@ -47,6 +48,7 @@ const App = () => (
                   <Route path="/" element={<Index />} />
                   <Route path="/onboarding" element={<Onboarding />} />
                   <Route path="/login" element={<Login />} />
+                  <Route path="/signup" element={<Signup />} />
                   <Route path="/profile" element={<RequireProfile><Profile /></RequireProfile>} />
                   <Route path="/profile/connections" element={<RequireProfile><Connections /></RequireProfile>} />
                   <Route path="/calendar" element={<CalendarPage />} />

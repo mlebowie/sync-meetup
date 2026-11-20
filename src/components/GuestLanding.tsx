@@ -60,7 +60,7 @@ const GuestLanding = ({ onAttend, onParticipantClick }: Props) => {
                   Hand-picked gatherings in Porto. Grab a spot before they fill up.
                 </p>
               </div>
-              <Link to="/onboarding">
+              <Link to="/signup">
                 <Button variant="hero">
                   Create account
                   <ArrowRight className="ml-2 h-4 w-4" />
@@ -132,9 +132,9 @@ const GuestLanding = ({ onAttend, onParticipantClick }: Props) => {
               </span>
             </div>
 
-            <Link to="/onboarding">
+            <Link to="/signup">
               <Button variant="hero" size="xl">
-                Create account & add interests
+                Create a free account
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>

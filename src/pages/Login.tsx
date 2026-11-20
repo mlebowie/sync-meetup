@@ -182,8 +182,8 @@ const Login = () => {
             </Button>
             <p className="text-sm text-muted-foreground text-center">
               New here?{' '}
-              <Link to="/onboarding" className="text-primary font-medium hover:underline">
-                Create a profile
+              <Link to="/signup" className="text-primary font-medium hover:underline">
+                Create an account
               </Link>
             </p>
           </form>

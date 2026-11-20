@@ -317,8 +317,8 @@ const EventDetailsModal = ({
         {/* Sticky CTAs (Figma): full-width Register, message pill, heart, share */}
         <div className="shrink-0 border-t border-sage/40 bg-event-card px-5 md:px-6 py-3 flex items-center gap-2.5">
           {guest ? (
-            <Button className="flex-1 h-9 text-sm font-medium shadow-none" onClick={() => onOpenChange(false)}>
-              Sign up to attend
+            <Button className="flex-1 h-9 text-sm font-medium shadow-none" onClick={onAttend}>
+              {primaryLabel ?? 'Register'}
             </Button>
           ) : (
             <>
