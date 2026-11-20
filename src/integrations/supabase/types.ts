@@ -163,6 +163,7 @@ export type Database = {
           venue_name: string | null
           whatsapp_url: string | null
           women_only: boolean
+          good_first_event: boolean
         }
         Insert: {
           activity_level?: string | null
@@ -210,6 +211,7 @@ export type Database = {
           venue_name?: string | null
           whatsapp_url?: string | null
           women_only?: boolean
+          good_first_event?: boolean
         }
         Update: {
           activity_level?: string | null
@@ -257,6 +259,7 @@ export type Database = {
           venue_name?: string | null
           whatsapp_url?: string | null
           women_only?: boolean
+          good_first_event?: boolean
         }
         Relationships: []
       }

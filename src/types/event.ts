@@ -96,6 +96,8 @@ export interface Event {
   /** How often the series repeats. */
   recurrence?: Recurrence;
   womenOnly?: boolean;
+  /** Marked in Curate as a good first event: low-key and open to everyone. */
+  goodFirstEvent?: boolean;
   lgbtqFriendly?: boolean;
   petFriendly?: boolean;
   trending?: boolean;

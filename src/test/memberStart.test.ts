@@ -38,41 +38,65 @@ describe('neighbourhoodOf', () => {
 });
 
 describe('pickFirstEvent', () => {
-  it('puts coffee meetups and coworking ahead of other chill events', () => {
-    const chillYoga = ev({ id: 'yoga', tags: ['yoga'], vibe: 'chill', groupSize: 'small', date: new Date(NOW + DAY) });
-    const coffee = ev({ id: 'coffee', title: 'Coffee for people new to Porto', vibe: 'social', date: new Date(NOW + 3 * DAY) });
-    expect(pickFirstEvent([chillYoga, coffee], ['health-wellness'], () => false, NOW)?.id).toBe('coffee');
+  const pick = (events: Event[]) => pickFirstEvent(events, [], () => false, NOW)?.id ?? null;
+
+  it('picks general, low-key formats: coffee, meditation, walks', () => {
+    expect(pick([ev({ id: 'c', title: 'Coffee for people new to Porto', vibe: 'social' })])).toBe('c');
+    expect(pick([ev({ id: 'm', title: 'Guided meditation in the park', vibe: 'chill' })])).toBe('m');
+    expect(pick([ev({ id: 'w', title: 'Sunday walk along the Douro', vibe: 'chill' })])).toBe('w');
   });
 
-  it('accepts coworking even when the vibe is social', () => {
-    const cowork = ev({ id: 'cowork', title: 'Friday coworking at Selina', vibe: 'social' });
-    expect(pickFirstEvent([cowork], [], () => false, NOW)?.id).toBe('cowork');
+  it('puts chill events first', () => {
+    const social = ev({ id: 'social', title: 'Coffee meetup', vibe: 'social', date: new Date(NOW + DAY) });
+    const chill = ev({ id: 'chill', title: 'Morning walk', vibe: 'chill', date: new Date(NOW + 3 * DAY) });
+    expect(pick([social, chill])).toBe('chill');
   });
 
-  it('never suggests women-only, Expat Girls or age-limited events', () => {
-    const events = [
-      ev({ id: 'flag', title: 'Coffee morning', vibe: 'chill', womenOnly: true }),
-      ev({ id: 'eg', title: 'Breathwork & yoga', vibe: 'chill', source: 'expat-girls-porto' }),
-      ev({ id: 'ladies', title: 'Ladies coffee club', vibe: 'chill' }),
-      ev({ id: 'age', title: 'Coffee & chat (25-40 years)', vibe: 'chill' }),
-      ev({ id: 'plus', title: 'Cowork session 30+', vibe: 'chill' }),
-    ];
-    expect(pickFirstEvent(events, [], () => false, NOW)).toBeNull();
+  it('skips the Expat Girls event as it is stored live (partner source, organiser name)', () => {
+    const expatGirls = ev({
+      id: 'eg',
+      title: 'Air Up: Breathwork, Yoga & Aerial Yoga',
+      description: 'Start your Saturday with guided breathwork and a mindful yoga flow.',
+      source: 'partner',
+      vibe: 'chill',
+      organizer: { id: 'org-eg', name: 'Expat Girls Porto' } as Event['organizer'],
+    });
+    const coffeeByEg = ev({
+      id: 'eg-coffee',
+      title: 'Coffee morning',
+      vibe: 'chill',
+      source: 'partner',
+      organizer: { id: 'org-eg', name: 'Expat Girls Porto' } as Event['organizer'],
+    });
+    expect(pick([expatGirls, coffeeByEg])).toBeNull();
   });
 
-  it('ignores lively or social events that are not coffee or coworking', () => {
-    const party = ev({ id: 'party', title: 'Salsa night', vibe: 'lively' });
-    const drinks = ev({ id: 'drinks', title: 'After-work drinks', vibe: 'social' });
-    expect(pickFirstEvent([party, drinks], [], () => false, NOW)).toBeNull();
+  it('skips events tied to a specific interest, even when chill', () => {
+    expect(pick([ev({ title: 'Slow flow yoga', vibe: 'chill' })])).toBeNull();
+    expect(pick([ev({ title: 'Founders coffee & pitch practice', vibe: 'chill' })])).toBeNull();
+    expect(pick([ev({ title: 'Walk & run club', vibe: 'chill' })])).toBeNull();
+  });
+
+  it('skips lively events and anything without a general format', () => {
+    expect(pick([ev({ title: 'Coffee rave', vibe: 'lively' })])).toBeNull();
+    expect(pick([ev({ title: 'Board game night', vibe: 'chill' })])).toBeNull();
+  });
+
+  it('skips women-only and age-limited events', () => {
+    expect(pick([ev({ title: 'Coffee morning', vibe: 'chill', womenOnly: true })])).toBeNull();
+    expect(pick([ev({ title: 'Ladies coffee club', vibe: 'chill' })])).toBeNull();
+    expect(pick([ev({ title: 'Coffee & chat (25-40 years)', vibe: 'chill' })])).toBeNull();
+    expect(pick([ev({ title: 'Meditation 30+', vibe: 'chill' })])).toBeNull();
   });
 
   it('skips past, full, joined and far-off events', () => {
+    const base = { title: 'Coffee meetup', vibe: 'chill' as const };
     const events = [
-      ev({ id: 'past', vibe: 'chill', date: new Date(NOW - DAY) }),
-      ev({ id: 'full', vibe: 'chill', currentParticipants: 20 }),
-      ev({ id: 'joined', vibe: 'chill' }),
-      ev({ id: 'far', vibe: 'chill', date: new Date(NOW + 30 * DAY) }),
-      ev({ id: 'ok', vibe: 'chill' }),
+      ev({ ...base, id: 'past', date: new Date(NOW - DAY) }),
+      ev({ ...base, id: 'full', currentParticipants: 20 }),
+      ev({ ...base, id: 'joined' }),
+      ev({ ...base, id: 'far', date: new Date(NOW + 30 * DAY) }),
+      ev({ ...base, id: 'ok' }),
     ];
     expect(pickFirstEvent(events, [], id => id === 'joined', NOW)?.id).toBe('ok');
   });
@@ -108,5 +132,18 @@ describe('activitySteps', () => {
     const { steps, attended } = activitySteps([a, b], 2, NOW);
     expect(steps.map(s => s.done)).toEqual([true, true, true]);
     expect(attended[0]).toBe(b);
+  });
+});
+
+describe('Good first event (Curate)', () => {
+  it('lets a marked event qualify and puts it ahead of keyword matches', () => {
+    const coffee = ev({ id: 'coffee', title: 'Coffee meetup', vibe: 'chill', date: new Date(NOW + DAY) });
+    const marked = ev({ id: 'marked', title: 'Board game afternoon', vibe: 'social', goodFirstEvent: true, date: new Date(NOW + 5 * DAY) });
+    expect(pickFirstEvent([coffee, marked], [], () => false, NOW)?.id).toBe('marked');
+  });
+
+  it('still never suggests a marked event flagged women only', () => {
+    const marked = ev({ title: 'Coffee morning', goodFirstEvent: true, womenOnly: true });
+    expect(pickFirstEvent([marked], [], () => false, NOW)).toBeNull();
   });
 });

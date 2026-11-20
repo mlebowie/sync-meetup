@@ -49,6 +49,7 @@ interface Row {
   women_only: boolean | null;
   lgbtq_friendly: boolean | null;
   pet_friendly: boolean | null;
+  good_first_event: boolean | null;
   recurrence: string | null;
   series_key: string | null;
   repeat_until: string | null;
@@ -80,6 +81,7 @@ const FLAG_LABELS: { key: keyof EventFlags; label: string }[] = [
   { key: 'women_only', label: 'Women only' },
   { key: 'lgbtq_friendly', label: 'LGBTQ+ friendly' },
   { key: 'pet_friendly', label: 'Pet friendly' },
+  { key: 'good_first_event', label: 'Good first event' },
 ];
 
 const SOURCE_LABELS: Record<string, string> = {
@@ -320,6 +322,10 @@ const CuratePage = () => {
       women_only: !!draft.women_only,
       lgbtq_friendly: !!draft.lgbtq_friendly,
       pet_friendly: !!draft.pet_friendly,
+      // Only sent once the column exists (it then loads with the row) or it's switched on.
+      ...(draft.good_first_event !== undefined && draft.good_first_event !== null
+        ? { good_first_event: !!draft.good_first_event }
+        : {}),
       title: draft.title,
       description: draft.description,
       category: draft.category,
@@ -711,6 +717,7 @@ const CuratePage = () => {
                               women_only: !!draft.women_only,
                               lgbtq_friendly: !!draft.lgbtq_friendly,
                               pet_friendly: !!draft.pet_friendly,
+                              good_first_event: !!draft.good_first_event,
                             }}
                             onChange={(flags) => setDraft((d) => ({ ...d, ...flags }))}
                           />

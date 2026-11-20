@@ -85,7 +85,7 @@ const MemberStartSection = ({ profileInterests, onAttend, onParticipantClick, on
               />
             ) : (
               <div className="rounded-2xl bg-card p-6 text-sm text-muted-foreground">
-                No coffee meetups, coworking or chill events open to everyone in the next two weeks yet. New events land every day.
+                No coffee meetups, walks or meditation sessions open to everyone in the next two weeks yet. New events land every day.
               </div>
             )}
           </div>
