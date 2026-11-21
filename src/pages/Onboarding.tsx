@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Camera, Sparkles } from 'lucide-react';
+import { Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -104,7 +104,6 @@ const Onboarding = () => {
   const socialStyle = completePreferences ? determineSocialStyle(completePreferences) : undefined;
   const styleDetails = socialStyle ? SOCIAL_STYLE_DETAILS[socialStyle] : undefined;
   const currentQuestion = step < QUESTIONS.length ? QUESTIONS[step] : undefined;
-  const progress = Math.round(((step + 1) / 6) * 100);
 
   const interestsById = useMemo(
     () => new Map(ONBOARDING_INTERESTS.map(interest => [interest.id, interest])),
@@ -214,8 +213,8 @@ const Onboarding = () => {
     navigate('/', { replace: true });
   };
 
-  // Progress runs across the three questions, the result and the interests step.
-  const flowProgress = [20, 40, 60, 80, 100][step] ?? 100;
+  // Progress runs across every onboarding step: three questions, result, interests, profile.
+  const flowProgress = [17, 33, 50, 67, 83, 100][step] ?? 100;
   const flowTop = (
     <>
       <header className="mb-6 flex justify-center">
@@ -357,28 +356,11 @@ const Onboarding = () => {
   }
 
   return (
-    <main className={cn('min-h-screen', step === 4 ? 'bg-[#FCFAF3]' : 'bg-background')}>
+    <main className="min-h-screen bg-[#FCFAF3] font-sans text-[#57514D]">
       <div className="mx-auto w-full max-w-2xl px-4 py-6 sm:px-6 sm:py-10">
-        {step === 4 ? flowTop : (<>
-        <header className="mb-8 flex items-center justify-between">
-          <Button type="button" variant="ghost" size="sm" onClick={leaveOnboarding} className="-ml-3">
-            <ArrowLeft aria-hidden="true" /> Guest view
-          </Button>
-          <span className="text-sm font-semibold text-primary">SYNC</span>
-        </header>
+        {flowTop}
 
-        <div className="mb-8" aria-label={`Onboarding progress: ${progress}%`}>
-          <div className="mb-2 flex items-center justify-between text-xs font-semibold text-muted-foreground">
-            <span>Your profile</span>
-            <span>{progress}%</span>
-          </div>
-          <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
-            <div className="h-full rounded-full bg-primary transition-[width] duration-300 motion-reduce:transition-none" style={{ width: `${progress}%` }} />
-          </div>
-        </div>
-        </>)}
-
-        <section className={cn(step === 5 && 'min-h-[520px]')} aria-live="polite">
+        <section aria-live="polite">
           {step === 4 && (
             <div className="animate-fade-in">
               <div className="mb-7 text-center">
@@ -419,12 +401,11 @@ const Onboarding = () => {
           {step === 5 && (
             <form id="profile-form" onSubmit={handleSubmit} className="animate-fade-in space-y-7">
               <div className="text-center">
-                <p className="mb-2 text-sm font-semibold uppercase text-primary">Last step</p>
                 <h1 className="font-display text-3xl font-light text-foreground sm:text-4xl">Create your profile</h1>
                 <p className="mt-3 text-sm text-muted-foreground">Tell people who they will be meeting in Porto.</p>
               </div>
 
-              <div className="flex items-center gap-5 rounded-lg border border-border bg-card p-4">
+              <div className="flex items-center gap-5 rounded-[20px] bg-white p-6 shadow-[0_2px_12px_-4px_rgba(49,35,27,0.10)]">
                 <Button type="button" variant="outline" size="icon" onClick={() => fileRef.current?.click()} className="h-20 w-20 shrink-0 overflow-hidden border-dashed" aria-label="Upload profile photo">
                   {photo ? <img src={photo} alt="Profile preview" className="h-full w-full object-cover" /> : <Camera className="h-6 w-6 text-muted-foreground" />}
                 </Button>
@@ -450,19 +431,18 @@ const Onboarding = () => {
           )}
         </section>
 
-        {step === 4 ? (
-          <div className="mt-8 flex flex-col items-center">
+        <div className="mt-8 flex flex-col items-center">
+          {step === 4 ? (
             <Button type="button" onClick={next} className={primaryCta}>
               Add my details
             </Button>
-            {backLink}
-          </div>
-        ) : (
-          <footer className="mt-8 flex items-center gap-3 border-t border-border pt-5">
-            <Button type="button" variant="ghost" onClick={back}><ArrowLeft aria-hidden="true" /> Back</Button>
-            <Button type="submit" form="profile-form" size="lg" className="ml-auto rounded-lg" disabled={submitting}><Sparkles aria-hidden="true" /> Finish onboarding</Button>
-          </footer>
-        )}
+          ) : (
+            <Button type="submit" form="profile-form" className={primaryCta} disabled={submitting}>
+              Finish onboarding
+            </Button>
+          )}
+          {backLink}
+        </div>
       </div>
     </main>
   );
