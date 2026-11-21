@@ -214,9 +214,35 @@ const Onboarding = () => {
     navigate('/', { replace: true });
   };
 
+  // Progress runs across the three questions, the result and the interests step.
+  const flowProgress = [20, 40, 60, 80, 100][step] ?? 100;
+  const flowTop = (
+    <>
+      <header className="mb-6 flex items-center justify-between">
+        <Button type="button" variant="ghost" size="sm" onClick={leaveOnboarding} className="-ml-3 text-[#57514D]">
+          <ArrowLeft aria-hidden="true" /> Return home
+        </Button>
+        <img src="/sync-wordmark.png" alt="SYNC" className="h-8 w-auto" />
+      </header>
+
+      <div
+        className="mb-10 h-2 overflow-hidden rounded-full bg-[#ECE7DC]"
+        role="progressbar"
+        aria-label="Onboarding progress"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={flowProgress}
+      >
+        <div
+          className="h-full rounded-full bg-[#C1694F] transition-[width] duration-300 motion-reduce:transition-none"
+          style={{ width: `${flowProgress}%` }}
+        />
+      </div>
+    </>
+  );
+
   // The three "Find your flow" questions and the result screen use their own design.
   if (step <= 3) {
-    const flowProgress = step === 0 ? 33 : step === 1 ? 67 : 100;
     const back = () => setStep(previous => previous - 1);
     const choose = (key: (typeof QUESTIONS)[number]['key'], value: string) =>
       setAnswers(previous => ({ ...previous, [key]: value }));
@@ -250,26 +276,7 @@ const Onboarding = () => {
     return (
       <main className="min-h-screen bg-[#FCFAF3] font-sans text-[#57514D]">
         <div className="mx-auto w-full max-w-2xl px-4 py-6 sm:px-6 sm:py-10">
-          <header className="mb-6 flex items-center justify-between">
-            <Button type="button" variant="ghost" size="sm" onClick={leaveOnboarding} className="-ml-3 text-[#57514D]">
-              <ArrowLeft aria-hidden="true" /> Return home
-            </Button>
-            <img src="/sync-wordmark.png" alt="SYNC" className="h-8 w-auto" />
-          </header>
-
-          <div
-            className="mb-10 h-2 overflow-hidden rounded-full bg-[#ECE7DC]"
-            role="progressbar"
-            aria-label="Onboarding progress"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={flowProgress}
-          >
-            <div
-              className="h-full rounded-full bg-[#C1694F] transition-[width] duration-300 motion-reduce:transition-none"
-              style={{ width: `${flowProgress}%` }}
-            />
-          </div>
+          {flowTop}
 
           <section aria-live="polite">
             {currentQuestion && (
@@ -333,7 +340,6 @@ const Onboarding = () => {
                   <Button type="button" onClick={next} className={primaryCta}>
                     Choose interests
                   </Button>
-                  {backLink}
                 </div>
               </div>
             )}
@@ -344,8 +350,9 @@ const Onboarding = () => {
   }
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className={cn('min-h-screen', step === 4 ? 'bg-[#FCFAF3]' : 'bg-background')}>
       <div className="mx-auto w-full max-w-2xl px-4 py-6 sm:px-6 sm:py-10">
+        {step === 4 ? flowTop : (<>
         <header className="mb-8 flex items-center justify-between">
           <Button type="button" variant="ghost" size="sm" onClick={leaveOnboarding} className="-ml-3">
             <ArrowLeft aria-hidden="true" /> Guest view
@@ -355,13 +362,14 @@ const Onboarding = () => {
 
         <div className="mb-8" aria-label={`Onboarding progress: ${progress}%`}>
           <div className="mb-2 flex items-center justify-between text-xs font-semibold text-muted-foreground">
-            <span>{step === 4 ? 'Your interests' : 'Your profile'}</span>
+            <span>Your profile</span>
             <span>{progress}%</span>
           </div>
           <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
             <div className="h-full rounded-full bg-primary transition-[width] duration-300 motion-reduce:transition-none" style={{ width: `${progress}%` }} />
           </div>
         </div>
+        </>)}
 
         <section className="min-h-[520px]" aria-live="polite">
           {step === 4 && (
