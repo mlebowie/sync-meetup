@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Camera, Check, Sparkles } from 'lucide-react';
+import { ArrowLeft, Camera, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -214,6 +214,135 @@ const Onboarding = () => {
     navigate('/', { replace: true });
   };
 
+  // The three "Find your flow" questions and the result screen use their own design.
+  if (step <= 3) {
+    const flowProgress = step === 0 ? 33 : step === 1 ? 67 : 100;
+    const back = () => setStep(previous => previous - 1);
+    const choose = (key: (typeof QUESTIONS)[number]['key'], value: string) =>
+      setAnswers(previous => ({ ...previous, [key]: value }));
+
+    // Arrow keys move between answers, like a native radio group.
+    const onRadioKey = (event: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
+      if (!currentQuestion) return;
+      const keys = ['ArrowDown', 'ArrowRight', 'ArrowUp', 'ArrowLeft'];
+      if (!keys.includes(event.key)) return;
+      event.preventDefault();
+      const delta = event.key === 'ArrowDown' || event.key === 'ArrowRight' ? 1 : -1;
+      const count = currentQuestion.options.length;
+      const nextIndex = (index + delta + count) % count;
+      choose(currentQuestion.key, currentQuestion.options[nextIndex].value);
+      const group = event.currentTarget.parentElement;
+      (group?.children[nextIndex] as HTMLElement | undefined)?.focus();
+    };
+
+    const backLink = (
+      <button
+        type="button"
+        onClick={back}
+        className="mx-auto mt-3 flex min-h-11 items-center px-3 text-base text-[#974B35] underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+      >
+        Back
+      </button>
+    );
+
+    const primaryCta = 'min-h-12 px-6 text-[19px] font-bold bg-[#C1694F] text-[#1F110C] hover:bg-primary-hover disabled:opacity-40';
+
+    return (
+      <main className="min-h-screen bg-[#FCFAF3] font-sans text-[#57514D]">
+        <div className="mx-auto w-full max-w-2xl px-4 py-6 sm:px-6 sm:py-10">
+          <header className="mb-6 flex items-center justify-between">
+            <Button type="button" variant="ghost" size="sm" onClick={leaveOnboarding} className="-ml-3 text-[#57514D]">
+              <ArrowLeft aria-hidden="true" /> Return home
+            </Button>
+            <img src="/sync-wordmark.png" alt="SYNC" className="h-8 w-auto" />
+          </header>
+
+          <div
+            className="mb-10 h-2 overflow-hidden rounded-full bg-[#ECE7DC]"
+            role="progressbar"
+            aria-label="Onboarding progress"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={flowProgress}
+          >
+            <div
+              className="h-full rounded-full bg-[#C1694F] transition-[width] duration-300 motion-reduce:transition-none"
+              style={{ width: `${flowProgress}%` }}
+            />
+          </div>
+
+          <section aria-live="polite">
+            {currentQuestion && (
+              <div key={currentQuestion.key} className="animate-fade-in">
+                <p className="text-center text-sm leading-5 text-[#974B35]">Question {step + 1} of 3</p>
+                <h1 id="flow-question" className="mt-2 text-center font-display text-[44px] font-bold leading-[52px] text-[#A25139]">
+                  {currentQuestion.prompt}
+                </h1>
+                <div role="radiogroup" aria-labelledby="flow-question" className="mt-8 flex flex-col gap-3">
+                  {currentQuestion.options.map((option, index) => {
+                    const value = answers[currentQuestion.key];
+                    const selected = value === option.value;
+                    // Only one answer is in the tab order: the chosen one, or the first.
+                    const tabbable = selected || (!value && index === 0);
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        role="radio"
+                        aria-checked={selected}
+                        tabIndex={tabbable ? 0 : -1}
+                        onClick={() => choose(currentQuestion.key, option.value)}
+                        onKeyDown={event => onRadioKey(event, index)}
+                        className={cn(
+                          'flex w-full items-center gap-4 rounded-[20px] p-6 text-left shadow-[0_2px_12px_-4px_rgba(49,35,27,0.10)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                          selected ? 'bg-[#FFECD2]' : 'bg-white',
+                        )}
+                      >
+                        <span className="flex-1">
+                          <span className="block text-base font-bold text-[#57514D]">{option.label}</span>
+                          <span className="mt-1 block text-sm text-[#57514D]">{option.detail}</span>
+                        </span>
+                        <span
+                          aria-hidden="true"
+                          className={cn(
+                            'flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2',
+                            selected ? 'border-[#C1694F]' : 'border-[#57514D]',
+                          )}
+                        >
+                          {selected && <span className="h-3 w-3 rounded-full bg-[#C1694F]" />}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="mt-8 flex flex-col items-center">
+                  <Button type="button" onClick={next} disabled={!answers[currentQuestion.key]} className={primaryCta}>
+                    Next
+                  </Button>
+                  {step > 0 && backLink}
+                </div>
+              </div>
+            )}
+
+            {step === 3 && styleDetails && (
+              <div className="animate-fade-in text-center">
+                <p className="text-sm leading-5 text-[#974B35]">Your starting point</p>
+                <h1 className="mt-2 font-display text-[44px] font-bold leading-[52px] text-[#A25139]">{styleDetails.name}</h1>
+                <p className="mx-auto mt-6 max-w-md text-base leading-6 text-[#57514D]">{styleDetails.description}</p>
+                <div className="mt-8 flex flex-col items-center">
+                  <Button type="button" onClick={next} className={primaryCta}>
+                    Choose interests
+                  </Button>
+                  {backLink}
+                </div>
+              </div>
+            )}
+          </section>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-background">
       <div className="mx-auto w-full max-w-2xl px-4 py-6 sm:px-6 sm:py-10">
@@ -226,7 +355,7 @@ const Onboarding = () => {
 
         <div className="mb-8" aria-label={`Onboarding progress: ${progress}%`}>
           <div className="mb-2 flex items-center justify-between text-xs font-semibold text-muted-foreground">
-            <span>{step < 3 ? `Question ${step + 1} of 3` : step === 3 ? 'Your social style' : step === 4 ? 'Your interests' : 'Your profile'}</span>
+            <span>{step === 4 ? 'Your interests' : 'Your profile'}</span>
             <span>{progress}%</span>
           </div>
           <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
@@ -235,52 +364,6 @@ const Onboarding = () => {
         </div>
 
         <section className="min-h-[520px]" aria-live="polite">
-          {currentQuestion && (
-            <div className="animate-fade-in">
-              <div className="mb-10 text-center">
-                <p className="mb-2 text-sm font-semibold uppercase text-primary">Find your flow</p>
-                <h1 className="font-display text-3xl font-light text-foreground sm:text-4xl">{currentQuestion.prompt}</h1>
-                <p className="mt-3 text-sm text-muted-foreground">There is no wrong answer — choose what feels most natural.</p>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {currentQuestion.options.map(option => {
-                  const selected = answers[currentQuestion.key] === option.value;
-                  return (
-                    <Button
-                      key={option.value}
-                      type="button"
-                      variant="outline"
-                      onClick={() => setAnswers(previous => ({ ...previous, [currentQuestion.key]: option.value }))}
-                      className={cn(
-                        'h-auto min-h-24 whitespace-normal rounded-lg px-5 py-4 text-left justify-start border-2',
-                        selected ? 'border-primary bg-primary text-primary-foreground hover:bg-primary-hover' : 'border-border bg-card hover:border-primary hover:bg-card',
-                      )}
-                      aria-pressed={selected}
-                    >
-                      <span className="flex-1">
-                        <span className="block font-semibold">{option.label}</span>
-                        <span className={cn('mt-1 block text-xs', selected ? 'text-primary-foreground/80' : 'text-muted-foreground')}>{option.detail}</span>
-                      </span>
-                      {selected && <Check className="h-5 w-5" aria-hidden="true" />}
-                    </Button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {step === 3 && styleDetails && (
-            <div className="animate-fade-in text-center">
-              <p className="mb-2 text-sm font-semibold uppercase text-primary">Your starting point</p>
-              <h1 className="font-display text-4xl font-light text-foreground">{styleDetails.name}</h1>
-              <p className="mx-auto mt-4 max-w-md text-base leading-relaxed text-muted-foreground">{styleDetails.description}</p>
-              <div className="mx-auto mt-8 max-w-md rounded-lg border border-border bg-event-card p-5 text-left">
-                <p className="font-semibold text-foreground">Not a permanent label</p>
-                <p className="mt-1 text-sm text-muted-foreground">Your recommendations will keep adapting as you attend, save, and revisit events.</p>
-              </div>
-            </div>
-          )}
-
           {step === 4 && (
             <div className="animate-fade-in">
               <div className="mb-7 text-center">
@@ -356,8 +439,8 @@ const Onboarding = () => {
         <footer className="mt-8 flex items-center gap-3 border-t border-border pt-5">
           {step > 0 && <Button type="button" variant="ghost" onClick={() => setStep(previous => previous - 1)}><ArrowLeft aria-hidden="true" /> Back</Button>}
           {step < 5 ? (
-            <Button type="button" size="lg" onClick={next} disabled={Boolean(currentQuestion && !answers[currentQuestion.key])} className="ml-auto rounded-lg">
-              {step === 3 ? 'Choose interests' : step === 4 ? 'Add my details' : 'Continue'}
+            <Button type="button" size="lg" onClick={next} className="ml-auto rounded-lg">
+              Add my details
             </Button>
           ) : (
             <Button type="submit" form="profile-form" size="lg" className="ml-auto rounded-lg" disabled={submitting}><Sparkles aria-hidden="true" /> Finish onboarding</Button>
