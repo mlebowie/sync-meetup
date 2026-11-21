@@ -35,15 +35,11 @@ const FeedSetupBanner = ({ interests }: Props) => {
           >
             <X className="h-4 w-4" />
           </button>
-          <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-primary font-semibold">
-            Your feed is ready
-          </div>
-          <h3 className="text-lg font-semibold text-foreground mt-1">
+          <h3 className="text-lg font-semibold text-foreground">
             Your feed is set to: {labels || 'your interests'}
           </h3>
           <p className="text-sm text-muted-foreground mt-0.5">
-            That's your starting point. The bar below stays pinned as you scroll: tap an interest, a time
-            or a group size to narrow every section at once.
+            View events listed by your interests and filter through different preferences.
           </p>
           <div className="flex flex-wrap gap-2 mt-4">
             <Button
@@ -52,7 +48,7 @@ const FeedSetupBanner = ({ interests }: Props) => {
                 startFilterTour();
               }}
             >
-              Show me how
+              Show me
             </Button>
             <Button variant="ghost" onClick={close}>
               Got it

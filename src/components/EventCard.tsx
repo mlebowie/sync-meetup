@@ -212,6 +212,7 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
         {/* Image pills (Figma "pill: vibe"): sage fill, cream label, full pill */}
         <div className="absolute bottom-3 left-3 right-3 flex items-center gap-2 flex-nowrap overflow-hidden [&>span]:shrink-0 [&>span]:whitespace-nowrap">
           <span
+            data-tour="vibe"
             title={vibeMeta(event.vibe).description}
             className="flex items-center gap-1.5 h-7 px-3 rounded-full text-xs font-semibold bg-sage-deep text-event-card"
           >

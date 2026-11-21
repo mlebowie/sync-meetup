@@ -1,6 +1,6 @@
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
 import { mockParticipants } from '@/data/mockData';
-import { Flame, Repeat, Users } from 'lucide-react';
+import FindFirstEventPrompt from './FindFirstEventPrompt';
 
 const MomentumPanel = () => {
   const { history, topCoAttendees, categoryAffinity } = useActivityHistory();
@@ -29,10 +29,13 @@ const MomentumPanel = () => {
             <span className="text-xs uppercase tracking-wide text-muted-foreground">Last 30 days</span>
           </div>
 
+          {history.length === 0 ? (
+            <FindFirstEventPrompt text="Your momentum builds as you go to events. Find your first event to get started." />
+          ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-card rounded-2xl p-5 shadow-card">
-              <div className="flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-wide mb-2">
-                <Flame className="h-4 w-4 text-primary" /> Showing up
+              <div className="text-muted-foreground text-xs uppercase tracking-wide mb-2">
+                Showing up
               </div>
               <div className="text-3xl font-bold text-foreground">{last30}</div>
               <p className="text-sm text-muted-foreground mt-1">events attended this month</p>
@@ -42,8 +45,8 @@ const MomentumPanel = () => {
             </div>
 
             <div className="bg-card rounded-2xl p-5 shadow-card">
-              <div className="flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-wide mb-2">
-                <Repeat className="h-4 w-4 text-accent-strong" /> Your weekly anchor
+              <div className="text-muted-foreground text-xs uppercase tracking-wide mb-2">
+                Your weekly anchor
               </div>
               <div className="text-lg font-semibold text-foreground line-clamp-1">
                 {topSeries?.title || 'Pick a recurring event'}
@@ -54,8 +57,8 @@ const MomentumPanel = () => {
             </div>
 
             <div className="bg-card rounded-2xl p-5 shadow-card">
-              <div className="flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-wide mb-2">
-                <Users className="h-4 w-4 text-success" /> Familiar faces
+              <div className="text-muted-foreground text-xs uppercase tracking-wide mb-2">
+                Familiar faces
               </div>
               <div className="flex -space-x-2 mt-1">
                 {topPeople.map((p) => (
@@ -74,6 +77,7 @@ const MomentumPanel = () => {
               </p>
             </div>
           </div>
+          )}
         </div>
       </div>
     </section>

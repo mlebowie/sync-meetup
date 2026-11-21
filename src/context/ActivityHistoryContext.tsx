@@ -1,6 +1,5 @@
 import { createContext, useContext, useMemo, useState, ReactNode, useCallback } from 'react';
 import { PastAttendance, TaggedConnection } from '@/types/event';
-import { currentUserHistory } from '@/data/mockData';
 
 interface ActivityHistoryValue {
   history: PastAttendance[];
@@ -34,7 +33,7 @@ export const useActivityHistory = () => {
 const SEEDED_TAGS_OF_ME = new Set(['1', '4', '6', '7', '9', '12', '13']);
 
 export const ActivityHistoryProvider = ({ children }: { children: ReactNode }) => {
-  const [history, setHistory] = useState<PastAttendance[]>(currentUserHistory);
+  const [history, setHistory] = useState<PastAttendance[]>([]);
   const [tags, setTags] = useState<TaggedConnection[]>([]);
 
   const addAttendance = useCallback((a: PastAttendance) => {

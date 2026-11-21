@@ -6,7 +6,6 @@ import { Event, Participant } from '@/types/event';
 import ExpandableEventGrid from './ExpandableEventGrid';
 import EventCarousel from './EventCarousel';
 import { matchesInterests } from '@/lib/userProfile';
-import { Heart, Users } from 'lucide-react';
 
 
 
@@ -59,7 +58,8 @@ const FriendsLoveSection = ({ onAttend, onParticipantClick, onOpenGroupChat, int
   const [showAll, setShowAll] = useState(false);
   const visible = events;
 
-  if (events.length === 0) return null;
+  // Only for members who follow people: it's about where they show up.
+  if (following.size === 0 || events.length === 0) return null;
 
   const hasFriends = following.size > 0;
 
@@ -68,15 +68,13 @@ const FriendsLoveSection = ({ onAttend, onParticipantClick, onOpenGroupChat, int
       <div className="container px-4 md:px-6">
         <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
           <div>
-            <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-accent-strong font-semibold mb-1">
-              <Heart className="h-3.5 w-3.5 fill-current" />
+            <div className="text-xs uppercase tracking-wide text-accent-strong font-semibold mb-1">
               Events your friends love
             </div>
             <h2 className="text-xl md:text-2xl font-bold text-foreground">
               {hasFriends ? 'Where your people keep showing up' : 'Recurring events the community loves'}
             </h2>
-            <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1.5">
-              <Users className="h-3.5 w-3.5" />
+            <p className="text-sm text-muted-foreground mt-1">
               {hasFriends
                 ? 'Events where people you follow attend regularly'
                 : 'Follow a few faces to see where they regularly show up'}

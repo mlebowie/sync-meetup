@@ -31,7 +31,7 @@ const RecommendedSection = ({ filters, profileInterests, onAttend, onParticipant
   const shown = ranked.slice(0, 9);
 
   return (
-    <section className="py-8 md:py-10">
+    <section data-tour="recommended" className="py-8 md:py-10">
       <div className="container px-4 md:px-6">
         <div className="flex flex-wrap items-end justify-between gap-3 mb-5">
           <div>

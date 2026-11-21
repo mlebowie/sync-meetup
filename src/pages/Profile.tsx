@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, MapPin, Clock, Globe, Users, Pencil, LogOut } from 'lucide-react';
 import Header from '@/components/Header';
 import GroupsSection from '@/components/GroupsSection';
+import ActivityLogCard from '@/components/ActivityLogCard';
 import EditProfileDialog from '@/components/EditProfileDialog';
 import { Button } from '@/components/ui/button';
 import { getUserProfile, saveUserProfile, clearUserProfile, backupUserProfile, ONBOARDING_INTERESTS, DEFAULT_PROFILE, calculateAge, UserProfile } from '@/lib/userProfile';
@@ -142,6 +143,11 @@ const Profile = () => {
           </div>
           <span className="text-sm text-primary font-medium">View →</span>
         </Link>
+
+        {/* Your activity log (moved here from the home page) */}
+        <div className="mb-10 max-w-xl">
+          <ActivityLogCard />
+        </div>
 
 
         {/* Default profile hint */}

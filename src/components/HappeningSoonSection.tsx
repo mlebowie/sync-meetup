@@ -7,7 +7,7 @@ import { Event, Participant } from '@/types/event';
 import EventCard from './EventCard';
 import { Button } from '@/components/ui/button';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { Clock, Shuffle, RotateCcw } from 'lucide-react';
+import { Shuffle, RotateCcw } from 'lucide-react';
 
 interface Props {
   filters: FeedFilters;
@@ -65,12 +65,11 @@ const HappeningSoonSection = ({ filters, profileInterests, onAttend, onParticipa
   if (events.length === 0) return null;
 
   return (
-    <section className="py-8 md:py-10">
+    <section data-tour="happening-soon" className="py-8 md:py-10">
       <div className="container px-4 md:px-6">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-5">
           <div>
-            <h2 className="text-xl md:text-2xl font-bold text-foreground flex items-center gap-2">
-              <Clock className="h-5 w-5 text-primary" aria-hidden="true" />
+            <h2 className="text-xl md:text-2xl font-bold text-foreground">
               {mode === 'random' ? 'Try something off your usual path' : 'Happening in the next 6 hours'}
             </h2>
             <p className="text-sm text-muted-foreground mt-1">

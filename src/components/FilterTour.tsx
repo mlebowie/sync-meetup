@@ -7,8 +7,13 @@ import { useIsMobile } from '@/hooks/use-mobile';
 export interface TourStep {
   title: string;
   body: string;
-  ref: RefObject<HTMLElement>;
+  /** Element to highlight: a ref, or a CSS selector looked up when the step opens. */
+  ref?: RefObject<HTMLElement>;
+  selector?: string;
 }
+
+const stepEl = (step?: TourStep): HTMLElement | null =>
+  step ? step.ref?.current ?? (step.selector ? document.querySelector<HTMLElement>(step.selector) : null) : null;
 
 interface Props {
   open: boolean;
@@ -38,14 +43,21 @@ const FilterTour = ({ open, steps, onClose }: Props) => {
 
   // Scroll the highlighted group into view whenever the step changes.
   useEffect(() => {
-    if (!open || !step?.ref.current) return;
-    step.ref.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const el = open ? stepEl(step) : null;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    if (r.height > window.innerHeight * 0.5) {
+      // Tall section: bring its heading in just below the header and pinned filter bar.
+      window.scrollTo({ top: r.top + window.scrollY - 140, behavior: 'smooth' });
+    } else {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   }, [open, step]);
 
   useLayoutEffect(() => {
-    if (!open || !step?.ref.current) return;
+    if (!open || !stepEl(step)) return;
     const measure = () => {
-      const el = step.ref.current;
+      const el = stepEl(step);
       if (!el) return;
       const r = el.getBoundingClientRect();
       setRect({ top: r.top - PAD, left: r.left - PAD, width: r.width + PAD * 2, height: r.height + PAD * 2 });
