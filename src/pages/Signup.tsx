@@ -16,6 +16,7 @@ import { getPendingIntent, clearPendingIntent } from '@/lib/pendingIntent';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { resetFilterTour } from '@/lib/filterTour';
 
 const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true';
 const MIN_INTERESTS = 3;
@@ -71,6 +72,7 @@ const Signup = () => {
   };
 
   const finish = (profile: UserProfile, welcome: boolean) => {
+    resetFilterTour();
     window.dispatchEvent(new Event('sync:profile-changed'));
     if (welcome && !intent) {
       toast({ title: `Welcome to SYNC, ${profile.firstName}`, description: 'Your feed is ready.' });
