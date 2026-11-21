@@ -241,9 +241,22 @@ const Onboarding = () => {
     </>
   );
 
+  const back = () => setStep(previous => previous - 1);
+
+  const backLink = (
+    <button
+      type="button"
+      onClick={back}
+      className="mx-auto mt-3 flex min-h-11 items-center px-3 text-base text-[#974B35] underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+    >
+      Back
+    </button>
+  );
+
+  const primaryCta = 'min-h-12 px-6 text-[19px] font-bold bg-[#C1694F] text-[#1F110C] hover:bg-primary-hover disabled:opacity-40';
+
   // The three "Find your flow" questions and the result screen use their own design.
   if (step <= 3) {
-    const back = () => setStep(previous => previous - 1);
     const choose = (key: (typeof QUESTIONS)[number]['key'], value: string) =>
       setAnswers(previous => ({ ...previous, [key]: value }));
 
@@ -261,17 +274,6 @@ const Onboarding = () => {
       (group?.children[nextIndex] as HTMLElement | undefined)?.focus();
     };
 
-    const backLink = (
-      <button
-        type="button"
-        onClick={back}
-        className="mx-auto mt-3 flex min-h-11 items-center px-3 text-base text-[#974B35] underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
-      >
-        Back
-      </button>
-    );
-
-    const primaryCta = 'min-h-12 px-6 text-[19px] font-bold bg-[#C1694F] text-[#1F110C] hover:bg-primary-hover disabled:opacity-40';
 
     return (
       <main className="min-h-screen bg-[#FCFAF3] font-sans text-[#57514D]">
@@ -371,13 +373,12 @@ const Onboarding = () => {
         </div>
         </>)}
 
-        <section className="min-h-[520px]" aria-live="polite">
+        <section className={cn(step === 5 && 'min-h-[520px]')} aria-live="polite">
           {step === 4 && (
             <div className="animate-fade-in">
               <div className="mb-7 text-center">
-                <p className="mb-2 text-sm font-semibold uppercase text-primary">Make it personal</p>
                 <h1 className="font-display text-3xl font-light text-foreground sm:text-4xl">Choose 3–5 interests</h1>
-                <p className="mt-3 text-sm text-muted-foreground">Your social style shapes the format. These shape what you will do.</p>
+                <p className="mt-3 text-sm text-muted-foreground">Personalize your homefeed with events you actually want to go to.</p>
               </div>
               <div className="space-y-6">
                 {INTEREST_GROUPS.map(group => (
@@ -444,16 +445,19 @@ const Onboarding = () => {
           )}
         </section>
 
-        <footer className="mt-8 flex items-center gap-3 border-t border-border pt-5">
-          {step > 0 && <Button type="button" variant="ghost" onClick={() => setStep(previous => previous - 1)}><ArrowLeft aria-hidden="true" /> Back</Button>}
-          {step < 5 ? (
-            <Button type="button" size="lg" onClick={next} className="ml-auto rounded-lg">
+        {step === 4 ? (
+          <div className="mt-8 flex flex-col items-center">
+            <Button type="button" onClick={next} className={primaryCta}>
               Add my details
             </Button>
-          ) : (
+            {backLink}
+          </div>
+        ) : (
+          <footer className="mt-8 flex items-center gap-3 border-t border-border pt-5">
+            <Button type="button" variant="ghost" onClick={back}><ArrowLeft aria-hidden="true" /> Back</Button>
             <Button type="submit" form="profile-form" size="lg" className="ml-auto rounded-lg" disabled={submitting}><Sparkles aria-hidden="true" /> Finish onboarding</Button>
-          )}
-        </footer>
+          </footer>
+        )}
       </div>
     </main>
   );
