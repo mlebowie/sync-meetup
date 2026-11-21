@@ -50,6 +50,7 @@ const sourceNames: Record<string, string> = {
   luma: 'Lu.ma',
   'agenda-porto': 'Agenda Porto',
   fisga: 'Fisga',
+  'ma-to': 'ma.to',
   'porto-coffee-week': 'Porto Coffee Week',
   'expat-girls-porto': 'Expat Girls Porto',
   partner: 'Partner',
