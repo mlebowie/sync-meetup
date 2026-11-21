@@ -7,12 +7,12 @@ const ALL_STEPS: TourStep[] = [
   {
     selector: '[data-tour="recommended"]',
     title: 'Recommended for you',
-    body: 'Events that match your interests. The ones people you know are going to come first.',
+    body: 'Events that match your interests, with the ones people you know are going to first.',
   },
   {
     selector: '[data-tour="recommended"] [data-tour="vibe"]',
     title: 'Pick your vibe',
-    body: 'Every event has a vibe label. Chill is relaxed and low-pressure, Social is built around conversation, and Lively is high energy with crowds and music. Use it to choose the kind of interaction you want.',
+    body: 'Chill is relaxed, Social is built for chatting, and Lively is high energy. Pick the vibe that suits you.',
   },
   {
     selector: '[data-tour="happening-soon"]',
@@ -22,12 +22,12 @@ const ALL_STEPS: TourStep[] = [
   {
     selector: '[data-tour="popular"]',
     title: 'Popular & Trending',
-    body: 'What most people are joining right now.',
+    body: 'The events most people are joining right now. Grab a spot before they fill up.',
   },
   {
     selector: '[role="toolbar"][aria-label="Filter your feed"]',
     title: 'Filter your feed',
-    body: 'This bar stays pinned as you scroll. Tap an interest, a time or a group size to narrow every section at once.',
+    body: 'Tap an interest, time or group size to narrow every section. It stays pinned as you scroll.',
   },
 ];
 
