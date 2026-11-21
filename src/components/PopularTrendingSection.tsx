@@ -7,7 +7,6 @@ import EventCarousel from './EventCarousel';
 import SectionFilterBar, { SectionFilters, defaultSectionFilters, applySectionFilters } from './SectionFilterBar';
 import { matchesInterests } from '@/lib/userProfile';
 import { FeedFilters, applyFeedFilters } from '@/lib/feedFilters';
-import { TrendingUp, Clock } from 'lucide-react';
 
 
 interface Props {
@@ -50,16 +49,12 @@ const PopularTrendingSection = ({ onAttend, onParticipantClick, onOpenGroupChat,
       <div className="container px-4 md:px-6">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
-            <div className="flex items-start gap-3">
-              <div className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-accent/15 text-accent-strong mt-0.5">
-                <TrendingUp className="h-5 w-5" />
-              </div>
+            <div>
               <div>
                 <h2 className="text-2xl md:text-3xl font-bold text-foreground">
                   Popular & Trending
                 </h2>
-                <p className="text-muted-foreground mt-1 flex items-center gap-1.5">
-                  <Clock className="h-4 w-4" />
+                <p className="text-muted-foreground mt-1">
                   One-time events coming up. Grab a spot before they fill up.
                 </p>
               </div>

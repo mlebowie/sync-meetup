@@ -6,6 +6,7 @@ import { PastAttendance } from '@/types/event';
 import { formatDistanceToNow } from 'date-fns';
 import { CheckCircle2, Camera } from 'lucide-react';
 import PastEventRecapDialog from './PastEventRecapDialog';
+import FindFirstEventPrompt from './FindFirstEventPrompt';
 
 const ActivityFeed = () => {
   const { history, seriesCount } = useActivityHistory();
@@ -22,6 +23,10 @@ const ActivityFeed = () => {
             <h2 className="text-xl md:text-2xl font-bold text-foreground">Your activity</h2>
             <span className="text-xs text-muted-foreground">What you've done lately</span>
           </div>
+
+          {items.length === 0 && (
+            <FindFirstEventPrompt text="Nothing here yet. Events you go to will show up here. Find your first event to get started." />
+          )}
 
           <ol className="space-y-3">
             {items.map((h, idx) => {

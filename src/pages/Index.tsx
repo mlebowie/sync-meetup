@@ -16,7 +16,6 @@ import HappeningSoonSection from '@/components/HappeningSoonSection';
 import RecommendedSection from '@/components/RecommendedSection';
 import HomeFilterBar from '@/components/HomeFilterBar';
 import FriendsLoveSection from '@/components/FriendsLoveSection';
-import UpcomingEventsSection from '@/components/UpcomingEventsSection';
 import PopularTrendingSection from '@/components/PopularTrendingSection';
 import FeaturedPartnerSection from '@/components/FeaturedPartnerSection';
 import { useEvents } from '@/context/EventsContext';
@@ -24,7 +23,7 @@ import { Event, Participant } from '@/types/event';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import syncWordmark from '@/assets/sync-wordmark-v2.png';
-import { MessageCircle, Sparkles } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
 import { getUserProfile, saveUserProfile } from '@/lib/userProfile';
 import { DEFAULT_FEED_FILTERS, FeedFilters } from '@/lib/feedFilters';
@@ -221,7 +220,7 @@ const Index = () => {
             </section>
           )}
 
-          {/* 0b) Try your first event · Porto this month · Your activity log */}
+          {/* 0b) Try your first event (the activity log lives on the profile page) */}
           <MemberStartSection
             profileInterests={profileInterests}
             onAttend={handleAttend}
@@ -235,8 +234,8 @@ const Index = () => {
               <div className="container px-4 md:px-6">
                 <div className="max-w-5xl mx-auto bg-gradient-to-r from-primary/10 to-accent/10 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
-                    <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-primary font-semibold">
-                      <Sparkles className="h-3.5 w-3.5" /> Reflect
+                    <div className="text-xs uppercase tracking-wide text-primary font-semibold">
+                      Reflect
                     </div>
                     <h3 className="text-lg font-semibold text-foreground mt-1">
                       Who did you click with at {reflectionEvent.title}?
@@ -298,19 +297,6 @@ const Index = () => {
           {/* 6) Where the people you follow show up: about people, so not filtered */}
           <FriendsLoveSection
             interests={profileInterests}
-            onAttend={handleAttend}
-            onParticipantClick={handleParticipantClick}
-            onOpenGroupChat={handleOpenGroupChat}
-          />
-
-          {/* 7) Upcoming events: the full list, with search and finer filters */}
-          <UpcomingEventsSection
-            events={events}
-            profile={profile!}
-            filters={feedFilters}
-            profileInterests={profileInterests}
-            barInterestsRef={barInterestsRef}
-            barInclusivityRef={barInclusivityRef}
             onAttend={handleAttend}
             onParticipantClick={handleParticipantClick}
             onOpenGroupChat={handleOpenGroupChat}
