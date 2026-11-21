@@ -65,7 +65,7 @@ const HappeningSoonSection = ({ filters, profileInterests, onAttend, onParticipa
   if (events.length === 0) return null;
 
   return (
-    <section className="py-8 md:py-10">
+    <section data-tour="happening-soon" className="py-8 md:py-10">
       <div className="container px-4 md:px-6">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-5">
           <div>

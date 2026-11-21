@@ -10,6 +10,7 @@ import ActivityFeed from '@/components/ActivityFeed';
 import PostEventReflectionDialog from '@/components/PostEventReflectionDialog';
 import GuestLanding from '@/components/GuestLanding';
 import FeedSetupBanner from '@/components/FeedSetupBanner';
+import HomeTour from '@/components/HomeTour';
 import MemberStartSection from '@/components/MemberStartSection';
 import HowSyncWorks from '@/components/HowSyncWorks';
 import HappeningSoonSection from '@/components/HappeningSoonSection';
@@ -201,6 +202,7 @@ const Index = () => {
         <>
           {/* 0) First-run tutorial banner */}
           <FeedSetupBanner interests={profileInterests} />
+          <HomeTour />
 
           {resumeEvent && (
             <section className="pt-6" aria-labelledby="resume-event-title">

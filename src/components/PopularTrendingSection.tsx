@@ -45,7 +45,7 @@ const PopularTrendingSection = ({ onAttend, onParticipantClick, onOpenGroupChat,
   if (trendingEvents.length === 0) return null;
 
   return (
-    <section className="py-10 md:py-14 bg-gradient-to-b from-accent/5 via-primary/5 to-background">
+    <section data-tour="popular" className="py-10 md:py-14 bg-gradient-to-b from-accent/5 via-primary/5 to-background">
       <div className="container px-4 md:px-6">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
