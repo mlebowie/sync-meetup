@@ -218,11 +218,16 @@ const Onboarding = () => {
   const flowProgress = [20, 40, 60, 80, 100][step] ?? 100;
   const flowTop = (
     <>
-      <header className="mb-6 flex items-center justify-between">
-        <Button type="button" variant="ghost" size="sm" onClick={leaveOnboarding} className="-ml-3 text-[#57514D]">
-          <ArrowLeft aria-hidden="true" /> Return home
-        </Button>
-        <img src="/sync-wordmark.png" alt="SYNC" className="h-8 w-auto" />
+      <header className="mb-6 flex justify-center">
+        {/* The wordmark takes people home, as "Return home" used to. */}
+        <button
+          type="button"
+          onClick={leaveOnboarding}
+          aria-label="SYNC, return home"
+          className="rounded-md p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <img src="/sync-wordmark.png" alt="" className="h-8 w-auto" />
+        </button>
       </header>
 
       <div
@@ -407,7 +412,7 @@ const Onboarding = () => {
                   </fieldset>
                 ))}
               </div>
-              <p className="mt-6 text-center text-sm font-medium text-primary">{interests.length} of 3–5 selected</p>
+              <p className="mt-6 text-center text-sm font-medium text-primary">{interests.length} of 5 selected</p>
             </div>
           )}
 
