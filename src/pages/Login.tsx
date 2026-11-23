@@ -6,7 +6,8 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { getUserProfile, saveUserProfile, getBackedUpProfile, UserProfile } from '@/lib/userProfile';
 import { syncProfileWithAccount } from '@/lib/authProfile';
-import { LogIn } from 'lucide-react';
+import { primaryCta } from '@/lib/ctaStyles';
+import syncWordmark from '@/assets/sync-wordmark-v2.png';
 import { supabase } from '@/integrations/supabase/client';
 
 type SocialProvider = 'google' | 'apple' | 'microsoft';
@@ -106,23 +107,28 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container max-w-md px-4 md:px-6 py-12">
-        <Link to="/" className="flex items-center gap-2 mb-8 hover:opacity-80 transition-opacity">
-          <div className="h-9 w-9 rounded-lg gradient-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-lg">S</span>
-          </div>
-          <span className="text-xl font-bold text-foreground">Sync</span>
-        </Link>
+    <main className="min-h-screen bg-[#FCFAF3]">
+      <div className="mx-auto w-full max-w-md px-4 py-6 sm:px-6 sm:py-10">
+        <header className="mb-10 flex justify-center">
+          <Link
+            to="/"
+            aria-label="SYNC, return home"
+            className="rounded-md p-1 hover:opacity-80 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <img src={syncWordmark} alt="" className="h-8 w-auto" />
+          </Link>
+        </header>
 
-        <h1 className="text-3xl font-display font-light text-foreground mb-2">Welcome back</h1>
-        <p className="text-muted-foreground mb-8">Log in to pick up with your crew and upcoming events.</p>
+        <div className="mb-8 text-center">
+          <h1 className="font-display text-[22px] leading-7 font-light text-foreground sm:text-4xl">Welcome back</h1>
+          <p className="mt-3 text-sm text-muted-foreground">Log in to pick up with your crew and upcoming events.</p>
+        </div>
 
-        <div className="bg-card rounded-2xl shadow-card p-6 md:p-8 space-y-5">
+        <div className="bg-card rounded-2xl shadow-card p-5 sm:p-8 space-y-5">
           {/* Social sign-in needs Supabase OAuth set up; hidden in demo mode. */}
           {!DEMO_MODE && (
             <>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-3">
               {SOCIAL_BUTTONS.map(({ provider, label, Icon }) => (
                 <Button
                   key={provider}
@@ -137,7 +143,10 @@ const Login = () => {
                   ) : (
                     <Icon />
                   )}
-                  <span className="ml-2">{label}</span>
+                  <span className="ml-2">
+                    <span className="min-[400px]:hidden">Continue with </span>
+                    {label}
+                  </span>
                 </Button>
               ))}
             </div>
@@ -176,9 +185,8 @@ const Login = () => {
                 required
               />
             </div>
-            <Button type="submit" variant="hero" size="lg" className="w-full" disabled={submitting}>
-              <LogIn className="h-4 w-4 mr-2" />
-              Log in
+            <Button type="submit" className={primaryCta} disabled={submitting}>
+              {submitting ? 'Logging in…' : 'Log in'}
             </Button>
             <p className="text-sm text-muted-foreground text-center">
               New here?{' '}
@@ -189,7 +197,7 @@ const Login = () => {
           </form>
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 
