@@ -1,4 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
+import { primaryCta } from '@/lib/ctaStyles';
+import syncWordmark from '@/assets/sync-wordmark-v2.png';
 import { useNavigate } from 'react-router-dom';
 import { Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -225,7 +227,7 @@ const Onboarding = () => {
           aria-label="SYNC, return home"
           className="rounded-md p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <img src="/sync-wordmark.png" alt="" className="h-8 w-auto" />
+          <img src={syncWordmark} alt="" className="h-8 w-auto" />
         </button>
       </header>
 
@@ -257,8 +259,6 @@ const Onboarding = () => {
     </button>
   );
 
-  const primaryCta = 'min-h-12 px-6 text-[19px] font-bold bg-[#C1694F] text-[#1F110C] hover:bg-primary-hover disabled:opacity-40';
-
   // The three "Find your flow" questions and the result screen use their own design.
   if (step <= 3) {
     const choose = (key: (typeof QUESTIONS)[number]['key'], value: string) =>
@@ -288,7 +288,7 @@ const Onboarding = () => {
             {currentQuestion && (
               <div key={currentQuestion.key} className="animate-fade-in">
                 <p className="text-center text-sm leading-5 text-[#974B35]">Question {step + 1} of 3</p>
-                <h1 id="flow-question" className="mt-2 text-center font-display text-[44px] font-bold leading-[52px] text-[#A25139]">
+                <h1 id="flow-question" className="mt-2 text-center font-display text-[22px] font-bold leading-7 sm:text-[44px] sm:leading-[52px] text-[#A25139]">
                   {currentQuestion.prompt}
                 </h1>
                 <div role="radiogroup" aria-labelledby="flow-question" className="mt-8 flex flex-col gap-3">
@@ -307,7 +307,7 @@ const Onboarding = () => {
                         onClick={() => choose(currentQuestion.key, option.value)}
                         onKeyDown={event => onRadioKey(event, index)}
                         className={cn(
-                          'flex w-full items-center gap-4 rounded-[20px] p-6 text-left shadow-[0_2px_12px_-4px_rgba(49,35,27,0.10)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                          'flex w-full items-center gap-4 rounded-[20px] p-5 sm:p-6 text-left shadow-[0_2px_12px_-4px_rgba(49,35,27,0.10)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
                           selected ? 'bg-[#FFECD2]' : 'bg-white',
                         )}
                       >
@@ -328,7 +328,7 @@ const Onboarding = () => {
                     );
                   })}
                 </div>
-                <div className="mt-8 flex flex-col items-center">
+                <div className="mt-8 flex w-full flex-col items-center">
                   <Button type="button" onClick={next} disabled={!answers[currentQuestion.key]} className={primaryCta}>
                     Next
                   </Button>
@@ -340,9 +340,9 @@ const Onboarding = () => {
             {step === 3 && styleDetails && (
               <div className="animate-fade-in text-center">
                 <p className="text-sm leading-5 text-[#974B35]">Your starting point</p>
-                <h1 className="mt-2 font-display text-[44px] font-bold leading-[52px] text-[#A25139]">{styleDetails.name}</h1>
+                <h1 className="mt-2 font-display text-[22px] font-bold leading-7 sm:text-[44px] sm:leading-[52px] text-[#A25139]">{styleDetails.name}</h1>
                 <p className="mx-auto mt-6 max-w-md text-base leading-6 text-[#57514D]">{styleDetails.description}</p>
-                <div className="mt-8 flex flex-col items-center">
+                <div className="mt-8 flex w-full flex-col items-center">
                   <Button type="button" onClick={next} className={primaryCta}>
                     Choose interests
                   </Button>
@@ -364,7 +364,7 @@ const Onboarding = () => {
           {step === 4 && (
             <div className="animate-fade-in">
               <div className="mb-7 text-center">
-                <h1 className="font-display text-3xl font-light text-foreground sm:text-4xl">Choose 3–5 interests</h1>
+                <h1 className="font-display text-[22px] leading-7 font-light text-foreground sm:text-4xl">Choose 3–5 interests</h1>
                 <p className="mt-3 text-sm text-muted-foreground">Personalize your homefeed with events you actually want to go to.</p>
               </div>
               <div className="space-y-6">
@@ -401,7 +401,7 @@ const Onboarding = () => {
           {step === 5 && (
             <form id="profile-form" onSubmit={handleSubmit} className="animate-fade-in space-y-7">
               <div className="text-center">
-                <h1 className="font-display text-3xl font-light text-foreground sm:text-4xl">Create your profile</h1>
+                <h1 className="font-display text-[22px] leading-7 font-light text-foreground sm:text-4xl">Create your profile</h1>
                 <p className="mt-3 text-sm text-muted-foreground">Tell people who they will be meeting in Porto.</p>
               </div>
 
@@ -431,7 +431,7 @@ const Onboarding = () => {
           )}
         </section>
 
-        <div className="mt-8 flex flex-col items-center">
+        <div className="mt-8 flex w-full flex-col items-center">
           {step === 4 ? (
             <Button type="button" onClick={next} className={primaryCta}>
               Add my details

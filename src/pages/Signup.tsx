@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { primaryCta } from '@/lib/ctaStyles';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -210,7 +211,7 @@ const Signup = () => {
 
         {step === 'interests' ? (
           <section className="animate-fade-in">
-            <h1 className="font-display text-2xl font-bold text-primary-text">What are you into?</h1>
+            <h1 className="font-display text-[22px] leading-7 font-bold text-primary-text sm:text-2xl">What are you into?</h1>
             <p className="mt-2 text-sm text-muted-foreground">
               Pick three to five. They decide which events fill your home feed, and you can change them any time.
             </p>
@@ -250,14 +251,14 @@ const Signup = () => {
               <p className="mb-2 text-center text-sm font-semibold text-sage-deep" aria-live="polite">
                 {interests.length} of 3–5 selected
               </p>
-              <Button className="h-12 w-full text-[15px] font-medium shadow-none" onClick={continueFromInterests}>
+              <Button className={primaryCta} onClick={continueFromInterests}>
                 {viaGoogle ? 'Finish' : 'Continue'}
               </Button>
             </div>
           </section>
         ) : (
           <form className="animate-fade-in" onSubmit={createAccount}>
-            <h1 className="font-display text-2xl font-bold text-primary-text">Create your account</h1>
+            <h1 className="font-display text-[22px] leading-7 font-bold text-primary-text sm:text-2xl">Create your account</h1>
             <p className="mt-2 text-sm text-muted-foreground">
               So you can sign in on any device and keep your events, chats and connections.
             </p>
@@ -280,7 +281,7 @@ const Signup = () => {
                 I’m 18 or older
               </label>
             </div>
-            <Button type="submit" className="mt-8 h-12 w-full text-[15px] font-medium shadow-none" disabled={submitting}>
+            <Button type="submit" className={cn(primaryCta, 'mt-8')} disabled={submitting}>
               {submitting
                 ? 'Creating your account…'
                 : intent?.action === 'tickets'
