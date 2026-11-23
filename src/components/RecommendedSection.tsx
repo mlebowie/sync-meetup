@@ -24,7 +24,11 @@ const RecommendedSection = ({ filters, profileInterests, onAttend, onParticipant
     const familiar = (e: Event) => e.participants.filter(p => crossedPathsWith(p.id) > 0).length;
     return applyFeedFilters(events, filters, profileInterests)
       .map(e => ({ e, score: familiar(e) }))
-      .sort((a, b) => b.score - a.score || a.e.date.getTime() - b.e.date.getTime())
+      // Ranked by relevance, not time, so a featured event may lead among equals.
+      .sort(
+        (a, b) =>
+          b.score - a.score || Number(!!b.e.featured) - Number(!!a.e.featured) || a.e.date.getTime() - b.e.date.getTime(),
+      )
       .map(x => x.e);
   }, [events, filters, profileInterests, crossedPathsWith]);
 

@@ -23,8 +23,9 @@ const WEEK_OFFSETS = [3, 10, 26, 34, 50, 58, 74, 82, 98, 122, 130, 146].map(h =>
 const GuestLanding = ({ onAttend, onParticipantClick }: Props) => {
   const { events: allEvents, isLive } = useEvents();
 
-  // One carousel: featured partner events first, then everything else this week,
-  // soonest first. With no events in the next 7 days, fall back to the soonest ones.
+  // One carousel: everything this week, soonest first (it promises timing, so
+  // featuring an event does not move it). With no events in the next 7 days,
+  // fall back to the soonest ones.
   const { weekEvents, isThisWeek } = useMemo(() => {
     const now = Date.now();
     if (isLive) {
@@ -33,8 +34,7 @@ const GuestLanding = ({ onAttend, onParticipantClick }: Props) => {
         .sort((a, b) => a.date.getTime() - b.date.getTime());
       const thisWeek = upcoming.filter(e => e.date.getTime() <= now + WEEK);
       const pool = thisWeek.length ? thisWeek : upcoming;
-      const ordered = [...pool.filter(e => e.featured), ...pool.filter(e => !e.featured)];
-      return { weekEvents: ordered.slice(0, MAX_EVENTS), isThisWeek: thisWeek.length > 0 };
+      return { weekEvents: pool.slice(0, MAX_EVENTS), isThisWeek: thisWeek.length > 0 };
     }
     return {
       weekEvents: allEvents
