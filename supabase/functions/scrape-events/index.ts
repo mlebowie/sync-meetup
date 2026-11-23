@@ -744,6 +744,21 @@ function parseStart(raw: RawEvent): Date | null {
  * Listing cards are read by an AI and their dates drift, so the event page's own
  * schema.org startDate is treated as the truth whenever it is unambiguous.
  */
+/** Organisers read off event pages while checking dates, by page address. */
+const pageOrganizers = new Map<string, string>();
+
+/** The organiser a page's structured data names ("organizer": {"name": …}). */
+export function organizerFromHtml(html: string): string | null {
+  const m = /"organizer"\s*:\s*\{[^{}]*?"name"\s*:\s*"((?:[^"\\]|\\.){2,200})"/.exec(html) ??
+    /"organizer"\s*:\s*\[\s*\{[^{}]*?"name"\s*:\s*"((?:[^"\\]|\\.){2,200})"/.exec(html);
+  if (!m) return null;
+  try {
+    return JSON.parse(`"${m[1]}"`).trim() || null;
+  } catch {
+    return m[1].trim() || null;
+  }
+}
+
 async function verifiedStart(
   url: string,
 ): Promise<{ date: Date; dateOnly: boolean; past?: boolean } | null> {
@@ -755,6 +770,8 @@ async function verifiedStart(
     });
     if (!res.ok) return null;
     const html = await res.text();
+    const organizer = organizerFromHtml(html);
+    if (organizer) pageOrganizers.set(url, organizer);
     const found = [...html.matchAll(/"startDate"\s*:\s*"([^"]+)"/g)].map((m) => m[1]);
     const distinct = [...new Set(found)];
     // Calendar / listing pages carry many events — only a single date is trustworthy.
@@ -1287,19 +1304,24 @@ Deno.serve(async (req) => {
 
           const { recurrence, series_key } = recurrenceOf(raw);
           const derived = { ...keywordDerive(raw), ...agendaFlags(raw, source) } as Record<string, unknown>;
+          // Every card names its organiser: from the listing, else the event page.
+          const organizerName =
+            raw.organizer?.trim()?.slice(0, 200) || (raw.url ? pageOrganizers.get(raw.url) : undefined) || null;
+          const organizerNote = organizerName ? null : 'Organiser missing; add it from the event page';
           // Start from the wording published for this organiser's earlier dates.
-          const match = findTemplate(templates, raw.organizer, raw.title, series_key);
+          const match = findTemplate(templates, organizerName, raw.title, series_key);
           const t = match?.kind === 'title' ? match.template : null;
           const templateNote =
             match?.kind === 'title'
               ? `Description copied from the published "${match.template.title}"; check the details`
               : match?.kind === 'organiser'
-                ? `${raw.organizer?.trim()} has published events; Edit → Published descriptions to reuse one`
+                ? `${organizerName} has published events; Edit → Published descriptions to reuse one`
                 : null;
           const linkNote = isListingUrl(source, raw.url)
             ? "Link goes to a listing page, not the event's own page; check price and time there"
             : null;
-          const reviewNote = [dateNote, raw.review_hint, linkNote, templateNote].filter(Boolean).join(' · ') || null;
+          const reviewNote =
+            [dateNote, raw.review_hint, linkNote, organizerNote, templateNote].filter(Boolean).join(' · ') || null;
           const row = {
             source,
             source_event_id: id,
@@ -1314,7 +1336,7 @@ Deno.serve(async (req) => {
             venue_name: raw.venue?.trim()?.slice(0, 200) || null,
             location: portoLocation(raw),
             image_url: raw.image_url?.startsWith('http') ? raw.image_url : (t?.image_url ?? null),
-            organizer_name: raw.organizer?.trim()?.slice(0, 200) || null,
+            organizer_name: organizerName,
             ...(t?.organizer_bio ? { organizer_bio: t.organizer_bio } : {}),
             category: t?.category ?? canonicalCategory(raw, source),
             price_label: raw.price?.trim()?.slice(0, 60) || agendaPrice(raw, source),
