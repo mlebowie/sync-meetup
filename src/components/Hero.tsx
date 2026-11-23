@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Repeat, Trophy, Users } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 const Hero = () => {
   return (
@@ -21,16 +21,19 @@ const Hero = () => {
             <span className="text-hero-accent font-normal">shouldn't feel like a full-time job.</span>
           </h1>
 
-          <p className="text-lg md:text-xl text-hero-muted mb-4 max-w-2xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-            SYNC does the hard work — finding the right events, connecting you with compatible people, whether you just moved here or you've been here your whole life waiting for your crowd to show up.
+          <p className="text-lg md:text-xl text-hero-muted mb-3 max-w-2xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+            Find the right events, connect with compatible people, form crews to make plans and see each other again.
           </p>
 
-          <p className="text-base md:text-lg font-semibold text-hero-accent mb-8 animate-fade-in-up" style={{ animationDelay: '0.25s' }}>
-            Less searching. More belonging
+          <p className="text-lg md:text-xl font-medium text-hero-foreground mb-8 animate-fade-in-up" style={{ animationDelay: '0.22s' }}>
+            Get in SYNC.
           </p>
 
+          <p className="text-2xl md:text-3xl lg:text-4xl font-semibold tracking-tight text-hero-accent mb-10 animate-fade-in-up" style={{ animationDelay: '0.25s' }}>
+            Less searching. More belonging.
+          </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
             <Link to="/onboarding">
               <Button variant="hero" size="xl">
                 See your matches
@@ -42,20 +45,6 @@ const Hero = () => {
             </a>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-8 text-hero-muted animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-            <div className="flex items-center gap-2">
-              <Repeat className="h-5 w-5 text-hero-accent" />
-              <span className="text-sm font-medium">Recurring events build habits</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-hero-accent" />
-              <span className="text-sm font-medium">No profiles. Just history.</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-hero-accent" />
-              <span className="text-sm font-medium">Crews form automatically</span>
-            </div>
-          </div>
         </div>
       </div>
     </section>
