@@ -162,3 +162,11 @@ where organizer_key = match_key('Dinnersmate Porto') order by updated_at desc;
 - Events whose link is a listing page (an Agenda Porto section, a ma.to list) are keyed by title and day so they cannot overwrite each other, and are flagged to check price and time on the event's own page.
 
 Run once by hand: `select public.run_event_collector('meetup', 'groups'); select public.run_event_collector('ma-to');`
+
+## 19. Partner submission links
+
+Each partner in `partner_organisers` has a private link, `/submit/<submit_token>`, for sending their own events: they paste the details (one event or a list, in English or Portuguese), check the drafts, say whether each runs in English, add a photo and send. Events land in Waiting as SYNC partner events with the partner's name, bio, sign-up and WhatsApp links, and a note to check them. Nothing publishes from the link.
+
+- Copy, switch off or replace links in /curate → **Partner links**, which also adds new partners.
+- Limits per link: 15 events per send, 40 a day, photos up to 5 MB.
+- `auto_merge` (on for Founders Running Club and Unseen Connection) keeps one card per partner per day from other sites' copies; it is off for partners who may hold two events in one day.

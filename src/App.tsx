@@ -12,6 +12,7 @@ import CalendarPage from "./pages/CalendarPage";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import CuratePage from "./pages/CuratePage";
+import PartnerSubmit from "./pages/PartnerSubmit";
 import AuthProfileSync from "./components/AuthProfileSync";
 import RequireProfile from "./components/RequireProfile";
 
@@ -53,6 +54,7 @@ const App = () => (
                   <Route path="/profile/connections" element={<RequireProfile><Connections /></RequireProfile>} />
                   <Route path="/calendar" element={<CalendarPage />} />
                   <Route path="/curate" element={<CuratePage />} />
+                  <Route path="/submit/:token" element={<PartnerSubmit />} />
 
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />

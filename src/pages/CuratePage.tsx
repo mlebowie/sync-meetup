@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/select';
 import { EVENT_CATEGORIES, normalizeCategory } from '@/lib/categories';
 import AddPartnerEventDialog from '@/components/AddPartnerEventDialog';
+import PartnerLinksDialog from '@/components/PartnerLinksDialog';
 import EventFlagToggles, { type EventFlags } from '@/components/EventFlagToggles';
 import { isoToLisbon, lisbonToIso, timeLabelFor } from '@/lib/lisbonTime';
 import { Check, X, Pencil, ExternalLink, RotateCcw, Clock, Loader2, Star, ImagePlus, Link2 } from 'lucide-react';
@@ -464,6 +465,7 @@ const CuratePage = () => {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <PartnerLinksDialog />
             <AddPartnerEventDialog onAdded={load} />
             <Button variant="outline" size="sm" asChild>
               <Link to="/">Back to the feed</Link>
