@@ -131,12 +131,12 @@ const CuratePage = () => {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('events')
-      .select('*')
-      .eq('review_status', tab)
-      .order('starts_at', { ascending: true })
-      .limit(300);
+    let query = supabase.from('events').select('*').eq('review_status', tab);
+    // Waiting shows only events at least 24 hours away, so anything reviewed can
+    // still be published in time. Published hides events that have passed.
+    if (tab === 'pending') query = query.gte('starts_at', new Date(Date.now() + 24 * 3600_000).toISOString());
+    if (tab === 'approved') query = query.gte('starts_at', new Date().toISOString());
+    const { data, error } = await query.order('starts_at', { ascending: true }).limit(300);
     if (error) {
       toast({ title: 'Could not load events', description: error.message });
     }
@@ -514,6 +514,11 @@ const CuratePage = () => {
           </div>
 
           <TabsContent value={tab} className="mt-5 space-y-4">
+            {tab === 'pending' && (
+              <p className="text-xs text-muted-foreground">
+                Events at least 24 hours away. Waiting events that start sooner are hidden automatically.
+              </p>
+            )}
             {loading ? (
               <div className="py-16 grid place-items-center">
                 <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
