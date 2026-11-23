@@ -107,7 +107,8 @@ async function draftEvents(pasted: string, partner: string, link: string | null)
             `The text may describe one event or list several (a WhatsApp list, an Instagram caption, an email). Return one entry per event and per date. ` +
             `Today is ${today} (Europe/Lisbon). Resolve dates against today; with no year, use the next occurrence. ` +
             `Write each description in clear English (translate Portuguese), 2-5 sentences: what happens, who it is for, what is included. ` +
-            `If it costs money, say so plainly with the price. No emojis or hashtags. Never invent facts: use null when something is not stated.\n` +
+            `If it costs money, say so plainly with the price. No emojis or hashtags. Never invent facts: use null when something is not stated. ` +
+            `Describe only what the text says: do not add what is included (materials, drinks), the level, who it suits or how long it lasts unless the text says so; a short description is better than an invented one.\n` +
             `Reply with JSON only: {"events":[{"title":string,"description":string,"date":"YYYY-MM-DD"|null,"start_time":"HH:MM"|null,` +
             `"end_time":"HH:MM"|null,"venue_name":string|null,"location":string|null (street address),"price_label":"Free"|"€20"|"From €10"|null,` +
             `"is_paid":boolean|null,"english":"yes"|"partly"|"no"|null (only from what the text says about the language it runs in),` +
