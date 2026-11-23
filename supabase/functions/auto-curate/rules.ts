@@ -67,6 +67,8 @@ export interface Review {
   price_label: string | null;
   is_paid: boolean | null;
   organizer_bio: string | null;
+  /** Who runs the event, as the page names them. */
+  organizer_name?: string | null;
   image_url: string | null;
   category: string;
   category_unclear?: boolean;
@@ -77,6 +79,7 @@ export interface Review {
 }
 
 export interface CurrentRow {
+  organizer_name?: string | null;
   starts_at: string;
   ends_at: string | null;
   image_url: string | null;
@@ -165,6 +168,11 @@ export function decide(review: Review, page: PageFacts, row: CurrentRow, now = n
   if (review.is_paid === true && (!price || /^free$/i.test(price))) flags.push('Paid, but price not stated');
   if (review.is_paid === true && !/paid|ticket|€/i.test(description)) flags.push('Paid event not explained');
   if (review.is_paid == null && !price) flags.push('Price not stated');
+
+  // --- organiser: every published card names one ------------------------------
+  const organizer = row.organizer_name?.trim() || review.organizer_name?.trim() || null;
+  if (!organizer) flags.push('Organiser missing');
+  else if (!row.organizer_name?.trim()) patch.organizer_name = organizer.slice(0, 200);
 
   // --- organiser bio ----------------------------------------------------------
   if (review.organizer_bio?.trim()) patch.organizer_bio = review.organizer_bio.trim();

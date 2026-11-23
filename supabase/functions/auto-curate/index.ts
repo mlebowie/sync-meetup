@@ -148,6 +148,7 @@ Return JSON with these keys:
 - If published descriptions from this organiser are given and one covers the same event, start from that wording and change only what this date's page changes.
 - price_label: "Free", "€15", or "From €11.89" for several tiers (the lowest). null if the page does not say. Never invent a price.
 - is_paid: true if any ticket costs money, false if free, null if the page does not say.
+- organizer_name: who organises or hosts the event, exactly as the page names them (the group, venue or person), or null if the page does not say.
 - organizer_bio: 1 to 3 factual sentences from the page's about-the-organiser text, or null.
 - image_url: the event's own image (https), or null if only a logo or placeholder.
 - category: exactly one of: ${CATEGORIES.join(', ')}. The activity decides, not the setting (a photo walk or book club is Arts & culture; a run club is Sports; a club night or DJ set is Music & live events; dance classes and socials are Dance; business networking is Professional development, tech networking is Tech & AI, make-friends socials are Social networking; workshops go where their subject is).
@@ -259,6 +260,7 @@ Deno.serve(async (req) => {
         .limit(3);
       const review = await reviewEvent(row, page, templates ?? []);
       const outcome = decide(review, page.facts, {
+        organizer_name: (row.organizer_name as string) ?? null,
         starts_at: String(row.starts_at),
         ends_at: (row.ends_at as string) ?? null,
         image_url: (row.image_url as string) ?? null,
