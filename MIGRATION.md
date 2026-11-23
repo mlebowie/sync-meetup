@@ -162,3 +162,15 @@ where organizer_key = match_key('Dinnersmate Porto') order by updated_at desc;
 - Events whose link is a listing page (an Agenda Porto section, a ma.to list) are keyed by title and day so they cannot overwrite each other, and are flagged to check price and time on the event's own page.
 
 Run once by hand: `select public.run_event_collector('meetup', 'groups'); select public.run_event_collector('ma-to');`
+
+## 18. Automatic curator (test mode first)
+
+`auto-curate` reviews Waiting events at least 24 hours away against their own pages, following the SYNC Curator rules, and decides: publish, publish with Waitlist, hide (only when cancelled, already past or online-only) or keep in Waiting with a Needs review note. The AI drafts the fields; code then checks them before anything can publish: a photo, a listed category, a 25–300 word description, a price (and a paid-event line when tickets cost money), and a start time confirmed by the page itself.
+
+It starts in **test mode**: every decision is written to `curator_decisions` (with the event before and after) and no event changes.
+
+- Run a test: `select public.run_auto_curator(true);` then read `curator_decisions` for the newest `run_id`.
+- Switch it on: `update curator_settings set mode = 'live' where id = 1;` and schedule it: `select cron.schedule('sync-auto-curate', '*/20 6-8 * * *', $$select public.run_auto_curator()$$);`
+- Switch it off: `update curator_settings set mode = 'test' where id = 1;`
+
+Events it publishes show "Published by curator" in /curate.
