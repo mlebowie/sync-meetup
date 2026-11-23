@@ -3,16 +3,11 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 
 /**
  * The partner submission page (/submit/<token>). Partners have no account: the
- * token in their link says who they are. Three actions:
+ * token in their link says who they are. Two actions:
  *   info   → the partner's name, to greet them
- *   draft  → pasted details (one event or a list) become editable drafts
- *   submit → the checked drafts go to Waiting as SYNC partner events
+ *   submit → the events they filled in go to Waiting as SYNC partner events
  * Nothing is ever published from here: Emilie approves every event in /curate.
  */
-const AI_API_URL =
-  Deno.env.get('AI_API_URL') ?? 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
-const AI_API_KEY = Deno.env.get('AI_API_KEY');
-const AI_MODEL = Deno.env.get('AI_MODEL') ?? 'gemini-3.5-flash-lite';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
@@ -54,6 +49,7 @@ function lisbonToIso(date: string, time: string): string {
 }
 
 interface Draft {
+  source_url: string | null;
   title: string;
   description: string | null;
   date: string | null;
@@ -62,17 +58,25 @@ interface Draft {
   venue_name: string | null;
   location: string | null;
   price_label: string | null;
-  is_paid: boolean | null;
   english: string | null;
   recurrence: string;
+  repeat_until: string | null;
   category: string;
+  capacity: number | null;
   registration_url: string | null;
   women_only: boolean;
-  image_url?: string | null;
+  lgbtq_friendly: boolean;
+  pet_friendly: boolean;
 }
+
+const httpUrl = (v: unknown) => {
+  const t = text(v, 500);
+  return t && /^https?:\/\//i.test(t) ? t : null;
+};
 
 function cleanDraft(raw: Record<string, unknown>): Draft {
   return {
+    source_url: httpUrl(raw.source_url),
     title: text(raw.title, 200) ?? '',
     description: text(raw.description, 3000),
     date: isDate(raw.date) ? raw.date : null,
@@ -81,55 +85,16 @@ function cleanDraft(raw: Record<string, unknown>): Draft {
     venue_name: text(raw.venue_name, 200),
     location: text(raw.location ?? raw.address, 300),
     price_label: text(raw.price_label ?? raw.price, 60),
-    is_paid: typeof raw.is_paid === 'boolean' ? raw.is_paid : null,
     english: oneOf(raw.english, ENGLISH),
     recurrence: oneOf(raw.recurrence, REPEATS) ?? 'one-off',
+    repeat_until: isDate(raw.repeat_until) ? raw.repeat_until : null,
     category: oneOf(raw.category, CATEGORIES) ?? 'Social networking',
-    registration_url: text(raw.registration_url, 500),
+    capacity: Number.isInteger(Number(raw.capacity)) && Number(raw.capacity) > 0 ? Math.min(Number(raw.capacity), 100000) : null,
+    registration_url: httpUrl(raw.register_url ?? raw.registration_url),
     women_only: raw.women_only === true,
+    lgbtq_friendly: raw.lgbtq_friendly === true,
+    pet_friendly: raw.pet_friendly === true,
   };
-}
-
-async function draftEvents(pasted: string, partner: string, link: string | null): Promise<Draft[]> {
-  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Lisbon' });
-  const res = await fetch(AI_API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${AI_API_KEY}` },
-    signal: AbortSignal.timeout(60_000),
-    body: JSON.stringify({
-      model: AI_MODEL,
-      response_format: { type: 'json_object' },
-      messages: [
-        {
-          role: 'system',
-          content:
-            `An organiser is sending their upcoming events to SYNC, an app that helps newcomers, expats and locals in Porto meet people. ` +
-            `The text may describe one event or list several (a WhatsApp list, an Instagram caption, an email). Return one entry per event and per date. ` +
-            `Today is ${today} (Europe/Lisbon). Resolve dates against today; with no year, use the next occurrence. ` +
-            `Write each description in clear English (translate Portuguese), 2-5 sentences: what happens, who it is for, what is included. ` +
-            `If it costs money, say so plainly with the price. No emojis or hashtags. Never invent facts: use null when something is not stated.\n` +
-            `Reply with JSON only: {"events":[{"title":string,"description":string,"date":"YYYY-MM-DD"|null,"start_time":"HH:MM"|null,` +
-            `"end_time":"HH:MM"|null,"venue_name":string|null,"location":string|null (street address),"price_label":"Free"|"€20"|"From €10"|null,` +
-            `"is_paid":boolean|null,"english":"yes"|"partly"|"no"|null (only from what the text says about the language it runs in),` +
-            `"recurrence":"one-off"|"weekly"|"biweekly"|"monthly","category":one of ${JSON.stringify(CATEGORIES)},` +
-            `"registration_url":string|null,"women_only":boolean}]}`,
-        },
-        { role: 'user', content: `Organiser: ${partner}\n${link ? `Link: ${link}\n` : ''}\n${pasted}` },
-      ],
-    }),
-  });
-  if (!res.ok) throw new Error(`The AI service returned ${res.status}`);
-  const content: string = (await res.json())?.choices?.[0]?.message?.content ?? '';
-  const parsed = JSON.parse(content.replace(/```json|```/g, '').trim());
-  const list = Array.isArray(parsed?.events) ? parsed.events : Array.isArray(parsed) ? parsed : [parsed];
-  return list
-    .slice(0, MAX_EVENTS_PER_SUBMIT)
-    .map((e: Record<string, unknown>) => {
-      const d = cleanDraft(e);
-      if (!d.registration_url && link) d.registration_url = link;
-      return d;
-    })
-    .filter((d: Draft) => d.title);
 }
 
 /** Saves a photo the partner attached (data URL) to the public event-images bucket. */
@@ -155,7 +120,6 @@ async function savePhoto(
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
-  if (!AI_API_KEY) return json({ error: 'This page is not set up yet' }, 500);
 
   let body: Record<string, unknown> = {};
   try {
@@ -179,19 +143,6 @@ Deno.serve(async (req) => {
   const action = body.action;
   if (action === 'info') return json({ partner: partner.name });
 
-  if (action === 'draft') {
-    const pasted = String(body.text ?? '').trim().slice(0, 10_000);
-    if (pasted.length < 10) return json({ error: 'Paste your event details first' }, 400);
-    try {
-      const events = await draftEvents(pasted, partner.name, text(body.link, 500));
-      if (!events.length) return json({ error: 'No events found in that text. Try adding a title and date.' }, 422);
-      return json({ events });
-    } catch (e) {
-      console.error(`partner-submit draft failed: ${(e as Error).message}`);
-      return json({ error: 'Could not read that text just now. Please try again.' }, 502);
-    }
-  }
-
   if (action === 'submit') {
     const incoming = Array.isArray(body.events) ? body.events.slice(0, MAX_EVENTS_PER_SUBMIT) : [];
     if (!incoming.length) return json({ error: 'No events to send' }, 400);
@@ -210,8 +161,8 @@ Deno.serve(async (req) => {
     const problems: string[] = [];
     for (const raw of incoming as Record<string, unknown>[]) {
       const d = cleanDraft(raw);
-      if (!d.title || !d.date || !d.start_time) {
-        problems.push(`${d.title || 'An event'}: needs a title, date and start time`);
+      if (!d.title || !d.date || !d.start_time || !d.description || !d.venue_name || !d.price_label || !d.english) {
+        problems.push(`${d.title || 'An event'}: needs a title, description, date, start time, venue, price and language`);
         continue;
       }
       const startsAt = lisbonToIso(d.date, d.start_time);
@@ -222,13 +173,12 @@ Deno.serve(async (req) => {
       const photo = typeof raw.photo === 'string' ? await savePhoto(supabase, partner.id, raw.photo) : null;
       const notes = ['Sent by the partner; check before publishing'];
       if (d.english !== 'yes') notes.push(d.english === 'no' ? 'Not in English' : 'Check the language');
-      if (d.is_paid && !d.price_label) notes.push('Paid, but no price given');
       if (!photo) notes.push('No photo');
 
       const { error } = await supabase.from('events').insert({
         source: 'partner',
         source_event_id: `submit:${partner.id}:${crypto.randomUUID()}`,
-        source_url: d.registration_url ?? partner.register_url ?? null,
+        source_url: d.source_url ?? d.registration_url ?? partner.register_url ?? null,
         register_url: d.registration_url ?? partner.register_url ?? null,
         whatsapp_url: partner.whatsapp_url,
         title: d.title,
@@ -242,9 +192,13 @@ Deno.serve(async (req) => {
         organizer_name: partner.name,
         organizer_bio: partner.bio,
         category: d.category,
-        price_label: d.price_label ?? (d.is_paid === false ? 'Free' : null),
+        price_label: d.price_label,
+        capacity: d.capacity,
         recurrence: d.recurrence,
+        repeat_until: d.recurrence !== 'one-off' ? d.repeat_until : null,
         women_only: d.women_only,
+        lgbtq_friendly: d.lgbtq_friendly,
+        pet_friendly: d.pet_friendly,
         tags: ['sync-partner'],
         classified: true,
         review_status: 'pending',
