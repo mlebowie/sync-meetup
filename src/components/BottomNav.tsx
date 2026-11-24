@@ -37,12 +37,12 @@ const BottomNav = ({ onOpenMessages }: Props) => {
       aria-label="Main"
       className="fixed inset-x-0 bottom-0 z-50 lg:hidden border-t border-border/50 bg-background/85 backdrop-blur-lg pb-[env(safe-area-inset-bottom)]"
     >
-      <div className="mx-auto grid h-16 max-w-md grid-cols-5 items-center justify-items-center px-4">
+      {/* justify-evenly spaces the 48px tap areas; px-3 adds back the 12px each icon's tap area hides inside it,
+          so the visible gaps between icons and the margins at both ends all come out the same width. */}
+      <div className="flex h-16 items-center justify-evenly px-3">
         <Link to="/" aria-label="Home" className={`${item} ${pathname === '/' ? active : ''}`}>
           <Home className="h-6 w-6" />
         </Link>
-
-        <span aria-hidden />
 
         {/* Same size and baseline as the other icons; the bubble is mirrored so its tail points right. */}
         <button type="button" onClick={openMessages} aria-label="Messages" className={item}>
