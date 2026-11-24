@@ -6,6 +6,7 @@ import { Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   INTEREST_GROUPS,
   ONBOARDING_INTERESTS,
@@ -102,6 +103,8 @@ const Onboarding = () => {
   const [submitting, setSubmitting] = useState(false);
   // The "Find your flow" quiz is optional: skipping it goes straight to interests, with no social style saved.
   const [skippedQuiz, setSkippedQuiz] = useState(false);
+  // Required GDPR consent before an account is created.
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
 
   const completePreferences = answers.planning && answers.groupSetting && answers.connectionGoal
     ? answers as SocialPreferences
@@ -155,6 +158,10 @@ const Onboarding = () => {
       toast({ title: 'A few more details', description: 'Complete every required field to create your profile.' });
       return;
     }
+    if (!privacyAccepted) {
+      toast({ title: 'Please accept the privacy policy', description: 'Tick the box to agree to how SYNC handles your data.' });
+      return;
+    }
     if (password.length < 8) {
       toast({ title: 'Password too short', description: 'Use at least 8 characters.', variant: 'destructive' });
       return;
@@ -177,6 +184,8 @@ const Onboarding = () => {
       socialPreferences: skippedQuiz ? undefined : completePreferences,
       socialStyle: skippedQuiz ? undefined : socialStyle,
       onboardedAt: new Date().toISOString(),
+      // When consent was given, so it can be shown later if asked (GDPR Art. 7(1)).
+      privacyAcceptedAt: new Date().toISOString(),
     };
 
     if (DEMO_MODE) {
@@ -200,7 +209,7 @@ const Onboarding = () => {
       password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: { first_name: profile.firstName, last_name: profile.lastName },
+        data: { first_name: profile.firstName, last_name: profile.lastName, privacy_accepted_at: profile.privacyAcceptedAt },
       },
     });
     setSubmitting(false);
@@ -453,6 +462,21 @@ const Onboarding = () => {
                 <div><Label htmlFor="nationality">Nationality *</Label><TypeaheadSelect id="nationality" value={nationality} onChange={setNationality} placeholder="Type a nationality" options={NATIONALITIES.map(item => ({ value: item.name, label: item.name, leading: item.flag, sub: item.country, searchText: `${item.country} ${item.code}` }))} emptyText="No matching nationality" /></div>
                 <div><Label htmlFor="location">Location *</Label><TypeaheadSelect id="location" value={location} onChange={value => { setLocation(value); setNeighborhood(''); }} showChevron placeholder="Select a city" options={CITIES.map(city => ({ value: city, label: city }))} emptyText="No matching cities" /></div>
                 <div><Label htmlFor="neighborhood">Neighbourhood *</Label>{CITY_NEIGHBORHOODS[location] ? <TypeaheadSelect id="neighborhood" value={neighborhood} onChange={setNeighborhood} placeholder="Select a neighbourhood" options={CITY_NEIGHBORHOODS[location].map(item => ({ value: item, label: item }))} emptyText="No matching neighbourhoods" /> : <Input id="neighborhood" value={neighborhood} onChange={event => setNeighborhood(event.target.value)} disabled={!location} required />}</div>
+              </div>
+
+              {/* Required GDPR consent. Unticked by default: consent has to be an active choice. */}
+              <div className="flex items-start gap-3">
+                <Checkbox
+                  id="privacy"
+                  checked={privacyAccepted}
+                  onCheckedChange={value => setPrivacyAccepted(value === true)}
+                  aria-required="true"
+                  className="mt-0.5 h-5 w-5 shrink-0"
+                />
+                <Label htmlFor="privacy" className="text-sm font-normal leading-5 text-muted-foreground">
+                  I agree to SYNC's privacy policy and to my personal data being processed under the GDPR to create my
+                  account and recommend events. *
+                </Label>
               </div>
             </form>
           )}
