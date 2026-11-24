@@ -62,8 +62,9 @@ const Hero = () => {
     return { opacity: t, transform: `translate3d(0, ${(1 - t) * 24}px, 0)` };
   };
 
-  // Parallax: the photo drifts up and in slowly; the text rises faster and settles exactly centred by the end.
-  const bg = still ? {} : { transform: `translate3d(0, ${-p * 6}%, 0) scale(${1 + p * 0.08})` };
+  // Parallax: the photo stays pinned at the top and slowly zooms in from its top edge;
+  // the text rises faster and settles exactly centred by the end.
+  const bg = still ? {} : { transform: `scale(${1 + p * 0.08})`, transformOrigin: '50% 0%' };
   const text = still ? {} : { transform: `translate3d(0, ${(1 - p) * 36}px, 0)` };
 
   return (

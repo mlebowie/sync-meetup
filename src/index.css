@@ -226,15 +226,16 @@
   }
 
   /* Slow "Ken Burns" pan and zoom on the hero photo, so the still reads like footage. */
+  /* Anchored to the top edge: the zoom grows from the top and the pan is sideways only, so the top never moves. */
   .hero-pan {
-    transform-origin: 60% 60%;
+    transform-origin: 50% 0%;
     will-change: transform;
     animation: hero-pan 32s ease-in-out infinite alternate;
   }
 
   @keyframes hero-pan {
-    from { transform: scale(1.08) translate3d(-2%, 1%, 0); }
-    to   { transform: scale(1.18) translate3d(2.5%, -1.5%, 0); }
+    from { transform: scale(1.08) translate3d(-2%, 0, 0); }
+    to   { transform: scale(1.16) translate3d(2%, 0, 0); }
   }
 
   @media (prefers-reduced-motion: reduce) {
