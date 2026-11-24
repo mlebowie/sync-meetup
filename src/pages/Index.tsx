@@ -23,7 +23,6 @@ import { Event, Participant } from '@/types/event';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import syncWordmark from '@/assets/sync-wordmark-v2.png';
-import { MessageCircle } from 'lucide-react';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
 import { getUserProfile, saveUserProfile } from '@/lib/userProfile';
 import { DEFAULT_FEED_FILTERS, FeedFilters } from '@/lib/feedFilters';
@@ -84,6 +83,15 @@ const Index = () => {
 
   const [searchParams, setSearchParams] = useSearchParams();
   const { setQuery } = useSearch();
+
+  // Messages opened from the bottom bar on another page (?messages=1).
+  useEffect(() => {
+    if (searchParams.get('messages') !== '1') return;
+    setDmInitialId(null);
+    setDmMetAt(null);
+    setDmOpen(true);
+    setSearchParams({}, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   // Pick up a search handed off from the header on another page (?q=...&event=...).
   useEffect(() => {
@@ -308,15 +316,6 @@ const Index = () => {
           <MomentumPanel />
           <ActivityFeed />
 
-          <Button
-            variant="hero"
-            size="icon"
-            className="fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-lg z-40"
-            onClick={() => { setDmInitialId(null); setDmMetAt(null); setDmOpen(true); }}
-            title="Direct messages"
-          >
-            <MessageCircle className="h-5 w-5" />
-          </Button>
         </>
       )}
 

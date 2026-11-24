@@ -6,10 +6,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { User, MessageCircle, CalendarDays, Menu } from 'lucide-react';
+import { CalendarDays, Menu } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import NotificationsPopover from './NotificationsPopover';
-import HeaderSearch from './HeaderSearch';
+import BottomNav from './BottomNav';
 import { getUserProfile } from '@/lib/userProfile';
 import { useAttending } from '@/context/AttendingContext';
 import syncWordmark from '@/assets/sync-wordmark-v2.png';
@@ -98,6 +98,7 @@ const Header = ({ onOpenMessages }: HeaderProps) => {
     : 'text-foreground';
 
   return (
+    <>
     <header
       className={`sticky top-0 z-50 w-full transition-[background-color,backdrop-filter] duration-300 ${
         !scrolled ? 'bg-transparent' : overHero ? 'bg-[hsl(14_38%_13%/0.55)] backdrop-blur-lg' : 'bg-background/70 backdrop-blur-lg'
@@ -151,11 +152,8 @@ const Header = ({ onOpenMessages }: HeaderProps) => {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
+            // Members: notifications and calendar stay up here; messages, search and profile live in the bottom bar.
             <>
-              <HeaderSearch />
-              <Button variant="ghost" size="icon" className={iconTone} onClick={onOpenMessages} title="Messages">
-                <MessageCircle className="h-5 w-5" />
-              </Button>
               {showNotifications && (
                 <NotificationsPopover open={notifOpen} onOpenChange={setNotifOpen} />
               )}
@@ -164,16 +162,13 @@ const Header = ({ onOpenMessages }: HeaderProps) => {
                   <CalendarDays className="h-5 w-5" />
                 </Link>
               </Button>
-              <Button variant="ghost" size="icon" className={iconTone} asChild title="Profile">
-                <Link to="/profile" aria-label="Profile">
-                  <User className="h-5 w-5" />
-                </Link>
-              </Button>
             </>
           )}
         </div>
       </div>
     </header>
+    {!isGuest && <BottomNav onOpenMessages={onOpenMessages} />}
+    </>
   );
 };
 
