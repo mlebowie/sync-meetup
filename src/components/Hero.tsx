@@ -68,10 +68,10 @@ const Hero = () => {
   const text = still ? {} : { transform: `translate3d(0, ${(1 - p) * 36}px, 0)` };
 
   return (
-    <section className="relative">
-      <div ref={trackRef} className={still ? '' : 'h-[260vh]'}>
-        {/* Pinned just below the 64px header (+1px border) and filling the rest of the device's screen. */}
-        <div className="sticky top-[65px] h-[calc(100vh-65px)] h-[calc(100dvh-65px)] overflow-hidden gradient-hero">
+    // Pulled up under the see-through header so the photo fills the whole screen of the device.
+    <section className="relative -mt-16">
+      <div ref={trackRef} data-header-overlay className={still ? '' : 'h-[260vh]'}>
+        <div className="sticky top-0 h-screen h-[100dvh] overflow-hidden gradient-hero">
           <div aria-hidden className="absolute inset-0 pointer-events-none will-change-transform" style={bg}>
             <img
               src={`${PHOTO}&w=1920`}
@@ -100,8 +100,9 @@ const Hero = () => {
           {/* Deep terracotta brown (brand #C1694F, darkened) at 80% so the text stays readable over the photo or video. */}
           <div aria-hidden className="absolute inset-0 bg-[hsl(14_38%_13%/0.8)]" />
 
-          {/* Equal space above and below the text block; gaps scale with screen height so short phones still fit. */}
-          <div className="relative h-full container px-5 md:px-6 py-[clamp(1.5rem,6vh,4rem)] flex items-center justify-center">
+          {/* Equal space above and below the text block, measured from under the 64px header;
+              gaps scale with screen height so short phones still fit. */}
+          <div className="relative h-full container px-5 md:px-6 pt-[calc(4rem+clamp(1.5rem,6vh,4rem))] pb-[clamp(1.5rem,6vh,4rem)] flex items-center justify-center">
             <div className="max-w-4xl mx-auto text-center [text-wrap:balance] will-change-transform" style={text}>
               <h1 className="text-[clamp(2.5rem,8vw,4.5rem)] font-light tracking-[0.015em] leading-[1.1] text-hero-foreground">
                 <span className="block">Your first familiar faces</span>
