@@ -204,7 +204,7 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
                 <div className="p-4 text-center">
                   <MessageCircle className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
                   <p className="text-xs text-muted-foreground">
-                    Follow someone who follows you back to start chatting.
+                    Attend your first event and mutual connections will unlock your first conversation.
                   </p>
                 </div>
               ) : (
