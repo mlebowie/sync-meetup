@@ -1,12 +1,14 @@
 import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, MessageCircle, User } from 'lucide-react';
-import HeaderSearch from './HeaderSearch';
+import { Home, MessageCircle, Search, User } from 'lucide-react';
 
 interface Props {
   /** Opens the messages panel when the current page has one (the homepage); otherwise we go home and open it there. */
   onOpenMessages?: () => void;
+  /** Whether the search field pinned under the header is open, and how to open or close it. */
+  searchOpen?: boolean;
+  onToggleSearch?: () => void;
 }
 
 const item =
@@ -18,7 +20,7 @@ const active = 'text-primary hover:text-primary';
  * then search and profile on the right. Tablets and phones only (under 1024px); desktop keeps the header icons.
  * Sits above the phone's home indicator.
  */
-const BottomNav = ({ onOpenMessages }: Props) => {
+const BottomNav = ({ onOpenMessages, searchOpen = false, onToggleSearch }: Props) => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
@@ -52,7 +54,15 @@ const BottomNav = ({ onOpenMessages }: Props) => {
           <MessageCircle className="h-6 w-6 -scale-x-100" />
         </button>
 
-        <HeaderSearch side="top" triggerClassName={`${item} [&_svg]:h-6 [&_svg]:w-6`} />
+        <button
+          type="button"
+          onClick={onToggleSearch}
+          aria-label={searchOpen ? 'Close search' : 'Search events'}
+          aria-expanded={searchOpen}
+          className={`${item} ${searchOpen ? active : ''}`}
+        >
+          <Search className="h-6 w-6" />
+        </button>
 
         <Link to="/profile" aria-label="Profile" className={`${item} ${pathname.startsWith('/profile') ? active : ''}`}>
           <User className="h-6 w-6" />

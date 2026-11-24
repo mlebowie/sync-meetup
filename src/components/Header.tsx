@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -7,9 +8,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { CalendarDays, Menu, MessageCircle, User } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import NotificationsPopover from './NotificationsPopover';
 import BottomNav from './BottomNav';
+import MobileSearchBar from './MobileSearchBar';
+import { useSearch } from '@/context/SearchContext';
 import HeaderSearch from './HeaderSearch';
 import { getUserProfile } from '@/lib/userProfile';
 import { useAttending } from '@/context/AttendingContext';
@@ -67,6 +70,25 @@ const Header = ({ onOpenMessages }: HeaderProps) => {
   const { attending } = useAttending();
   const { isAdmin } = useAdmin();
   const [pendingCount, setPendingCount] = useState(0);
+
+  // Tablets and phones: search opened from the bottom bar, pinned under this header.
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const { setQuery } = useSearch();
+  const { pathname } = useLocation();
+  const closeMobileSearch = useCallback(() => {
+    setMobileSearchOpen(false);
+    setQuery('');
+  }, [setQuery]);
+  const toggleMobileSearch = () => {
+    if (mobileSearchOpen) return closeMobileSearch();
+    // Render the field and focus it inside the tap itself, so phones open the keyboard straight away.
+    flushSync(() => setMobileSearchOpen(true));
+    searchInputRef.current?.focus();
+  };
+  useEffect(() => {
+    setMobileSearchOpen(false);
+  }, [pathname]);
   const { overHero, scrolled } = useHeaderPosition();
 
   useEffect(() => {
@@ -178,7 +200,10 @@ const Header = ({ onOpenMessages }: HeaderProps) => {
         </div>
       </div>
     </header>
-    {!isGuest && <BottomNav onOpenMessages={onOpenMessages} />}
+    {!isGuest && mobileSearchOpen && <MobileSearchBar ref={searchInputRef} onClose={closeMobileSearch} />}
+    {!isGuest && (
+      <BottomNav onOpenMessages={onOpenMessages} searchOpen={mobileSearchOpen} onToggleSearch={toggleMobileSearch} />
+    )}
     </>
   );
 };

@@ -249,6 +249,20 @@
     }
   }
 
+  /* Mobile search open: the homepage's pinned filter chips sit below the search field instead of under it. */
+  @media (max-width: 1023px) {
+    /* ...and they're switched off until search is closed: the chips fade, the bar's backing stays solid. */
+    body.mobile-search-open [data-sticky-filters] {
+      top: calc(4rem + 3.75rem);
+      pointer-events: none;
+      background-color: hsl(var(--background));
+    }
+    body.mobile-search-open [data-sticky-filters] > * {
+      opacity: 0.35;
+      filter: grayscale(0.6);
+    }
+  }
+
   .shadow-card {
     box-shadow: var(--shadow-card);
   }
