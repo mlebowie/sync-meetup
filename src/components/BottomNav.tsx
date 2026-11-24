@@ -13,7 +13,7 @@ const item =
 const active = 'text-primary hover:text-primary';
 
 /**
- * Members' bottom bar: home on the left, messages in the middle on a round button,
+ * Members' bottom bar: home on the left, messages in the middle,
  * then search and profile on the right. Tablets and phones only (under 1024px); desktop keeps the header icons.
  * Sits above the phone's home indicator.
  */
@@ -44,13 +44,9 @@ const BottomNav = ({ onOpenMessages }: Props) => {
 
         <span aria-hidden />
 
-        <button
-          type="button"
-          onClick={openMessages}
-          aria-label="Messages"
-          className="-mt-6 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-        >
-          <MessageCircle className="h-6 w-6" />
+        {/* Same size and baseline as the other icons; the bubble is mirrored so its tail points right. */}
+        <button type="button" onClick={openMessages} aria-label="Messages" className={item}>
+          <MessageCircle className="h-6 w-6 -scale-x-100" />
         </button>
 
         <HeaderSearch side="top" triggerClassName={`${item} [&_svg]:h-6 [&_svg]:w-6`} />
