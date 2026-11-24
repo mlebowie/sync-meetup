@@ -7,7 +7,7 @@ import { useActivityHistory } from '@/context/ActivityHistoryContext';
 
 import { mockParticipants } from '@/data/mockData';
 import { useEvents } from '@/context/EventsContext';
-import { Send, MessageCircle, Users, UsersRound, Check, ChevronLeft } from 'lucide-react';
+import { Send, MessageCircle, UsersRound, Check, ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import EventGroupChatDialog from './EventGroupChatDialog';
 import CrewChatDialog from './CrewChatDialog';
@@ -92,12 +92,9 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
   useEffect(() => {
     if (open) {
       setMobileThread(!!initialPartnerId);
-      if (initialPartnerId) {
-        setCategory('people');
-        setActiveId(initialPartnerId);
-      } else {
-        setActiveId(category === 'people' ? mutualIds[0] || null : null);
-      }
+      // The toggle always opens on Friends.
+      setCategory('people');
+      setActiveId(initialPartnerId || mutualIds[0] || null);
     }
   }, [open, initialPartnerId]); // eslint-disable-line
 
@@ -142,38 +139,45 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
           <div className="hidden lg:block p-3 border-b">
             <h3 className="font-display text-sm">Messages</h3>
           </div>
-          {/* Right padding on smaller screens keeps the tabs clear of the close X. */}
-          <div className="grid grid-cols-2 gap-1 p-2 pr-12 lg:pr-2 border-b">
-            {([
-              { id: 'people' as const, label: 'People', icon: Users, count: mutualIds.length },
-              { id: 'groups' as const, label: 'Groups', icon: UsersRound, count: groupEntries.length + crewEntries.length },
-            ]).map(tab => {
-              const Icon = tab.icon;
-              const active = category === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setCategory(tab.id)}
-                  className={cn(
-                    'flex items-center justify-center gap-1 px-1.5 py-1.5 rounded-md text-xs font-medium transition-colors',
-                    active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-secondary/60'
-                  )}
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                  {tab.label}
-                  {tab.count > 0 && (
-                    <span className={cn(
-                      'text-[10px] px-1.5 py-0.5 rounded-full',
-                      active ? 'bg-primary-foreground/20' : 'bg-muted'
-                    )}>
-                      {tab.count}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+          {/* Friends / Groups toggle: a sliding switch that starts on Friends. Right padding on smaller
+              screens keeps it clear of the close X. */}
+          <div className="p-2 pr-12 lg:pr-2 border-b">
+            <div
+              role="tablist"
+              aria-label="Show chats with"
+              className="relative grid grid-cols-2 rounded-full bg-muted p-1"
+            >
+              <span
+                aria-hidden
+                className={cn(
+                  'absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-primary shadow-sm transition-transform duration-300 ease-out',
+                  category === 'groups' && 'translate-x-full'
+                )}
+              />
+              {([
+                { id: 'people' as const, label: 'Friends', hint: 'People you both tagged after an event' },
+                { id: 'groups' as const, label: 'Groups', hint: 'Everyone going to the events you are attending' },
+              ]).map(tab => {
+                const active = category === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={active}
+                    title={tab.hint}
+                    onClick={() => setCategory(tab.id)}
+                    className={cn(
+                      'relative z-10 rounded-full py-1.5 text-sm font-medium transition-colors duration-300',
+                      active ? 'text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+                    )}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-
 
           <div className="flex-1 overflow-y-auto">
             {category === 'people' && metAtEventTitle && (
