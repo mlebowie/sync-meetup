@@ -17,13 +17,23 @@ const MobileSearchBar = forwardRef<HTMLInputElement, Props>(({ onClose }, inputR
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
-  // While open, the homepage's pinned filter chips move down below the field (see index.css).
+  // While open, the homepage's filter chips move below the field and are switched off (greyed out in
+  // index.css; `inert` stops taps and keyboard focus) until search is closed with the X.
   useEffect(() => {
     document.body.classList.add('mobile-search-open');
+    const filters = document.querySelectorAll<HTMLElement>('[data-sticky-filters]');
+    filters.forEach(el => {
+      el.setAttribute('inert', '');
+      el.setAttribute('aria-disabled', 'true');
+    });
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
     window.addEventListener('keydown', onKey);
     return () => {
       document.body.classList.remove('mobile-search-open');
+      filters.forEach(el => {
+        el.removeAttribute('inert');
+        el.removeAttribute('aria-disabled');
+      });
       window.removeEventListener('keydown', onKey);
     };
   }, [onClose]);
@@ -45,8 +55,8 @@ const MobileSearchBar = forwardRef<HTMLInputElement, Props>(({ onClose }, inputR
 
   return (
     <div className="fixed inset-x-0 top-16 z-[45] lg:hidden">
-      <div className="flex items-center gap-3 border-b border-border/60 bg-background/95 px-4 py-2.5 backdrop-blur-lg">
-        <div className="flex flex-1 items-center gap-2 rounded-full bg-muted px-4">
+      <div className="border-b border-border/60 bg-background/95 px-4 py-2.5 backdrop-blur-lg">
+        <div className="flex items-center gap-2 rounded-full bg-muted pl-4 pr-1">
           <Search className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
           <input
             ref={inputRef}
@@ -58,20 +68,16 @@ const MobileSearchBar = forwardRef<HTMLInputElement, Props>(({ onClose }, inputR
             aria-label="Search events"
             className="h-10 min-w-0 flex-1 bg-transparent text-[16px] text-foreground placeholder:text-muted-foreground focus:outline-none [&::-webkit-search-cancel-button]:hidden"
           />
-          {query && (
-            <button
-              type="button"
-              onClick={() => setQuery('')}
-              aria-label="Clear search"
-              className="-mr-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:text-foreground"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
+          {/* The one way to close search: clears it and switches the filters back on. */}
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close search"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-background/70 hover:text-foreground"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
-        <button type="button" onClick={onClose} className="shrink-0 text-sm font-medium text-primary">
-          Cancel
-        </button>
       </div>
 
       {query && (
