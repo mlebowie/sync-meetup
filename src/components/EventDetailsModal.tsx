@@ -94,7 +94,12 @@ const EventDetailsModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl p-0 overflow-hidden max-h-[90vh] flex flex-col bg-event-card text-event-card-foreground rounded-2xl border-0">
+      <DialogContent
+        className="max-w-2xl p-0 overflow-hidden max-h-[90vh] flex flex-col bg-event-card text-event-card-foreground rounded-2xl border-0"
+        // Light X over the event photo: white with a soft shadow so it reads on bright and dark images,
+        // and a 44px tap area for phones.
+        closeClassName="right-2 top-2 z-20 flex h-11 w-11 items-center justify-center rounded-full opacity-100 text-white data-[state=open]:bg-transparent data-[state=open]:text-white hover:bg-black/25 focus:ring-white focus:ring-offset-0 [&_svg]:h-6 [&_svg]:w-6 [&_svg]:drop-shadow-[0_1px_3px_rgba(0,0,0,0.65)]"
+      >
         {/* Hero — attendee photo carousel when photos exist */}
         <EventPhotoCarousel
           eventId={event.id}
