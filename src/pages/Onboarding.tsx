@@ -100,6 +100,8 @@ const Onboarding = () => {
   const [neighborhood, setNeighborhood] = useState('');
   const [nationality, setNationality] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  // The "Find your flow" quiz is optional: skipping it goes straight to interests, with no social style saved.
+  const [skippedQuiz, setSkippedQuiz] = useState(false);
 
   const completePreferences = answers.planning && answers.groupSetting && answers.connectionGoal
     ? answers as SocialPreferences
@@ -149,7 +151,7 @@ const Onboarding = () => {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!completePreferences || !socialStyle || !photo || !firstName || !lastName || !email || !password || !dob || !location || !neighborhood || !nationality) {
+    if (!photo || !firstName || !lastName || !email || !password || !dob || !location || !neighborhood || !nationality) {
       toast({ title: 'A few more details', description: 'Complete every required field to create your profile.' });
       return;
     }
@@ -172,8 +174,8 @@ const Onboarding = () => {
       nationality: nationality.trim().slice(0, 60),
       photo,
       interests,
-      socialPreferences: completePreferences,
-      socialStyle,
+      socialPreferences: skippedQuiz ? undefined : completePreferences,
+      socialStyle: skippedQuiz ? undefined : socialStyle,
       onboardedAt: new Date().toISOString(),
     };
 
@@ -250,7 +252,20 @@ const Onboarding = () => {
     </>
   );
 
-  const back = () => setStep(previous => previous - 1);
+  const back = () => {
+    // Back from interests after skipping the quiz returns to its first question.
+    if (step === 4 && skippedQuiz) {
+      setSkippedQuiz(false);
+      setStep(0);
+      return;
+    }
+    setStep(previous => previous - 1);
+  };
+
+  const skipQuiz = () => {
+    setSkippedQuiz(true);
+    setStep(4);
+  };
 
   const backLink = (
     <button
@@ -336,6 +351,15 @@ const Onboarding = () => {
                     Next
                   </Button>
                   {step > 0 && backLink}
+                  {step === 0 && (
+                    <button
+                      type="button"
+                      onClick={skipQuiz}
+                      className="mx-auto mt-3 flex min-h-11 items-center rounded px-3 text-base text-[#974B35] underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      Skip
+                    </button>
+                  )}
                 </div>
               </div>
             )}
