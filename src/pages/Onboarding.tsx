@@ -22,6 +22,7 @@ import { TypeaheadSelect } from '@/components/TypeaheadSelect';
 import { CITIES, CITY_NEIGHBORHOODS, NATIONALITIES } from '@/lib/onboardingData';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import { resetFilterTour } from '@/lib/filterTour';
 
 const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true';
 
@@ -184,6 +185,7 @@ const Onboarding = () => {
         toast({ title: 'Could not save your profile', description: 'Try a different photo.', variant: 'destructive' });
         return;
       }
+      resetFilterTour();
       window.dispatchEvent(new Event('sync:profile-changed'));
       toast({ title: `Welcome, ${profile.firstName}!`, description: 'Your recommendations are ready.' });
       navigate('/', { replace: true });
@@ -206,6 +208,7 @@ const Onboarding = () => {
     }
 
     saveUserProfile(profile);
+    resetFilterTour();
     if (!data.session) {
       // Email confirmation is on: the account exists but needs the link in the inbox.
       toast({ title: 'Check your email', description: `We sent a confirmation link to ${profile.email}.` });

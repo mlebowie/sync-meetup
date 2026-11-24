@@ -250,8 +250,10 @@ const Index = () => {
             </section>
           )}
 
-{/* Featured partner events, pinned from /curate (editorial, not filtered) */}
+          {/* Community partner events (featured first): the same for every member; only
+              the Women only, LGBTQ+ and Pet friendly toggles apply */}
           <FeaturedPartnerSection
+            filters={feedFilters}
             onAttend={handleAttend}
             onParticipantClick={handleParticipantClick}
             onOpenGroupChat={handleOpenGroupChat}
