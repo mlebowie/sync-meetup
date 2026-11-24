@@ -7,7 +7,7 @@ import { useActivityHistory } from '@/context/ActivityHistoryContext';
 
 import { mockParticipants } from '@/data/mockData';
 import { useEvents } from '@/context/EventsContext';
-import { Send, MessageCircle, Users, UsersRound, Check } from 'lucide-react';
+import { Send, MessageCircle, Users, UsersRound, Check, ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import EventGroupChatDialog from './EventGroupChatDialog';
 import CrewChatDialog from './CrewChatDialog';
@@ -85,10 +85,13 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
   const [activeCrew, setActiveCrew] = useState<Group | null>(null);
   const [draft, setDraft] = useState('');
   const [profileId, setProfileId] = useState<string | null>(null);
+  // Tablets and phones show one column at a time: the list, or (after tapping someone) the conversation.
+  const [mobileThread, setMobileThread] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (open) {
+      setMobileThread(!!initialPartnerId);
       if (initialPartnerId) {
         setCategory('people');
         setActiveId(initialPartnerId);
@@ -99,7 +102,10 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
   }, [open, initialPartnerId]); // eslint-disable-line
 
   useEffect(() => {
-    if (category === 'groups') return;
+    if (category === 'groups') {
+      setMobileThread(false);
+      return;
+    }
     setActiveId(mutualIds[0] || null);
     // eslint-disable-next-line
   }, [category]);
@@ -125,17 +131,19 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl p-0 gap-0 flex h-[560px]">
+      {/* Phones and tablets: a near full-screen single column. Desktop (lg+): list and conversation side by side. */}
+      <DialogContent className="w-[calc(100vw-1.5rem)] max-w-2xl lg:w-full p-0 gap-0 flex h-[min(560px,calc(100dvh-6rem))] lg:h-[560px] overflow-hidden rounded-2xl">
         <DialogHeader className="sr-only">
           <DialogTitle>Direct messages</DialogTitle>
           <DialogDescription>Chats with people and event groups</DialogDescription>
         </DialogHeader>
 
-        <aside className="w-60 border-r flex flex-col">
-          <div className="p-3 border-b">
+        <aside className={cn('w-full lg:w-60 lg:border-r flex-col min-w-0', mobileThread ? 'hidden lg:flex' : 'flex')}>
+          <div className="hidden lg:block p-3 border-b">
             <h3 className="font-display text-sm">Messages</h3>
           </div>
-          <div className="grid grid-cols-2 gap-1 p-2 border-b">
+          {/* Right padding on smaller screens keeps the tabs clear of the close X. */}
+          <div className="grid grid-cols-2 gap-1 p-2 pr-12 lg:pr-2 border-b">
             {([
               { id: 'people' as const, label: 'People', icon: Users, count: mutualIds.length },
               { id: 'groups' as const, label: 'Groups', icon: UsersRound, count: groupEntries.length + crewEntries.length },
@@ -203,7 +211,7 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
                   return (
                     <button
                       key={id}
-                      onClick={() => setActiveId(id)}
+                      onClick={() => { setActiveId(id); setMobileThread(true); }}
                       className={`w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-secondary/50 transition-colors ${activeId === id ? 'bg-secondary' : ''}`}
                     >
                       <img src={p.avatar} alt={p.name} className="w-8 h-8 rounded-full object-cover" />
@@ -272,14 +280,23 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
           </div>
         </aside>
 
-        <section className="flex-1 flex flex-col">
+        {/* Desktop always shows this column; smaller screens only once a conversation is open. */}
+        <section className={cn('flex-1 flex-col min-w-0', mobileThread ? 'flex' : 'hidden lg:flex')}>
           {category === 'groups' ? (
             <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground p-8 text-center">
               Pick a group chat on the left to jump back in.
             </div>
           ) : partner ? (
             <>
-              <div className="p-3 border-b flex items-center gap-2">
+              <div className="p-3 pr-12 lg:pr-3 border-b flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setMobileThread(false)}
+                  aria-label="Back to all messages"
+                  className="lg:hidden -ml-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
                 {headerAvatar && (
                   partner ? (
                     <button onClick={() => setProfileId(partner.id)} className="shrink-0">
@@ -306,7 +323,7 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
               <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-2">
                 {thread.length === 0 && (
                   <p className="text-xs text-center text-muted-foreground mt-8">
-                    Say hi to {(headerName || '').split(' ')[0]}!
+                    Say hi to {(headerName || '').split(' ')[0]}.
                   </p>
                 )}
                 {thread.map(m => {
