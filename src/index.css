@@ -249,6 +249,13 @@
     }
   }
 
+  /* Mobile search open: the homepage's pinned filter chips sit below the search field instead of under it. */
+  @media (max-width: 1023px) {
+    body.mobile-search-open [data-sticky-filters] {
+      top: calc(4rem + 3.75rem);
+    }
+  }
+
   .shadow-card {
     box-shadow: var(--shadow-card);
   }

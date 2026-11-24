@@ -79,7 +79,8 @@ const HomeFilterBar = ({ value, onChange, profileInterests, onSaveInterests, int
     <>
       <div ref={sentinelRef} aria-hidden="true" />
       <div
-        className={`sticky top-16 z-40 border-b transition-colors ${
+        data-sticky-filters
+        className={`sticky top-16 z-40 border-b transition-[top,background-color,border-color] duration-200 ${
           pinned ? 'bg-card/95 backdrop-blur-lg border-border' : 'bg-background border-transparent'
         }`}
       >
