@@ -190,7 +190,7 @@ const Login = () => {
             </Button>
             <p className="text-sm text-muted-foreground text-center">
               New here?{' '}
-              <Link to="/signup" className="text-primary font-medium hover:underline">
+              <Link to="/onboarding" className="text-primary font-medium hover:underline">
                 Create an account
               </Link>
             </p>
