@@ -62,7 +62,7 @@ const AttendConfirmationDialog = ({ event, open, onOpenChange, onEngage }: Props
 
   const { start, end } = parseEventDates(event);
   const shareUrl = `${window.location.origin}/?event=${event.id}`;
-  const shareText = `Join me at ${event.title} on ${format(start, 'EEE, MMM d')} at ${startTime24(event.time)} — ${event.location}`;
+  const shareText = `Join me at ${event.title} on ${format(start, 'EEE, MMM d')} at ${startTime24(event.time)} · ${event.location}`;
 
   const gcalUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&dates=${toGCalDate(start)}/${toGCalDate(end)}&details=${encodeURIComponent(event.description || '')}&location=${encodeURIComponent(event.location)}`;
 
@@ -94,7 +94,7 @@ const AttendConfirmationDialog = ({ event, open, onOpenChange, onEngage }: Props
           <DialogDescription>
             Add <span className="font-medium text-foreground">{event.title}</span> to your calendar or invite a friend.
             <span className="block mt-1 text-xs">
-              We'll open the event group chat in a few seconds — it disappears 48 hours after the event takes place.
+              We'll open the event group chat in a few seconds. It disappears 48 hours after the event takes place.
             </span>
           </DialogDescription>
         </DialogHeader>

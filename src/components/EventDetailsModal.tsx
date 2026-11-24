@@ -61,8 +61,8 @@ function syntheticTestimonials(event: Event) {
   // Build 2 extra testimonials from past participants for richer social proof
   const pool = event.participants.slice(0, 2);
   const quotes = [
-    'Showed up not knowing anyone — left with plans for next week.',
-    'Easy crowd, well-organized. The kind of thing you put on repeat.',
+    'Showed up not knowing anyone, left with plans for next week.',
+    'Easy crowd, well-organised. The kind of thing you put on repeat.',
     'Exactly what the description promised. Came back the next week.',
   ];
   return pool.map((p, i) => ({
@@ -130,7 +130,7 @@ const EventDetailsModal = ({
           </div>
           {/* Title + date, time and venue over the photo, in cream */}
           <div className="absolute bottom-4 left-5 right-5 md:left-6 md:right-6 text-event-card pointer-events-none">
-            <h2 className="text-xl md:text-2xl font-bold leading-snug tracking-[-0.01em] mb-1 line-clamp-2">{event.title}</h2>
+            <h2 className="text-xl md:text-2xl font-light leading-snug tracking-[0.015em] mb-1 line-clamp-2">{event.title}</h2>
             <div className="flex flex-col gap-0.5 text-sm md:text-base font-semibold leading-snug">
               <div className="flex items-center gap-5 whitespace-nowrap">
                 <span className="flex items-center gap-2"><Calendar06 className="h-4 w-4 shrink-0" />{format(event.date, 'EEE, MMM d')}</span>
@@ -277,14 +277,14 @@ const EventDetailsModal = ({
                 <div className="p-4 rounded-xl border border-sage/40 bg-white/60">
                   <Quote className="h-4 w-4 text-primary-text mb-1" />
                   <p className="text-sm md:text-base text-foreground">"{org.recentReview.text}"</p>
-                  <p className="text-xs md:text-sm font-semibold text-sage-deep mt-1">— {org.recentReview.author}</p>
+                  <p className="text-xs md:text-sm font-semibold text-sage-deep mt-1">{org.recentReview.author}</p>
                 </div>
               )}
               {extraTestimonials.map((t, i) => (
                 <div key={i} className="p-4 rounded-xl border border-sage/40 bg-white/60">
                   <Quote className="h-4 w-4 text-primary-text mb-1" />
                   <p className="text-sm md:text-base text-foreground">"{t.text}"</p>
-                  <p className="text-xs md:text-sm font-semibold text-sage-deep mt-1">— {t.author}</p>
+                  <p className="text-xs md:text-sm font-semibold text-sage-deep mt-1">{t.author}</p>
                 </div>
               ))}
             </div>
@@ -344,8 +344,8 @@ const EventDetailsModal = ({
                 type="button"
                 onClick={() => toggleWishlist(event.id)}
                 aria-pressed={wishlisted}
-                aria-label={wishlisted ? 'Remove from favorites' : 'Save to favorites'}
-                title={wishlisted ? 'Saved' : 'Save to favorites'}
+                aria-label={wishlisted ? 'Remove from favourites' : 'Save to favourites'}
+                title={wishlisted ? 'Saved' : 'Save to favourites'}
                 className="h-9 w-9 rounded-full flex items-center justify-center text-primary-text hover:bg-primary/10 transition-colors"
               >
                 <Heart className={cn('h-[18px] w-[18px]', wishlisted && 'fill-current')} />

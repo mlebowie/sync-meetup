@@ -53,8 +53,8 @@ const IntakeForm = ({ onSubmit }: IntakeFormProps) => {
     <section id="intake" className="py-12 md:py-16 bg-secondary/30">
       <div className="container px-4 md:px-6">
         <div className="text-center mb-8">
-          <h2 className="text-2xl md:text-3xl font-display font-light text-foreground mb-2">
-            Personalize your experience
+          <h2 className="text-2xl md:text-3xl font-display font-light tracking-[0.015em] text-foreground mb-2">
+            Personalise your experience
           </h2>
           <p className="text-muted-foreground">
             Tell us a bit about you and we'll curate events you'll love
@@ -90,7 +90,7 @@ const IntakeForm = ({ onSubmit }: IntakeFormProps) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <Label htmlFor="neighborhood" className="text-sm font-semibold text-foreground mb-3 block">
-                Your neighborhood
+                Your neighbourhood
               </Label>
               <Input
                 id="neighborhood"

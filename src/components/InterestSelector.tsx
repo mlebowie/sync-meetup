@@ -20,11 +20,11 @@ const InterestSelector = ({ selectedInterests, onInterestsChange }: InterestSele
     <section id="interests" className="py-12 md:py-16 bg-secondary/30">
       <div className="container px-4 md:px-6">
         <div className="text-center mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
+          <h2 className="text-2xl md:text-3xl font-light tracking-[0.015em] text-foreground mb-2">
             What are you interested in?
           </h2>
           <p className="text-muted-foreground">
-            Select your interests to personalize your event feed
+            Select your interests to personalise your event feed
           </p>
         </div>
 

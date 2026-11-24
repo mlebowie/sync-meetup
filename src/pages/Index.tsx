@@ -12,7 +12,6 @@ import GuestLanding from '@/components/GuestLanding';
 import FeedSetupBanner from '@/components/FeedSetupBanner';
 import HomeTour from '@/components/HomeTour';
 import MemberStartSection from '@/components/MemberStartSection';
-import HowSyncWorks from '@/components/HowSyncWorks';
 import HappeningSoonSection from '@/components/HappeningSoonSection';
 import RecommendedSection from '@/components/RecommendedSection';
 import HomeFilterBar from '@/components/HomeFilterBar';
@@ -147,7 +146,7 @@ const Index = () => {
       const t = setTimeout(() => {
         toast({
           title: `How was ${latestPast.title}?`,
-          description: 'Tag the people you clicked with — only mutual tags unlock DMs.',
+          description: 'Tag the people you clicked with. Only mutual tags unlock DMs.',
         });
       }, 1200);
       return () => clearTimeout(t);
@@ -192,7 +191,6 @@ const Index = () => {
       {isGuest ? (
         <>
           <Hero />
-          <HowSyncWorks />
           <GuestLanding
             onAttend={handleAttend}
             onParticipantClick={handleParticipantClick}
@@ -208,7 +206,7 @@ const Index = () => {
             <section className="pt-6" aria-labelledby="resume-event-title">
               <div className="container px-4 md:px-6">
                 <div className="max-w-md">
-                  <h2 id="resume-event-title" className="text-lg md:text-xl font-bold text-foreground mb-3">
+                  <h2 id="resume-event-title" className="text-lg md:text-xl font-light tracking-[0.015em] text-foreground mb-3">
                     The event you picked
                   </h2>
                   <EventCard
@@ -356,7 +354,7 @@ const Index = () => {
             Less searching. More belonging.
           </p>
           <p className="text-xs text-muted-foreground mt-4">
-            © 2026 Sync. All rights reserved.
+            © 2026 SYNC. All rights reserved.
           </p>
         </div>
       </footer>

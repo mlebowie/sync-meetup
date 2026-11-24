@@ -81,7 +81,7 @@ const Profile = () => {
           </div>
           <div className="flex-1">
             <div className="flex items-start justify-between gap-3">
-              <h1 className="text-2xl font-bold">{profile.firstName} {profile.lastName}</h1>
+              <h1 className="text-2xl font-light tracking-[0.015em]">{profile.firstName} {profile.lastName}</h1>
               <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="shrink-0">
                 <Pencil className="h-3.5 w-3.5 mr-1.5" />
                 Edit profile

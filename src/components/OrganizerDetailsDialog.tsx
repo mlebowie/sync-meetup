@@ -23,7 +23,7 @@ const fallbackPhotos = [
 const fallbackTestimonials = [
   { author: 'Sofia M.', rating: 5, text: 'Consistently well-run events. The host actually remembers your name by week two.', date: new Date() },
   { author: 'Diego R.', rating: 5, text: 'Showed up solo, left with three people I still meet up with.', date: new Date() },
-  { author: 'Marta L.', rating: 4, text: 'Always on time, well-organized, and the group is friendly to newcomers.', date: new Date() },
+  { author: 'Marta L.', rating: 4, text: 'Always on time, well-organised, and the group is friendly to newcomers.', date: new Date() },
 ];
 
 const OrganizerDetailsDialog = ({ organizer, open, onOpenChange }: Props) => {
@@ -63,7 +63,7 @@ const OrganizerDetailsDialog = ({ organizer, open, onOpenChange }: Props) => {
                 <img src={organizer.avatar} alt={organizer.name} className="w-16 h-16 rounded-full object-cover -mt-12 ring-4 ring-background" />
               )}
               <div className="flex-1 min-w-0">
-                <h2 className="text-lg font-bold text-foreground">{organizer.name}</h2>
+                <h2 className="text-lg font-light tracking-[0.015em] text-foreground">{organizer.name}</h2>
                 <p className="text-xs text-muted-foreground capitalize">
                   {organizer.type === 'company' ? 'Organization' : 'Host'} · {organizer.location}
                 </p>

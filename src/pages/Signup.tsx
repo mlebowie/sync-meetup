@@ -213,7 +213,7 @@ const Signup = () => {
 
         {step === 'interests' ? (
           <section className="animate-fade-in">
-            <h1 className="font-display text-[22px] leading-7 font-bold text-primary-text sm:text-2xl">What are you into?</h1>
+            <h1 className="font-display text-[22px] leading-7 font-light tracking-[0.015em] text-primary-text sm:text-2xl">What are you into?</h1>
             <p className="mt-2 text-sm text-muted-foreground">
               Pick three to five. They decide which events fill your home feed, and you can change them any time.
             </p>
@@ -260,7 +260,7 @@ const Signup = () => {
           </section>
         ) : (
           <form className="animate-fade-in" onSubmit={createAccount}>
-            <h1 className="font-display text-[22px] leading-7 font-bold text-primary-text sm:text-2xl">Create your account</h1>
+            <h1 className="font-display text-[22px] leading-7 font-light tracking-[0.015em] text-primary-text sm:text-2xl">Create your account</h1>
             <p className="mt-2 text-sm text-muted-foreground">
               So you can sign in on any device and keep your events, chats and connections.
             </p>

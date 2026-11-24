@@ -35,7 +35,7 @@ const ComingUpSection = ({ allEvents }: Props) => {
     <section className="mb-10">
       <div className="flex items-center gap-2 mb-4">
         <img src={syncLogo} alt="Sync" className="h-5 w-5" />
-        <h2 className="text-xl font-bold">Coming Up</h2>
+        <h2 className="text-xl font-light tracking-[0.015em]">Coming Up</h2>
         {events.length > 0 && (
           <span className="text-sm text-muted-foreground">({events.length})</span>
         )}
@@ -111,7 +111,7 @@ const ComingUpCard = ({ event, prefs, onUpdate, onRemove }: CardProps) => {
     onRemove();
     toast({
       title: 'Registration cancelled',
-      description: `The organizer of "${event.title}" has been notified.`,
+      description: `The organiser of "${event.title}" has been notified.`,
     });
   };
 

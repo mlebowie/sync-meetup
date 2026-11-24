@@ -80,7 +80,7 @@ if (!dateOfBirth) {
               <Input id="edit-location" value={location} onChange={e => setLocation(e.target.value)} maxLength={80} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-neighborhood">Neighborhood</Label>
+              <Label htmlFor="edit-neighborhood">Neighbourhood</Label>
               <Input id="edit-neighborhood" value={neighborhood} onChange={e => setNeighborhood(e.target.value)} maxLength={80} />
             </div>
           </div>

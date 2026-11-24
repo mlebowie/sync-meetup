@@ -71,7 +71,7 @@ const FriendsLoveSection = ({ onAttend, onParticipantClick, onOpenGroupChat, int
             <div className="text-xs uppercase tracking-wide text-accent-strong font-semibold mb-1">
               Events your friends love
             </div>
-            <h2 className="text-xl md:text-2xl font-bold text-foreground">
+            <h2 className="text-xl md:text-2xl font-light tracking-[0.015em] text-foreground">
               {hasFriends ? 'Where your people keep showing up' : 'Recurring events the community loves'}
             </h2>
             <p className="text-sm text-muted-foreground mt-1">

@@ -69,7 +69,7 @@ const HappeningSoonSection = ({ filters, profileInterests, onAttend, onParticipa
       <div className="container px-4 md:px-6">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-5">
           <div>
-            <h2 className="text-xl md:text-2xl font-bold text-foreground">
+            <h2 className="text-xl md:text-2xl font-light tracking-[0.015em] text-foreground">
               {mode === 'random' ? 'Try something off your usual path' : 'Happening in the next 6 hours'}
             </h2>
             <p className="text-sm text-muted-foreground mt-1">

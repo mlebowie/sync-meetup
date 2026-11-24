@@ -77,7 +77,7 @@ const PastEventRecapDialog = ({ attendance, open, onOpenChange, onParticipantCli
             </span>
           </div>
           <div className="absolute bottom-3 left-4 right-4 text-white pointer-events-none">
-            <h2 className="text-xl font-bold leading-tight mb-1">{attendance.title}</h2>
+            <h2 className="text-xl font-light tracking-[0.015em] leading-tight mb-1">{attendance.title}</h2>
             <div className="flex items-center gap-3 text-xs text-white/90 flex-wrap">
               <span className="flex items-center gap-1"><Calendar className="h-3.5 w-3.5" />{format(attendance.date, 'EEE, MMM d yyyy')}</span>
               {attendance.location && (
@@ -102,7 +102,7 @@ const PastEventRecapDialog = ({ attendance, open, onOpenChange, onParticipantCli
 
             {photos.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                No photos yet — be the first to add one from this event.
+                No photos yet. Be the first to add one from this event.
               </p>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">

@@ -240,7 +240,7 @@ const NotificationsPopover = ({ open, onOpenChange }: Props) => {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirm registration</AlertDialogTitle>
             <AlertDialogDescription>
-              You're committing to show up for <span className="font-medium text-foreground">{waitlistEvent?.title}</span>. The group is counting on you — cancellations affect your reliability score.
+              You're committing to show up for <span className="font-medium text-foreground">{waitlistEvent?.title}</span>. The group is counting on you, and cancellations affect your reliability score.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
