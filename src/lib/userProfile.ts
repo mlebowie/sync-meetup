@@ -82,6 +82,8 @@ export interface UserProfile {
   socialStyle?: SocialStyle;
   /** ISO timestamp of account creation — used to ignore seeded demo history. */
   onboardedAt?: string;
+  /** ISO timestamp of when the member accepted the privacy policy (GDPR consent) at sign-up. */
+  privacyAcceptedAt?: string;
 }
 
 const KEY = 'sync.userProfile.v1';
