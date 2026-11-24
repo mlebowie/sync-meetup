@@ -53,7 +53,7 @@ const EventCarousel = ({ events, onAttend, onParticipantClick, onOpenGroupChat, 
             type="button"
             onClick={() => scrollBy(-1)}
             aria-label="Scroll left"
-            className="hidden md:flex absolute -left-4 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-card border border-border shadow-card items-center justify-center text-foreground hover:bg-muted transition-colors"
+            className="hidden md:flex absolute left-1 xl:-left-4 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-card border border-border shadow-card items-center justify-center text-foreground hover:bg-muted transition-colors"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
@@ -61,7 +61,7 @@ const EventCarousel = ({ events, onAttend, onParticipantClick, onOpenGroupChat, 
             type="button"
             onClick={() => scrollBy(1)}
             aria-label="Scroll right"
-            className="hidden md:flex absolute -right-4 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-card border border-border shadow-card items-center justify-center text-foreground hover:bg-muted transition-colors"
+            className="hidden md:flex absolute right-1 xl:-right-4 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-card border border-border shadow-card items-center justify-center text-foreground hover:bg-muted transition-colors"
           >
             <ChevronRight className="h-4 w-4" />
           </button>

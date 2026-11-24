@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Home, MessageCircle, User } from 'lucide-react';
 import HeaderSearch from './HeaderSearch';
@@ -32,10 +33,12 @@ const BottomNav = ({ onOpenMessages }: Props) => {
     else navigate('/?messages=1');
   };
 
-  return (
+  // Rendered straight into <body> so no page wrapper (transforms, overflow, animations) can ever unpin it;
+  // translateZ keeps it on its own layer so iOS Safari doesn't let it drift while the toolbars show and hide.
+  return createPortal(
     <nav
       aria-label="Main"
-      className="fixed inset-x-0 bottom-0 z-50 lg:hidden border-t border-border/50 bg-background/85 backdrop-blur-lg pb-[env(safe-area-inset-bottom)]"
+      className="fixed inset-x-0 bottom-0 z-50 lg:hidden [transform:translateZ(0)] border-t border-border/50 bg-background/85 backdrop-blur-lg pb-[env(safe-area-inset-bottom)]"
     >
       {/* justify-evenly spaces the 48px tap areas; px-3 adds back the 12px each icon's tap area hides inside it,
           so the visible gaps between icons and the margins at both ends all come out the same width. */}
@@ -55,7 +58,8 @@ const BottomNav = ({ onOpenMessages }: Props) => {
           <User className="h-6 w-6" />
         </Link>
       </div>
-    </nav>
+    </nav>,
+    document.body,
   );
 };
 
