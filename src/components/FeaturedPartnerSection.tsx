@@ -35,7 +35,7 @@ const FeaturedPartnerSection = ({ onAttend, onParticipantClick, onOpenGroupChat,
         <div className="max-w-6xl mx-auto">
           <div className="mb-5">
             <div>
-              <h2 className="text-2xl md:text-3xl font-bold text-foreground">Featured</h2>
+              <h2 className="text-2xl md:text-3xl font-light tracking-[0.015em] text-foreground">Featured</h2>
               <p className="text-muted-foreground mt-1">
                 Hand-picked gatherings from SYNC and our partners.
               </p>

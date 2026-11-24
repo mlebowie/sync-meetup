@@ -26,7 +26,7 @@ const RecommendedForYou = ({ events, onAttend, onParticipantClick, onOpenGroupCh
       <div className="container px-4 md:px-6">
         <div className="flex items-baseline justify-between mb-5">
           <div>
-            <h2 className="text-xl md:text-2xl font-bold text-foreground flex items-center gap-2">
+            <h2 className="text-xl md:text-2xl font-light tracking-[0.015em] text-foreground flex items-center gap-2">
               Picked from your pattern
             </h2>
             <p className="text-sm text-muted-foreground mt-1">

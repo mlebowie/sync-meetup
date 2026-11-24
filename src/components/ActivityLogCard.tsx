@@ -29,7 +29,7 @@ const ActivityLogCard = () => {
     >
       <div className="flex flex-col gap-1">
         <Eyebrow>Your activity log</Eyebrow>
-        <h2 className="text-xl font-bold text-foreground">
+        <h2 className="text-xl font-light tracking-[0.015em] text-foreground">
           {doneCount === 0 ? 'Starts with your first event' : `${doneCount} of 3 steps done`}
         </h2>
         <p className="text-sm text-muted-foreground">

@@ -120,7 +120,7 @@ const Login = () => {
         </header>
 
         <div className="mb-8 text-center">
-          <h1 className="font-display text-[22px] leading-7 font-light text-foreground sm:text-4xl">Welcome back</h1>
+          <h1 className="font-display text-[22px] leading-7 font-light tracking-[0.015em] text-foreground sm:text-4xl">Welcome back</h1>
           <p className="mt-3 text-sm text-muted-foreground">Log in to pick up with your crew and upcoming events.</p>
         </div>
 

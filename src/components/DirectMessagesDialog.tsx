@@ -226,7 +226,7 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
                 <div className="p-4 text-center">
                   <UsersRound className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
                   <p className="text-xs text-muted-foreground">
-                    Tap "Attend" on any event or "Message crew" on a crew to start a group chat — it'll show up here.
+                    Tap "Attend" on any event or "Message crew" on a crew to start a group chat. It'll show up here.
                   </p>
                 </div>
               ) : (

@@ -167,7 +167,7 @@ const Connections = () => {
 
         <div className="flex items-center gap-2 mb-6">
           <Users className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-bold">Connections</h1>
+          <h1 className="text-2xl font-light tracking-[0.015em]">Connections</h1>
           <span className="text-sm text-muted-foreground">({counts.all})</span>
         </div>
 
@@ -176,7 +176,7 @@ const Connections = () => {
           <Input
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Search by name or neighborhood"
+            placeholder="Search by name or neighbourhood"
             className="pl-9"
           />
         </div>

@@ -288,7 +288,7 @@ const Onboarding = () => {
             {currentQuestion && (
               <div key={currentQuestion.key} className="animate-fade-in">
                 <p className="text-center text-sm leading-5 text-[#974B35]">Question {step + 1} of 3</p>
-                <h1 id="flow-question" className="mt-2 text-center font-display text-[22px] font-bold leading-7 sm:text-[44px] sm:leading-[52px] text-[#A25139]">
+                <h1 id="flow-question" className="mt-2 text-center font-display text-[22px] font-light tracking-[0.015em] leading-7 sm:text-[44px] sm:leading-[52px] text-[#A25139]">
                   {currentQuestion.prompt}
                 </h1>
                 <div role="radiogroup" aria-labelledby="flow-question" className="mt-8 flex flex-col gap-3">
@@ -340,7 +340,7 @@ const Onboarding = () => {
             {step === 3 && styleDetails && (
               <div className="animate-fade-in text-center">
                 <p className="text-sm leading-5 text-[#974B35]">Your starting point</p>
-                <h1 className="mt-2 font-display text-[22px] font-bold leading-7 sm:text-[44px] sm:leading-[52px] text-[#A25139]">{styleDetails.name}</h1>
+                <h1 className="mt-2 font-display text-[22px] font-light tracking-[0.015em] leading-7 sm:text-[44px] sm:leading-[52px] text-[#A25139]">{styleDetails.name}</h1>
                 <p className="mx-auto mt-6 max-w-md text-base leading-6 text-[#57514D]">{styleDetails.description}</p>
                 <div className="mt-8 flex w-full flex-col items-center">
                   <Button type="button" onClick={next} className={primaryCta}>
@@ -364,8 +364,8 @@ const Onboarding = () => {
           {step === 4 && (
             <div className="animate-fade-in">
               <div className="mb-7 text-center">
-                <h1 className="font-display text-[22px] leading-7 font-light text-foreground sm:text-4xl">Choose 3–5 interests</h1>
-                <p className="mt-3 text-sm text-muted-foreground">Personalize your homefeed with events you actually want to go to.</p>
+                <h1 className="font-display text-[22px] leading-7 font-light tracking-[0.015em] text-foreground sm:text-4xl">Choose 3–5 interests</h1>
+                <p className="mt-3 text-sm text-muted-foreground">Personalise your homefeed with events you actually want to go to.</p>
               </div>
               <div className="space-y-6">
                 {INTEREST_GROUPS.map(group => (
@@ -401,7 +401,7 @@ const Onboarding = () => {
           {step === 5 && (
             <form id="profile-form" onSubmit={handleSubmit} className="animate-fade-in space-y-7">
               <div className="text-center">
-                <h1 className="font-display text-[22px] leading-7 font-light text-foreground sm:text-4xl">Create your profile</h1>
+                <h1 className="font-display text-[22px] leading-7 font-light tracking-[0.015em] text-foreground sm:text-4xl">Create your profile</h1>
                 <p className="mt-3 text-sm text-muted-foreground">Tell people who they will be meeting in Porto.</p>
               </div>
 

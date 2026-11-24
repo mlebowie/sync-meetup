@@ -55,7 +55,7 @@ const MemberStartSection = ({ profileInterests, onAttend, onParticipantClick, on
             <div className="flex flex-col gap-1.5">
               <Eyebrow>{isNew ? (goingToFirst ? 'Your first event' : 'Try your first event') : 'Try something this week'}</Eyebrow>
               <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-xl font-bold text-foreground">
+                <h2 className="text-xl font-light tracking-[0.015em] text-foreground">
                   {goingToFirst ? "You're going" : 'A good place to start'}
                 </h2>
                 {firstEvent && isNewcomerFriendly(firstEvent) && (

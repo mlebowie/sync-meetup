@@ -51,7 +51,7 @@ const PopularTrendingSection = ({ onAttend, onParticipantClick, onOpenGroupChat,
           <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
             <div>
               <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-foreground">
+                <h2 className="text-2xl md:text-3xl font-light tracking-[0.015em] text-foreground">
                   Popular & Trending
                 </h2>
                 <p className="text-muted-foreground mt-1">

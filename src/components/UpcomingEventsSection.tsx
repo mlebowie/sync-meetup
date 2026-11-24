@@ -92,7 +92,7 @@ const UpcomingEventsSection = ({
     },
     {
       title: 'Keep it close to home',
-      body: `We show events closest to your neighborhood first. Tighten the radius for things you can walk to, and set the age range of who you'll meet.`,
+      body: `We show events closest to your neighbourhood first. Tighten the radius for things you can walk to, and set the age range of who you'll meet.`,
       ref: placeRef,
     },
     {
@@ -148,7 +148,7 @@ const UpcomingEventsSection = ({
       <div className="container px-4 md:px-6">
         <div className="flex flex-wrap items-end justify-between gap-3 mb-5">
           <div>
-            <h2 className="text-2xl md:text-3xl font-bold text-foreground">Upcoming events</h2>
+            <h2 className="text-2xl md:text-3xl font-light tracking-[0.015em] text-foreground">Upcoming events</h2>
             <p className="text-muted-foreground mt-1">Everything coming up in {scopeName(filters)}.</p>
           </div>
           <button
@@ -167,7 +167,7 @@ const UpcomingEventsSection = ({
             <Input
               value={query}
               onChange={e => setQuery(e.target.value)}
-              placeholder="Search events, locations, organizers…"
+              placeholder="Search events, locations, organisers…"
               className="pl-9 pr-9"
               aria-label="Search events"
             />
@@ -223,7 +223,7 @@ const UpcomingEventsSection = ({
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <MapPin className="h-4 w-4 text-danger" />
-                  <span className="text-sm font-semibold">Neighborhood</span>
+                  <span className="text-sm font-semibold">Neighbourhood</span>
                 </div>
                 <p className="text-xs text-muted-foreground mb-2">Anchor your feed to one part of the city.</p>
                 <TypeaheadSelect
@@ -266,7 +266,7 @@ const UpcomingEventsSection = ({
                   <span className="text-sm text-muted-foreground">≤ {maxDistance.toFixed(1)} km</span>
                 </div>
                 <p className="text-xs text-muted-foreground mb-3">
-                  Closest events to {neighborhood || profile.neighborhood || 'your neighborhood'} are always shown first.
+                  Closest events to {neighborhood || profile.neighborhood || 'your neighbourhood'} are always shown first.
                 </p>
                 <Slider
                   min={1}
@@ -290,7 +290,7 @@ const UpcomingEventsSection = ({
 
         {filtered.length === 0 ? (
           <div className="text-center py-16">
-            <h3 className="text-xl font-semibold mb-2">No matches yet</h3>
+            <h3 className="text-xl font-light tracking-[0.015em] mb-2">No matches yet</h3>
             <p className="text-muted-foreground mb-4">Loosen a filter here or in the bar at the top and try again.</p>
             {moreCount > 0 && <Button variant="outline" onClick={resetFilters}>Reset these filters</Button>}
           </div>
@@ -298,7 +298,7 @@ const UpcomingEventsSection = ({
           <>
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               <p className="text-sm text-muted-foreground">
-                {query.trim() ? `Results for “${query}” — ` : ''}Showing {filtered.length} of {events.length} events
+                {query.trim() ? `Results for “${query}”. ` : ''}Showing {filtered.length} of {events.length} events
               </p>
               {query.trim() && (
                 <Button variant="ghost" size="sm" onClick={() => setQuery('')}>Clear search</Button>

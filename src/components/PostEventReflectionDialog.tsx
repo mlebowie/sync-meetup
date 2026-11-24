@@ -88,7 +88,7 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
     toast({
       title: `Tagged ${picked.length} ${picked.length === 1 ? 'person' : 'people'}`,
       description: mutuals.length > 0
-        ? `${mutuals.length} of them tagged you back — DMs unlocked.`
+        ? `${mutuals.length} of them tagged you back. DMs unlocked.`
         : 'Stays private. If they tag you too, DMs unlock automatically.',
     });
     setStep('photo');
@@ -139,7 +139,7 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
             <DialogHeader>
               <DialogTitle>Would you bring a friend to {event.title} next time?</DialogTitle>
               <DialogDescription>
-                Step 1 of 3 — your answer powers the “friend-worthy” score other members see.
+                Step 1 of 3. Your answer powers the “friend-worthy” score other members see.
               </DialogDescription>
             </DialogHeader>
 
@@ -188,7 +188,7 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
             <DialogHeader>
               <DialogTitle>Who did you click with?</DialogTitle>
               <DialogDescription>
-                Step 2 of 3 — tag your top 3 from {event.title}. Tags are private; only mutual tags unlock messages.
+                Step 2 of 3. Tag your top 3 from {event.title}. Tags are private; only mutual tags unlock messages.
               </DialogDescription>
             </DialogHeader>
 
@@ -232,7 +232,7 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
             <DialogHeader>
               <DialogTitle>Share a photo from {event.title}</DialogTitle>
               <DialogDescription>
-                Step 3 of 3 — your photo headlines the event card. The most-liked photo gets featured first, credited to whoever posted it.
+                Step 3 of 3. Your photo headlines the event card. The most-liked photo gets featured first, credited to whoever posted it.
               </DialogDescription>
             </DialogHeader>
 
@@ -278,7 +278,7 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
                 maxLength={100}
               />
               <p className="text-xs text-muted-foreground flex items-center gap-1">
-                <Heart className="h-3 w-3" /> Attendees can like photos — the top one leads the carousel.
+                <Heart className="h-3 w-3" /> Attendees can like photos. The top one leads the carousel.
               </p>
             </div>
 
@@ -307,7 +307,7 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium text-foreground truncate">{p.name}</p>
                       <p className="text-xs text-muted-foreground truncate">
-                        {mutual ? 'Tagged you back — DMs unlocked' : 'Waiting for them to tag you'}
+                        {mutual ? 'Tagged you back. DMs unlocked' : 'Waiting for them to tag you'}
                       </p>
                     </div>
                     {mutual ? (

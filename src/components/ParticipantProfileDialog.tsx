@@ -58,7 +58,7 @@ const ParticipantProfileDialog = ({ participant, open, onOpenChange, onOpenDM }:
     toast({
       title: wouldBeMutual ? `Connected with ${participant.name} 🎉` : `Following ${participant.name}`,
       description: wouldBeMutual
-        ? 'DMs are unlocked — you can message each other now.'
+        ? 'DMs are unlocked. You can message each other now.'
         : 'They\'ll see you next time you cross paths at an event.',
     });
   };
@@ -260,7 +260,7 @@ const ParticipantProfileDialog = ({ participant, open, onOpenChange, onOpenDM }:
         )}
         {!isMe && isFollowing && !mutual && (
           <p className="text-xs text-muted-foreground text-center mt-3">
-            Show up to another event together — or tag each other after one — to unlock DMs.
+            Show up to another event together, or tag each other after one, to unlock DMs.
           </p>
         )}
       </DialogContent>

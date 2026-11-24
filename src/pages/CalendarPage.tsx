@@ -60,7 +60,7 @@ const CalendarPage = () => {
           <ArrowLeft className="h-4 w-4" /> Back
         </Link>
 
-        <h1 className="text-2xl font-bold mb-8">My calendar</h1>
+        <h1 className="text-2xl font-light tracking-[0.015em] mb-8">My calendar</h1>
 
         {/* Coming Up */}
         <ComingUpSection allEvents={rotatingEvents} />
@@ -69,7 +69,7 @@ const CalendarPage = () => {
         <section className="mb-10">
           <div className="flex items-center gap-2 mb-4">
             <Calendar className="h-5 w-5 text-primary" />
-            <h2 className="text-xl font-bold">Last attended events</h2>
+            <h2 className="text-xl font-light tracking-[0.015em]">Last attended events</h2>
             {attendedEvents.length > 0 && (
               <span className="text-sm text-muted-foreground">({attendedEvents.length})</span>
             )}
@@ -137,7 +137,7 @@ const CalendarPage = () => {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Heart className="h-5 w-5 text-destructive fill-destructive" />
-              <h2 className="text-xl font-bold">My wishlist</h2>
+              <h2 className="text-xl font-light tracking-[0.015em]">My wishlist</h2>
               <span className="text-sm text-muted-foreground">({wishlist.length})</span>
             </div>
           </div>

@@ -50,7 +50,7 @@ const select = (eventId: string) => {
             ref={inputRef}
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Search events, locations, organizers…"
+            placeholder="Search events, locations, organisers…"
             className="border-0 focus-visible:ring-0 px-0 shadow-none bg-transparent"
           />
           {query && (
@@ -67,7 +67,7 @@ const select = (eventId: string) => {
         <div className="max-h-[380px] overflow-y-auto">
           {!query ? (
             <div className="px-4 py-8 text-center text-sm text-muted-foreground">
-              Search by event, location, or organizer
+              Search by event, location or organiser
             </div>
           ) : shown.length === 0 ? (
             <div className="px-4 py-8 text-center text-sm text-muted-foreground">

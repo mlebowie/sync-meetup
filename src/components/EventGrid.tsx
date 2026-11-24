@@ -82,7 +82,7 @@ const EventGrid = ({ events, filters, onAttend, onParticipantClick, onOpenGroupC
     return (
       <div className="text-center py-16">
         <div className="text-6xl mb-4">🔍</div>
-        <h3 className="text-xl font-semibold text-foreground mb-2">
+        <h3 className="text-xl font-light tracking-[0.015em] text-foreground mb-2">
           No events found
         </h3>
         <p className="text-muted-foreground">
