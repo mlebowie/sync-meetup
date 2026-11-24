@@ -6,9 +6,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { User, MessageCircle, CalendarDays, Menu } from 'lucide-react';
+import { CalendarDays, Menu, MessageCircle, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import NotificationsPopover from './NotificationsPopover';
+import BottomNav from './BottomNav';
 import HeaderSearch from './HeaderSearch';
 import { getUserProfile } from '@/lib/userProfile';
 import { useAttending } from '@/context/AttendingContext';
@@ -98,6 +99,7 @@ const Header = ({ onOpenMessages }: HeaderProps) => {
     : 'text-foreground';
 
   return (
+    <>
     <header
       className={`sticky top-0 z-50 w-full transition-[background-color,backdrop-filter] duration-300 ${
         !scrolled ? 'bg-transparent' : overHero ? 'bg-[hsl(14_38%_13%/0.55)] backdrop-blur-lg' : 'bg-background/70 backdrop-blur-lg'
@@ -151,9 +153,11 @@ const Header = ({ onOpenMessages }: HeaderProps) => {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
+            // Members: on desktop every tool sits up here. On tablets and phones only notifications and the
+            // calendar stay; search, messages and profile move to the bottom bar.
             <>
-              <HeaderSearch />
-              <Button variant="ghost" size="icon" className={iconTone} onClick={onOpenMessages} title="Messages">
+              <HeaderSearch triggerClassName={`hidden lg:inline-flex ${iconTone}`} />
+              <Button variant="ghost" size="icon" className={`hidden lg:inline-flex ${iconTone}`} onClick={onOpenMessages} title="Messages">
                 <MessageCircle className="h-5 w-5" />
               </Button>
               {showNotifications && (
@@ -164,7 +168,7 @@ const Header = ({ onOpenMessages }: HeaderProps) => {
                   <CalendarDays className="h-5 w-5" />
                 </Link>
               </Button>
-              <Button variant="ghost" size="icon" className={iconTone} asChild title="Profile">
+              <Button variant="ghost" size="icon" className={`hidden lg:inline-flex ${iconTone}`} asChild title="Profile">
                 <Link to="/profile" aria-label="Profile">
                   <User className="h-5 w-5" />
                 </Link>
@@ -174,6 +178,8 @@ const Header = ({ onOpenMessages }: HeaderProps) => {
         </div>
       </div>
     </header>
+    {!isGuest && <BottomNav onOpenMessages={onOpenMessages} />}
+    </>
   );
 };
 

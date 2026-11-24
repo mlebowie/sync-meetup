@@ -7,7 +7,14 @@ import { Search, X, CalendarDays, MapPin } from 'lucide-react';
 import { useSearch } from '@/context/SearchContext';
 import { startTime24 } from '@/lib/startTime';
 
-const HeaderSearch = () => {
+interface HeaderSearchProps {
+  /** Extra classes for the icon button, e.g. light icons over the hero or bottom-bar sizing. */
+  triggerClassName?: string;
+  /** Which way the results panel opens: down from the header, or up from the bottom bar. */
+  side?: 'top' | 'bottom';
+}
+
+const HeaderSearch = ({ triggerClassName, side = 'bottom' }: HeaderSearchProps) => {
   const { query, setQuery, results } = useSearch();
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
@@ -39,11 +46,11 @@ const select = (eventId: string) => {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label="Search events" title="Search events">
+        <Button variant="ghost" size="icon" className={triggerClassName} aria-label="Search events" title="Search events">
           <Search className="h-5 w-5" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-[min(92vw,420px)] p-0">
+      <PopoverContent align="end" side={side} sideOffset={side === 'top' ? 12 : 4} className="w-[min(92vw,420px)] p-0">
         <div className="flex items-center gap-2 px-3 py-2 border-b border-border">
           <Search className="h-4 w-4 text-muted-foreground shrink-0" />
           <Input
