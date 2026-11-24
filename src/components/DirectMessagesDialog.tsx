@@ -129,7 +129,11 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {/* Phones and tablets: a near full-screen single column. Desktop (lg+): list and conversation side by side. */}
-      <DialogContent className="w-[calc(100vw-1.5rem)] max-w-2xl lg:w-full p-0 gap-0 flex h-[min(560px,calc(100dvh-6rem))] lg:h-[560px] overflow-hidden rounded-2xl">
+      <DialogContent
+        className="w-[calc(100vw-1.5rem)] max-w-2xl lg:w-full p-0 gap-0 flex h-[min(560px,calc(100dvh-6rem))] lg:h-[560px] overflow-hidden rounded-2xl"
+        // Don't auto-focus the first control on open: it drew a focus ring round "Friends" on phones.
+        onOpenAutoFocus={e => e.preventDefault()}
+      >
         <DialogHeader className="sr-only">
           <DialogTitle>Direct messages</DialogTitle>
           <DialogDescription>Chats with people and event groups</DialogDescription>
@@ -238,7 +242,7 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
                 <div className="p-4 text-center">
                   <UsersRound className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
                   <p className="text-xs text-muted-foreground">
-                    Tap "Attend" on any event or "Message crew" on a crew to start a group chat. It'll show up here.
+                    Attend an event to join its group chat.
                   </p>
                 </div>
               ) : (
