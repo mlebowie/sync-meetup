@@ -22,6 +22,7 @@ import { useEvents } from '@/context/EventsContext';
 import { Event, Participant } from '@/types/event';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
+import { MessageCircle } from 'lucide-react';
 import syncWordmark from '@/assets/sync-wordmark-v2.png';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
 import { getUserProfile, saveUserProfile } from '@/lib/userProfile';
@@ -315,6 +316,17 @@ const Index = () => {
           {/* Bottom: momentum, activity, crews */}
           <MomentumPanel />
           <ActivityFeed />
+
+          {/* Desktop only: tablets and phones open messages from the bottom bar instead. */}
+          <Button
+            variant="hero"
+            size="icon"
+            className="fixed bottom-6 right-6 z-40 hidden h-12 w-12 rounded-full shadow-lg lg:inline-flex"
+            onClick={() => { setDmInitialId(null); setDmMetAt(null); setDmOpen(true); }}
+            title="Direct messages"
+          >
+            <MessageCircle className="h-5 w-5" />
+          </Button>
 
         </>
       )}

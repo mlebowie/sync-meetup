@@ -242,9 +242,11 @@
     .hero-pan { animation: none; transform: scale(1.08); }
   }
 
-  /* Members' bottom bar is fixed; keep page content clear of it and the phone's home indicator. */
-  body.has-bottom-nav {
-    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
+  /* Members' bottom bar (tablets and phones) is fixed; keep page content clear of it and the phone's home indicator. */
+  @media (max-width: 1023px) {
+    body.has-bottom-nav {
+      padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
+    }
   }
 
   .shadow-card {

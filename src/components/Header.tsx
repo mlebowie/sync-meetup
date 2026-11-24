@@ -6,10 +6,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { CalendarDays, Menu } from 'lucide-react';
+import { CalendarDays, Menu, MessageCircle, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import NotificationsPopover from './NotificationsPopover';
 import BottomNav from './BottomNav';
+import HeaderSearch from './HeaderSearch';
 import { getUserProfile } from '@/lib/userProfile';
 import { useAttending } from '@/context/AttendingContext';
 import syncWordmark from '@/assets/sync-wordmark-v2.png';
@@ -152,14 +153,24 @@ const Header = ({ onOpenMessages }: HeaderProps) => {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            // Members: notifications and calendar stay up here; messages, search and profile live in the bottom bar.
+            // Members: on desktop every tool sits up here. On tablets and phones only notifications and the
+            // calendar stay; search, messages and profile move to the bottom bar.
             <>
+              <HeaderSearch triggerClassName={`hidden lg:inline-flex ${iconTone}`} />
+              <Button variant="ghost" size="icon" className={`hidden lg:inline-flex ${iconTone}`} onClick={onOpenMessages} title="Messages">
+                <MessageCircle className="h-5 w-5" />
+              </Button>
               {showNotifications && (
                 <NotificationsPopover open={notifOpen} onOpenChange={setNotifOpen} />
               )}
               <Button variant="ghost" size="icon" className={iconTone} asChild title="Calendar">
                 <Link to="/calendar" aria-label="Calendar">
                   <CalendarDays className="h-5 w-5" />
+                </Link>
+              </Button>
+              <Button variant="ghost" size="icon" className={`hidden lg:inline-flex ${iconTone}`} asChild title="Profile">
+                <Link to="/profile" aria-label="Profile">
+                  <User className="h-5 w-5" />
                 </Link>
               </Button>
             </>

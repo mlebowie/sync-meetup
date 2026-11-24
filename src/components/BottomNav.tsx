@@ -14,7 +14,8 @@ const active = 'text-primary hover:text-primary';
 
 /**
  * Members' bottom bar: home on the left, messages in the middle on a round button,
- * then search and profile on the right. Sits above the phone's home indicator.
+ * then search and profile on the right. Tablets and phones only (under 1024px); desktop keeps the header icons.
+ * Sits above the phone's home indicator.
  */
 const BottomNav = ({ onOpenMessages }: Props) => {
   const { pathname } = useLocation();
@@ -34,7 +35,7 @@ const BottomNav = ({ onOpenMessages }: Props) => {
   return (
     <nav
       aria-label="Main"
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-border/50 bg-background/85 backdrop-blur-lg pb-[env(safe-area-inset-bottom)]"
+      className="fixed inset-x-0 bottom-0 z-50 lg:hidden border-t border-border/50 bg-background/85 backdrop-blur-lg pb-[env(safe-area-inset-bottom)]"
     >
       <div className="mx-auto grid h-16 max-w-md grid-cols-5 items-center justify-items-center px-4">
         <Link to="/" aria-label="Home" className={`${item} ${pathname === '/' ? active : ''}`}>
