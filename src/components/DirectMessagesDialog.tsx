@@ -13,6 +13,7 @@ import EventGroupChatDialog from './EventGroupChatDialog';
 import CrewChatDialog from './CrewChatDialog';
 import { Group } from '@/types/event';
 import ParticipantProfileDialog from './ParticipantProfileDialog';
+import SocialLinkIcons from './SocialLinkIcons';
 import { formatDistanceToNowStrict } from 'date-fns';
 
 interface Props {
@@ -133,6 +134,8 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
         className="w-[calc(100vw-1.5rem)] max-w-2xl lg:w-full p-0 gap-0 flex h-[min(560px,calc(100dvh-6rem))] lg:h-[560px] overflow-hidden rounded-2xl"
         // Don't auto-focus the first control on open: it drew a focus ring round "Friends" on phones.
         onOpenAutoFocus={e => e.preventDefault()}
+        // Close X on the same middle line as the conversation bar (name, location and social icons).
+        closeClassName="top-[1.625rem]"
       >
         <DialogHeader className="sr-only">
           <DialogTitle>Direct messages</DialogTitle>
@@ -296,7 +299,8 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
             </div>
           ) : partner ? (
             <>
-              <div className="p-3 pr-12 lg:pr-3 border-b flex items-center gap-2">
+              {/* Right padding keeps the social icons clear of the window's close X. */}
+              <div className="p-3 pr-12 border-b flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setMobileThread(false)}
@@ -327,13 +331,12 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
                   )}
                   <p className="text-xs text-muted-foreground truncate">{headerSub}</p>
                 </div>
+                {/* A one-to-one chat only exists between connections, so their social links show here. */}
+                {partner?.social && (
+                  <SocialLinkIcons links={partner.social} className="ml-auto shrink-0 gap-3" iconClassName="h-[18px] w-[18px]" />
+                )}
               </div>
               <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-2">
-                {/* Introduces the social links a mutual tag unlocks: they now show on each other's profiles. */}
-                <p className="mx-auto max-w-xs pb-2 text-center text-xs leading-5 text-muted-foreground">
-                  You tagged each other, so your conversation is open. Tap {(headerName || '').split(' ')[0]}'s photo to
-                  see their social links.
-                </p>
                 {thread.length === 0 && (
                   <p className="text-xs text-center text-muted-foreground mt-8">
                     Say hi to {(headerName || '').split(' ')[0]}.
