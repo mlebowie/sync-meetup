@@ -439,14 +439,14 @@ const Onboarding = () => {
             <div className="animate-fade-in">
               <div className="mb-8 text-center">
                 <h1 className="font-display text-[22px] leading-7 font-light tracking-[0.015em] text-foreground sm:text-4xl">
-                  How you meet people on SYNC
+                  Connect with new people
                 </h1>
               </div>
               <ol className="mx-auto max-w-md space-y-6">
                 {[
-                  'Go to an event.',
-                  "Afterwards, tag the people you'd like to see again. Your tags stay private.",
-                  "If they tag you too, you're connected: you can message each other and see each other's social links.",
+                  'Attend your first event.',
+                  'Tag the people you spoke and connected with in person.',
+                  'If they tag you back, a conversation unlocks and you can make plans to meet again.',
                 ].map((line, i) => (
                   <li key={line} className="flex gap-4">
                     <span className="w-6 shrink-0 text-right text-2xl font-light leading-7 text-[#C1694F]">{i + 1}</span>
