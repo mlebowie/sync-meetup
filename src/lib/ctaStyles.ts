@@ -4,6 +4,9 @@
 export const primaryCta =
   'mx-auto flex h-12 w-full max-w-md px-6 text-base font-normal bg-[#C1694F] text-[#1F110C] shadow-none hover:bg-primary-hover disabled:opacity-40';
 
+// Form fields in the same shape as the primary button: 48px tall, fully rounded, roomy padding.
+export const pillField = 'mt-1.5 h-12 rounded-full px-5';
+
 // The one secondary action on a screen: a text link centred under the primary button. Medium weight in SYNC's
 // darker terracotta (#974B35: 6:1 on cream; the brand #C1694F is too light for text this size), no underline.
 export const secondaryLink =

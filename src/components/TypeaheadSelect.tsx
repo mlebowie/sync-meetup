@@ -22,6 +22,7 @@ interface TypeaheadSelectProps {
   disabled?: boolean;
 allowFreeText?: boolean; // accept arbitrary typed input as the value
   showChevron?: boolean; // render a dropdown chevron on the right side
+  pill?: boolean; // 48px, fully rounded field (matches the primary button)
 }
 
 export const TypeaheadSelect = ({
@@ -34,6 +35,7 @@ export const TypeaheadSelect = ({
   disabled,
 allowFreeText = false,
   showChevron = false,
+  pill = false,
 }: TypeaheadSelectProps) => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -63,16 +65,17 @@ allowFreeText = false,
   return (
     <Popover open={open} onOpenChange={(o) => { setOpen(o); if (o) setQuery(selected?.label ?? value ?? ''); }}>
       <PopoverTrigger asChild>
-        <div className="relative">
+        <div className={cn('relative', pill && 'mt-1.5')}>
           {selected?.leading && !open && (
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-base pointer-events-none">
+            <span className={cn('absolute top-1/2 -translate-y-1/2 text-base pointer-events-none', pill ? 'left-5' : 'left-3')}>
               {selected.leading}
             </span>
           )}
 {showChevron && (
             <ChevronDown
               className={cn(
-                'absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none transition-transform',
+                'absolute top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none transition-transform',
+                pill ? 'right-5' : 'right-3',
                 open && 'rotate-180'
               )}
             />
@@ -88,7 +91,11 @@ allowFreeText = false,
               if (allowFreeText) onChange(e.target.value);
             }}
             onFocus={() => setOpen(true)}
-            className={cn(selected?.leading && !open && 'pl-9', showChevron && 'pr-9')}
+            className={cn(
+              pill && 'h-12 rounded-full px-5',
+              selected?.leading && !open && (pill ? 'pl-11' : 'pl-9'),
+              showChevron && (pill ? 'pr-11' : 'pr-9'),
+            )}
             autoComplete="off"
           />
         </div>
