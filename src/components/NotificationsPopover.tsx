@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useSyncExternalStore } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,6 +14,7 @@ import PostEventReflectionDialog from './PostEventReflectionDialog';
 import { Event } from '@/types/event';
 import { formatDistanceToNow } from 'date-fns';
 import { getUserProfile } from '@/lib/userProfile';
+import { getTestRecaps, subscribeTestRecaps } from '@/lib/testMode';
 
 type NotifType = 'follow' | 'reflect' | 'rate' | 'waitlist';
 interface Notif {
@@ -58,6 +59,27 @@ const NotificationsPopover = ({ open, onOpenChange }: Props) => {
   const [waitlistStep, setWaitlistStep] = useState<0 | 1 | 2>(0);
   const [waitlistEvent, setWaitlistEvent] = useState<Event | null>(null);
 
+  // Test mode: "How was it?" notifications that arrive 10 seconds after registering (src/lib/testMode.ts).
+  const testRecapList = useSyncExternalStore(subscribeTestRecaps, getTestRecaps);
+  const testRecaps = useMemo<Notif[]>(
+    () =>
+      testRecapList.flatMap(r => {
+        const ev = mockEvents.find(e => e.id === r.eventId);
+        return ev
+          ? [{
+              id: `test-recap-${r.eventId}-${r.at}`,
+              type: 'reflect' as const,
+              title: `How was ${ev.title}?`,
+              body: 'Rate it and tag who you clicked with.',
+              when: new Date(r.at),
+              read: false,
+              eventId: r.eventId,
+            }]
+          : [];
+      }),
+    [testRecapList, mockEvents],
+  );
+
   const notifications = useMemo<Notif[]>(() => {
     const now = Date.now();
     const list: Notif[] = [];
@@ -67,9 +89,12 @@ const NotificationsPopover = ({ open, onOpenChange }: Props) => {
       .filter(e => attending.has(e.id) && new Date(e.date).getTime() < now)
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
 
+    // Test-mode recaps always show.
+    const tests = testRecaps.filter(n => !dismissed.has(n.id));
+
     // Newly onboarded users get no notifications until they've registered for
     // and attended their first event.
-    if (profile?.onboardedAt && !attendedPast) return [];
+    if (profile?.onboardedAt && !attendedPast) return tests.sort((a, b) => b.when.getTime() - a.when.getTime());
 
     // 2. Post-event reflect (tag) + 3. Rate — only for a real attended past event
     const pastEvent = attendedPast ?? (profile?.onboardedAt ? undefined : mockEvents[6]);
@@ -106,9 +131,10 @@ const NotificationsPopover = ({ open, onOpenChange }: Props) => {
       eventId: upcoming.id,
     });
 
-    return list.filter(n => !dismissed.has(n.id))
+    return [...tests, ...list.filter(n => !dismissed.has(n.id))]
       .sort((a, b) => b.when.getTime() - a.when.getTime());
-  }, [attending, dismissed]);
+    // mockEvents is a dependency so notifications point at live events once they load.
+  }, [attending, dismissed, mockEvents, testRecaps]);
 
   const unread = notifications.length;
 
