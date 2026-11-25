@@ -151,9 +151,8 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
           <>
             <DialogHeader>
               <DialogTitle>Would you bring a friend to {event.title} next time?</DialogTitle>
-              <DialogDescription>
-                Your answer powers the “friend-worthy” score other members see.
-              </DialogDescription>
+              {/* The "friend-worthy" score is a V1 feature (project timeline); answers are still saved for it. */}
+              <DialogDescription className="sr-only">Choose one answer.</DialogDescription>
             </DialogHeader>
 
 <div className="py-2">
