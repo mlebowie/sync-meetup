@@ -26,6 +26,18 @@ const RATING_OPTIONS: { value: FriendRating; emoji: string; label: string; hint:
 
 type Step = 'rate' | 'pick' | 'photo' | 'chat';
 
+/** Three small dots under the buttons: where you are in the three optional steps, without a "Step N of 3" label. */
+const StepDots = ({ current }: { current: 1 | 2 | 3 }) => (
+  <div className="mt-4 flex justify-center gap-2" role="img" aria-label={`Step ${current} of 3`}>
+    {[1, 2, 3].map(n => (
+      <span
+        key={n}
+        className={`h-1.5 w-1.5 rounded-full ${n === current ? 'bg-[#C1694F]' : 'bg-border'}`}
+      />
+    ))}
+  </div>
+);
+
 const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Props) => {
   const { tagAttendee, hasTaggedMe } = useActivityHistory();
   const { rateEvent } = useEventRatings();
@@ -139,7 +151,7 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
             <DialogHeader>
               <DialogTitle>Would you bring a friend to {event.title} next time?</DialogTitle>
               <DialogDescription>
-                Step 1 of 3. Your answer powers the “friend-worthy” score other members see.
+                Your answer powers the “friend-worthy” score other members see.
               </DialogDescription>
             </DialogHeader>
 
@@ -180,23 +192,21 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
               <Button variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>Skip</Button>
               <Button className="flex-1" disabled={!rating} onClick={submitRating}>Next</Button>
             </div>
+            <StepDots current={1} />
           </>
         )}
 
         {step === 'pick' && (
           <>
-            {/* Centred, with the step label styled like the onboarding screens' "Question 1 of 3". */}
+            {/* Centred; progress is shown by the dots under the buttons. */}
             <DialogHeader className="items-center text-center sm:text-center">
               <DialogTitle>Who did you click with?</DialogTitle>
-              <p className="text-sm leading-5 text-[#974B35]">Step 2 of 3</p>
               <DialogDescription className="pt-2 text-center">
-                <span className="block font-semibold text-foreground">Tag up to 3 people</span>
+                <span className="block text-xl font-semibold leading-7 text-[#C1694F]">Tag up to 3 people</span>
                 <span className="block">from {event.title} you'd like to see again.</span>
                 <span className="mt-3 block">If they tag you back, your conversation unlocks.</span>
               </DialogDescription>
             </DialogHeader>
-
-            <p className="text-center text-xs font-medium text-muted-foreground">{picked.length} of 3 selected</p>
 
             <div className="grid grid-cols-3 gap-3 py-2 max-h-[320px] overflow-y-auto">
               {options.map(p => {
@@ -222,6 +232,9 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
               })}
             </div>
 
+            {/* Between the tiles and the button, so the count sits next to the action it enables. */}
+            <p className="text-center text-xs font-medium text-muted-foreground">{picked.length} of 3 selected</p>
+
             {/* One clear action; the way out is a quiet, honest text link rather than a second button. */}
             <div className="mt-2 flex flex-col items-center">
               <Button className="h-12 w-full text-base font-normal" disabled={picked.length === 0} onClick={submitTags}>
@@ -235,6 +248,7 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
                 No one this time
               </button>
             </div>
+            <StepDots current={2} />
           </>
         )}
 
@@ -243,7 +257,7 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
             <DialogHeader>
               <DialogTitle>Share a photo from {event.title}</DialogTitle>
               <DialogDescription>
-                Step 3 of 3. Your photo headlines the event card. The most-liked photo gets featured first, credited to whoever posted it.
+                Your photo headlines the event card. The most-liked photo gets featured first, credited to whoever posted it.
               </DialogDescription>
             </DialogHeader>
 
@@ -297,6 +311,7 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
               <Button variant="outline" className="flex-1" onClick={() => finishPhoto(false)}>Skip</Button>
               <Button className="flex-1" disabled={!photoUrl} onClick={() => finishPhoto(true)}>Post photo</Button>
             </div>
+            <StepDots current={3} />
           </>
         )}
 
