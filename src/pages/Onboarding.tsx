@@ -506,7 +506,12 @@ const Onboarding = () => {
           )}
         </section>
 
-        <div className="mt-8 flex w-full flex-col items-center">
+        {/* On the "Connect with new people" screen the actions arrive last, after the three lines. */}
+        <div
+          key={step}
+          className={`mt-8 flex w-full flex-col items-center ${step === 5 ? revealItem : ''}`}
+          style={step === 5 ? revealDelay(3) : undefined}
+        >
           {step === 4 ? (
             <Button type="button" onClick={next} className={primaryCta}>
               Next
