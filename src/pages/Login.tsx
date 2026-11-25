@@ -106,6 +106,9 @@ const Login = () => {
     }
   };
 
+  // Buttons and fields share one shape: full width, 48px tall, fully rounded (like the Log in button).
+  const fieldShape = 'h-12 w-full rounded-full';
+
   return (
     <main className="min-h-screen bg-[#FCFAF3]">
       <div className="mx-auto w-full max-w-md px-4 py-6 sm:px-6 sm:py-10">
@@ -128,13 +131,14 @@ const Login = () => {
           {/* Social sign-in needs Supabase OAuth set up; hidden in demo mode. */}
           {!DEMO_MODE && (
             <>
-            <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-3">
+            {/* One per line, the same size and shape as the Log in button, so they fit the card at any width. */}
+            <div className="flex flex-col gap-3">
               {SOCIAL_BUTTONS.map(({ provider, label, Icon }) => (
                 <Button
                   key={provider}
                   type="button"
                   variant="outline"
-                  className="w-full bg-transparent"
+                  className={fieldShape + ' text-base font-normal bg-transparent'}
                   disabled={socialBusy !== null}
                   onClick={() => handleSocial(provider)}
                 >
@@ -143,10 +147,7 @@ const Login = () => {
                   ) : (
                     <Icon />
                   )}
-                  <span className="ml-2">
-                    <span className="min-[400px]:hidden">Continue with </span>
-                    {label}
-                  </span>
+                  <span className="ml-2">Continue with {label}</span>
                 </Button>
               ))}
             </div>
@@ -171,6 +172,7 @@ const Login = () => {
                 onChange={e => setEmail(e.target.value)}
                 maxLength={120}
                 required
+                className={fieldShape + ' mt-1.5 px-5'}
               />
             </div>
             <div>
@@ -183,6 +185,7 @@ const Login = () => {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 required
+                className={fieldShape + ' mt-1.5 px-5'}
               />
             </div>
             <Button type="submit" className={primaryCta} disabled={submitting}>
