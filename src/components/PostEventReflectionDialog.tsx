@@ -19,10 +19,10 @@ interface Props {
   onOpenDM?: (participantId: string, metAtEventTitle?: string) => void;
 }
 
-const RATING_OPTIONS: { value: FriendRating; emoji: string; label: string; hint: string }[] = [
-  { value: 'definitely', emoji: '🙌', label: 'Definitely', hint: "I'd bring a friend next time" },
-  { value: 'maybe', emoji: '🤔', label: 'Maybe', hint: 'Depends on the crowd' },
-  { value: 'no', emoji: '👎', label: 'Probably not', hint: 'Not my thing' },
+const RATING_OPTIONS: { value: FriendRating; emoji: string; label: string }[] = [
+  { value: 'definitely', emoji: '🙌', label: 'Definitely' },
+  { value: 'maybe', emoji: '🤔', label: 'Maybe' },
+  { value: 'no', emoji: '👎', label: 'Probably not' },
 ];
 
 type Step = 'rate' | 'pick' | 'photo' | 'chat';
@@ -156,28 +156,29 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
             </DialogHeader>
 
 <div className="py-2">
-              <div className="grid grid-cols-3 gap-2">
-                {RATING_OPTIONS.map(opt => (
-                  // Selected: the card fills with sage (#9EAFAB) at 80% opacity; no tick. Terracotta is kept for actions.
-                  <button
-                    key={opt.value}
-                    type="button"
-                    aria-pressed={rating === opt.value}
-                    onClick={() => setRating(opt.value)}
-                    className={`relative flex flex-col items-center gap-1.5 p-3 rounded-xl border text-center transition ${
-                      rating === opt.value
-                        ? 'border-transparent bg-[#9EAFAB]/80'
-                        : 'border-border hover:bg-secondary'
-                    }`}
-                  >
-                    <span className="text-2xl leading-none">{opt.emoji}</span>
-                    <span className={`text-sm font-semibold ${rating === opt.value ? 'text-[#1F110C]' : 'text-foreground'}`}>{opt.label}</span>
-                    <span className={`text-[11px] leading-tight ${rating === opt.value ? 'text-[#1F110C]/80' : 'text-muted-foreground'}`}>{opt.hint}</span>
-                  </button>
-                ))}
+              {/* Answers: one per line, the same pill shape as the primary button, emoji beside the label.
+                  Selected: sage at 80%; terracotta stays for the Next button. */}
+              <div className="flex flex-col gap-3">
+                {RATING_OPTIONS.map(opt => {
+                  const selected = rating === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => setRating(opt.value)}
+                      className={`flex h-12 w-full items-center justify-center gap-2 rounded-full border text-base transition ${
+                        selected ? 'border-transparent bg-[#9EAFAB]/80 text-[#1F110C]' : 'border-border text-foreground hover:bg-secondary'
+                      }`}
+                    >
+                      <span aria-hidden className="text-xl leading-none">{opt.emoji}</span>
+                      <span>{opt.label}</span>
+                    </button>
+                  );
+                })}
               </div>
               <Input
-                className="mt-3"
+                className="mt-3 h-12 rounded-full px-5"
                 value={comment}
                 onChange={e => setComment(e.target.value)}
                 placeholder="Add a one-line note (optional)"
