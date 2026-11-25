@@ -334,22 +334,14 @@ const Onboarding = () => {
                         onClick={() => choose(currentQuestion.key, option.value)}
                         onKeyDown={event => onRadioKey(event, index)}
                         className={cn(
-                          'flex w-full items-center gap-4 rounded-[20px] p-5 sm:p-6 text-left shadow-[0_2px_12px_-4px_rgba(49,35,27,0.10)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-                          selected ? 'bg-[#FFECD2]' : 'bg-white',
+                          // Selected: sage at 80% (as on every selection in SYNC); no radio circle.
+                          'flex w-full items-center rounded-[20px] p-5 sm:p-6 text-left shadow-[0_2px_12px_-4px_rgba(49,35,27,0.10)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                          selected ? 'bg-[#9EAFAB]/80' : 'bg-white',
                         )}
                       >
                         <span className="flex-1">
-                          <span className="block text-base font-bold text-[#57514D]">{option.label}</span>
-                          <span className="mt-1 block text-sm text-[#57514D]">{option.detail}</span>
-                        </span>
-                        <span
-                          aria-hidden="true"
-                          className={cn(
-                            'flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2',
-                            selected ? 'border-[#C1694F]' : 'border-[#57514D]',
-                          )}
-                        >
-                          {selected && <span className="h-3 w-3 rounded-full bg-[#C1694F]" />}
+                          <span className={cn('block text-base font-bold', selected ? 'text-[#1F110C]' : 'text-[#57514D]')}>{option.label}</span>
+                          <span className={cn('mt-1 block text-sm', selected ? 'text-[#1F110C]/80' : 'text-[#57514D]')}>{option.detail}</span>
                         </span>
                       </button>
                     );
@@ -413,11 +405,17 @@ const Onboarding = () => {
                         if (!interest) return null;
                         const selected = interests.includes(id);
                         return (
+                          // Larger than the app's small tags so they read well next to the 16px buttons;
+                          // selected fills sage at 80%.
                           <Button
                             key={id}
                             type="button"
-                            variant={selected ? 'tagActive' : 'tag'}
+                            variant="tag"
                             size="tag"
+                            className={cn(
+                              'h-10 gap-1.5 px-4 text-[15px]',
+                              selected && 'bg-[#9EAFAB]/80 text-[#1F110C] hover:bg-[#9EAFAB]/80 hover:text-[#1F110C]',
+                            )}
                             onClick={() => toggleInterest(id)}
                             disabled={!selected && interests.length >= 5}
                             aria-pressed={selected}
