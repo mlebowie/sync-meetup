@@ -149,7 +149,7 @@ const Onboarding = () => {
       toast({ title: 'Choose at least three', description: 'Three to five interests help us make useful recommendations.' });
       return;
     }
-    setStep(previous => Math.min(previous + 1, 5));
+    setStep(previous => Math.min(previous + 1, 6));
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -229,8 +229,8 @@ const Onboarding = () => {
     navigate('/', { replace: true });
   };
 
-  // Progress runs across every onboarding step: three questions, result, interests, profile.
-  const flowProgress = [17, 33, 50, 67, 83, 100][step] ?? 100;
+  // Progress runs across every onboarding step: three questions, result, interests, how connections work, profile.
+  const flowProgress = [14, 29, 43, 57, 71, 86, 100][step] ?? 100;
   const flowTop = (
     <>
       <header className="mb-6 flex justify-center">
@@ -434,7 +434,30 @@ const Onboarding = () => {
             </div>
           )}
 
+          {/* How connections work: the two ideas (connections, your private tags), before the profile. */}
           {step === 5 && (
+            <div className="animate-fade-in">
+              <div className="mb-8 text-center">
+                <h1 className="font-display text-[22px] leading-7 font-light tracking-[0.015em] text-foreground sm:text-4xl">
+                  How you meet people on SYNC
+                </h1>
+              </div>
+              <ol className="mx-auto max-w-md space-y-6">
+                {[
+                  'Go to an event.',
+                  "Afterwards, tag the people you'd like to see again. Your tags stay private.",
+                  "If they tag you too, you're connected: you can message each other and see each other's social links.",
+                ].map((line, i) => (
+                  <li key={line} className="flex gap-4">
+                    <span className="w-6 shrink-0 text-right text-2xl font-light leading-7 text-[#C1694F]">{i + 1}</span>
+                    <span className="text-base leading-7 text-foreground">{line}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
+
+          {step === 6 && (
             <form id="profile-form" onSubmit={handleSubmit} className="animate-fade-in space-y-7">
               <div className="text-center">
                 <h1 className="font-display text-[22px] leading-7 font-light tracking-[0.015em] text-foreground sm:text-4xl">Create your profile</h1>
@@ -484,6 +507,10 @@ const Onboarding = () => {
 
         <div className="mt-8 flex w-full flex-col items-center">
           {step === 4 ? (
+            <Button type="button" onClick={next} className={primaryCta}>
+              Next
+            </Button>
+          ) : step === 5 ? (
             <Button type="button" onClick={next} className={primaryCta}>
               Add my details
             </Button>

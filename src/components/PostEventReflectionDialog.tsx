@@ -188,7 +188,8 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
             <DialogHeader>
               <DialogTitle>Who did you click with?</DialogTitle>
               <DialogDescription>
-                Step 2 of 3. Tag your top 3 from {event.title}. Tags are private; only mutual tags unlock messages.
+                Step 2 of 3. Tag up to 3 people from {event.title} you'd like to see again. Your tags stay private. If
+                they tag you too, you're connected.
               </DialogDescription>
             </DialogHeader>
 
