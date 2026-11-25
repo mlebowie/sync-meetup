@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { pillField, primaryCta, secondaryLink } from '@/lib/ctaStyles';
+import { pillField, primaryCta, revealDelay, revealItem, secondaryLink } from '@/lib/ctaStyles';
 import syncWordmark from '@/assets/sync-wordmark-v2.png';
 import { useNavigate } from 'react-router-dom';
 import { Camera } from 'lucide-react';
@@ -448,7 +448,8 @@ const Onboarding = () => {
                   'Tag the people you spoke and connected with in person.',
                   'If they tag you back, a conversation unlocks and you can make plans to meet again.',
                 ].map((line, i) => (
-                  <li key={line} className="flex gap-4">
+                  // Gentle reveal: the lines arrive one after another.
+                  <li key={line} className={`flex gap-4 ${revealItem}`} style={revealDelay(i)}>
                     <span className="w-6 shrink-0 text-right text-2xl font-light leading-7 text-[#C1694F]">{i + 1}</span>
                     <span className="text-base leading-7 text-foreground">{line}</span>
                   </li>

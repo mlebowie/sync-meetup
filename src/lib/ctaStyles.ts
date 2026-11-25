@@ -11,3 +11,8 @@ export const pillField = 'mt-1.5 h-12 rounded-full px-5';
 // darker terracotta (#974B35: 6:1 on cream; the brand #C1694F is too light for text this size), no underline.
 export const secondaryLink =
   'mx-auto mt-3 flex min-h-11 items-center rounded px-3 text-base font-medium text-[#974B35] hover:text-[#7A3C2A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
+
+// Gentle reveal for short lists of text: each item fades and rises in, one after another. Use with
+// revealDelay(i) on each item. People who reduce motion see the list straight away.
+export const revealItem = 'opacity-0 animate-fade-in motion-reduce:animate-none motion-reduce:opacity-100';
+export const revealDelay = (index: number, stepSeconds = 0.3) => ({ animationDelay: `${0.15 + index * stepSeconds}s` });
