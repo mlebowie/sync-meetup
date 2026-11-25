@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { Event, Participant } from '@/types/event';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { secondaryLink } from '@/lib/ctaStyles';
 import { Input } from '@/components/ui/input';
 import { MessageCircle, Lock, Camera, ImagePlus, Heart } from 'lucide-react';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
@@ -185,9 +186,9 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
               />
             </div>
 
-            <div className="flex gap-2 mt-2">
-              <Button variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>Skip</Button>
-              <Button className="flex-1" disabled={!rating} onClick={submitRating}>Next</Button>
+            <div className="mt-2 flex flex-col items-center">
+              <Button className="h-12 w-full text-base font-normal" disabled={!rating} onClick={submitRating}>Next</Button>
+              <button type="button" onClick={() => onOpenChange(false)} className={secondaryLink}>Skip</button>
             </div>
             <StepDots current={1} />
           </>
@@ -237,7 +238,7 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
               <button
                 type="button"
                 onClick={() => setStep('photo')}
-                className="mt-3 flex min-h-11 items-center rounded px-3 text-base text-[#974B35] underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className={secondaryLink}
               >
                 No one this time
               </button>
@@ -301,9 +302,9 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
               </p>
             </div>
 
-            <div className="flex gap-2 mt-2">
-              <Button variant="outline" className="flex-1" onClick={() => finishPhoto(false)}>Skip</Button>
-              <Button className="flex-1" disabled={!photoUrl} onClick={() => finishPhoto(true)}>Post photo</Button>
+            <div className="mt-2 flex flex-col items-center">
+              <Button className="h-12 w-full text-base font-normal" disabled={!photoUrl} onClick={() => finishPhoto(true)}>Post photo</Button>
+              <button type="button" onClick={() => finishPhoto(false)} className={secondaryLink}>Skip</button>
             </div>
             <StepDots current={3} />
           </>

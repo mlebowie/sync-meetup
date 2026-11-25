@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { primaryCta } from '@/lib/ctaStyles';
+import { primaryCta, secondaryLink } from '@/lib/ctaStyles';
 import syncWordmark from '@/assets/sync-wordmark-v2.png';
 import { useNavigate } from 'react-router-dom';
 import { Camera } from 'lucide-react';
@@ -280,7 +280,7 @@ const Onboarding = () => {
     <button
       type="button"
       onClick={back}
-      className="mx-auto mt-3 flex min-h-11 items-center px-3 text-base text-[#974B35] underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+      className={secondaryLink}
     >
       Back
     </button>
@@ -364,7 +364,7 @@ const Onboarding = () => {
                     <button
                       type="button"
                       onClick={skipQuiz}
-                      className="mx-auto mt-3 flex min-h-11 items-center rounded px-3 text-base text-[#974B35] underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      className={secondaryLink}
                     >
                       Skip
                     </button>
