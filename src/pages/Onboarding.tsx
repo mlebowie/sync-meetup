@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { primaryCta } from '@/lib/ctaStyles';
+import { pillField, primaryCta } from '@/lib/ctaStyles';
 import syncWordmark from '@/assets/sync-wordmark-v2.png';
 import { useNavigate } from 'react-router-dom';
 import { Camera } from 'lucide-react';
@@ -454,14 +454,14 @@ const Onboarding = () => {
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <div><Label htmlFor="firstName">First name *</Label><Input id="firstName" value={firstName} onChange={event => setFirstName(event.target.value)} maxLength={60} required /></div>
-                <div><Label htmlFor="lastName">Last name *</Label><Input id="lastName" value={lastName} onChange={event => setLastName(event.target.value)} maxLength={60} required /></div>
-                <div><Label htmlFor="email">Email address *</Label><Input id="email" type="email" value={email} onChange={event => setEmail(event.target.value)} maxLength={120} required /></div>
-                <div><Label htmlFor="password">Password *</Label><Input id="password" type="password" value={password} onChange={event => setPassword(event.target.value)} minLength={8} autoComplete="new-password" required /><p className="mt-1 text-xs text-muted-foreground">At least 8 characters.</p></div>
-                <div><Label htmlFor="dob">Date of birth *</Label><Input id="dob" type="date" value={dob} onChange={event => setDob(event.target.value)} max={maxDob} required /><p className="mt-1 text-xs text-muted-foreground">You must be 18 or older.</p></div>
-                <div><Label htmlFor="nationality">Nationality *</Label><TypeaheadSelect id="nationality" value={nationality} onChange={setNationality} placeholder="Type a nationality" options={NATIONALITIES.map(item => ({ value: item.name, label: item.name, leading: item.flag, sub: item.country, searchText: `${item.country} ${item.code}` }))} emptyText="No matching nationality" /></div>
-                <div><Label htmlFor="location">Location *</Label><TypeaheadSelect id="location" value={location} onChange={value => { setLocation(value); setNeighborhood(''); }} showChevron placeholder="Select a city" options={CITIES.map(city => ({ value: city, label: city }))} emptyText="No matching cities" /></div>
-                <div><Label htmlFor="neighborhood">Neighbourhood *</Label>{CITY_NEIGHBORHOODS[location] ? <TypeaheadSelect id="neighborhood" value={neighborhood} onChange={setNeighborhood} placeholder="Select a neighbourhood" options={CITY_NEIGHBORHOODS[location].map(item => ({ value: item, label: item }))} emptyText="No matching neighbourhoods" /> : <Input id="neighborhood" value={neighborhood} onChange={event => setNeighborhood(event.target.value)} disabled={!location} required />}</div>
+                <div><Label htmlFor="firstName">First name *</Label><Input className={pillField} id="firstName" value={firstName} onChange={event => setFirstName(event.target.value)} maxLength={60} required /></div>
+                <div><Label htmlFor="lastName">Last name *</Label><Input className={pillField} id="lastName" value={lastName} onChange={event => setLastName(event.target.value)} maxLength={60} required /></div>
+                <div><Label htmlFor="email">Email address *</Label><Input className={pillField} id="email" type="email" value={email} onChange={event => setEmail(event.target.value)} maxLength={120} required /></div>
+                <div><Label htmlFor="password">Password *</Label><Input className={pillField} id="password" type="password" value={password} onChange={event => setPassword(event.target.value)} minLength={8} autoComplete="new-password" required /><p className="mt-1 text-xs text-muted-foreground">At least 8 characters.</p></div>
+                <div><Label htmlFor="dob">Date of birth *</Label><Input className={pillField} id="dob" type="date" value={dob} onChange={event => setDob(event.target.value)} max={maxDob} required /><p className="mt-1 text-xs text-muted-foreground">You must be 18 or older.</p></div>
+                <div><Label htmlFor="nationality">Nationality *</Label><TypeaheadSelect pill id="nationality" value={nationality} onChange={setNationality} placeholder="Type a nationality" options={NATIONALITIES.map(item => ({ value: item.name, label: item.name, leading: item.flag, sub: item.country, searchText: `${item.country} ${item.code}` }))} emptyText="No matching nationality" /></div>
+                <div><Label htmlFor="location">Location *</Label><TypeaheadSelect pill id="location" value={location} onChange={value => { setLocation(value); setNeighborhood(''); }} showChevron placeholder="Select a city" options={CITIES.map(city => ({ value: city, label: city }))} emptyText="No matching cities" /></div>
+                <div><Label htmlFor="neighborhood">Neighbourhood *</Label>{CITY_NEIGHBORHOODS[location] ? <TypeaheadSelect pill id="neighborhood" value={neighborhood} onChange={setNeighborhood} placeholder="Select a neighbourhood" options={CITY_NEIGHBORHOODS[location].map(item => ({ value: item, label: item }))} emptyText="No matching neighbourhoods" /> : <Input className={pillField} id="neighborhood" value={neighborhood} onChange={event => setNeighborhood(event.target.value)} disabled={!location} required />}</div>
               </div>
 
               {/* Required GDPR consent. Unticked by default: consent has to be an active choice. */}
