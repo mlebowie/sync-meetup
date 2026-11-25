@@ -222,11 +222,18 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
               })}
             </div>
 
-            <div className="flex gap-2 mt-2">
-              <Button variant="outline" className="flex-1" onClick={() => setStep('photo')}>Skip</Button>
-              <Button className="flex-1" disabled={picked.length === 0} onClick={submitTags}>
+            {/* One clear action; the way out is a quiet, honest text link rather than a second button. */}
+            <div className="mt-2 flex flex-col items-center">
+              <Button className="h-12 w-full text-base font-normal" disabled={picked.length === 0} onClick={submitTags}>
                 Tag {picked.length || ''} {picked.length === 1 ? 'person' : picked.length ? 'people' : ''}
               </Button>
+              <button
+                type="button"
+                onClick={() => setStep('photo')}
+                className="mt-3 flex min-h-11 items-center rounded px-3 text-base text-[#974B35] underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                No one this time
+              </button>
             </div>
           </>
         )}
