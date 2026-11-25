@@ -398,7 +398,8 @@ const Onboarding = () => {
               <div className="space-y-6">
                 {INTEREST_GROUPS.map(group => (
                   <fieldset key={group.label}>
-                    <legend className="mb-2 text-xs font-semibold uppercase text-muted-foreground">{group.label}</legend>
+                    {/* Same size as the interest pills (15px). */}
+                    <legend className="mb-2.5 text-[15px] font-semibold uppercase text-muted-foreground">{group.label}</legend>
                     <div className="flex flex-wrap gap-2">
                       {group.interestIds.map(id => {
                         const interest = interestsById.get(id);
