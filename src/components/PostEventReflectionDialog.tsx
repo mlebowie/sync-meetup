@@ -212,21 +212,18 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
               {options.map(p => {
                 const selected = picked.includes(p.id);
                 return (
+                  // Selected: a white tile lifted by the event cards' soft shadow; no tick, no outline.
                   <button
                     key={p.id}
                     type="button"
+                    aria-pressed={selected}
                     onClick={() => toggle(p.id)}
                     className={`relative flex flex-col items-center gap-2 p-2 rounded-xl transition ${
-                      selected ? 'bg-primary/10 ring-2 ring-primary' : 'hover:bg-secondary'
+                      selected ? 'bg-card shadow-card' : 'hover:bg-secondary'
                     }`}
                   >
-                    <img src={p.avatar} alt={p.name} className="w-14 h-14 rounded-full object-cover" />
+                    <img src={p.avatar} alt="" className="w-14 h-14 rounded-full object-cover" />
                     <span className="text-xs text-foreground line-clamp-1 w-full text-center">{p.name}</span>
-                    {selected && (
-                      <span className="absolute top-1 right-1 h-5 w-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
-                        <Check className="h-3 w-3" />
-                      </span>
-                    )}
                   </button>
                 );
               })}
