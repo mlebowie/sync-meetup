@@ -1,7 +1,7 @@
 import { Event, FilterState, Participant } from '@/types/event';
 import ExpandableEventGrid from './ExpandableEventGrid';
 import { useMemo } from 'react';
-import { useSocial } from '@/context/SocialContext';
+import { useActivityHistory } from '@/context/ActivityHistoryContext';
 
 interface EventGridProps {
   events: Event[];
@@ -12,7 +12,7 @@ interface EventGridProps {
 }
 
 const EventGrid = ({ events, filters, onAttend, onParticipantClick, onOpenGroupChat }: EventGridProps) => {
-  const { following } = useSocial();
+  const { connectionIds } = useActivityHistory();
   const filteredEvents = useMemo(() => {
     return events.filter(event => {
       // Filter by vibe (social energy)
@@ -32,9 +32,9 @@ const EventGrid = ({ events, filters, onAttend, onParticipantClick, onOpenGroupC
         return false;
       }
 
-      // Filter by friends attending
-      if (filters.followFriends && following.size > 0) {
-        const hasFriendAttending = event.participants.some(p => following.has(p.id));
+      // Only events at least one of your connections is going to
+      if (filters.followFriends && connectionIds.size > 0) {
+        const hasFriendAttending = event.participants.some(p => connectionIds.has(p.id));
         if (!hasFriendAttending) return false;
       }
 
@@ -76,7 +76,7 @@ const EventGrid = ({ events, filters, onAttend, onParticipantClick, onOpenGroupC
 
       return true;
     });
-  }, [events, filters, following]);
+  }, [events, filters, connectionIds]);
 
   if (filteredEvents.length === 0) {
     return (

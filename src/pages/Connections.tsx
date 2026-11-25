@@ -1,39 +1,30 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Search, Users, MapPin, Check, UserPlus, StickyNote } from 'lucide-react';
+import { ArrowLeft, Search, Users, MapPin, StickyNote } from 'lucide-react';
 
 import Header from '@/components/Header';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useSocial } from '@/context/SocialContext';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
-import { suggestGroups } from '@/lib/groupFormation';
 import { mockParticipants } from '@/data/mockData';
 import ParticipantProfileDialog from '@/components/ParticipantProfileDialog';
-import UnfollowConfirmDialog from '@/components/UnfollowConfirmDialog';
 import { Participant } from '@/types/event';
 
-type FilterKey = 'all' | 'weMet' | 'tagged' | 'crew' | 'mutual' | 'followers' | 'following';
+// One relationship: a connection is two people who were at the same event and tagged each other.
+// Your own tags stay private until they are returned; there is no one-way following.
+type FilterKey = 'connected' | 'tagged';
 
 interface EnrichedParticipant {
   participant: Participant;
-  youFollow: boolean;
-  followsYou: boolean;
-  mutual: boolean;
-  relationship: 'mutual' | 'followers' | 'following';
-  coAttended: boolean;
+  connected: boolean;
   tagged: boolean;
-  inCrew: boolean;
 }
 
 const Connections = () => {
-  const { following, followers, toggleFollow } = useSocial();
-  const { history, tags, hasTaggedMe, crossedPathsWith } = useActivityHistory();
-  const [filter, setFilter] = useState<FilterKey>('all');
+  const { tags, isConnected } = useActivityHistory();
+  const [filter, setFilter] = useState<FilterKey>('connected');
   const [taggedEventId, setTaggedEventId] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [profileId, setProfileId] = useState<string | null>(null);
-  const [unfollowId, setUnfollowId] = useState<string | null>(null);
   const [notes, setNotes] = useState<Record<string, string>>(() => {
     try {
       const raw = localStorage.getItem('sync:tag-notes');
@@ -54,49 +45,24 @@ const Connections = () => {
   const noteKey = (participantId: string, eventId: string) => `${participantId}::${eventId}`;
 
 
-  const crews = useMemo(() => {
-    const mutualSet = new Set<string>();
-    followers.forEach(id => { if (following.has(id)) mutualSet.add(id); });
-    tags.forEach(t => { if (hasTaggedMe(t.participantId)) mutualSet.add(t.participantId); });
-    return suggestGroups(history, tags, mutualSet);
-  }, [history, tags, followers, following, hasTaggedMe]);
 
   const enriched = useMemo<EnrichedParticipant[]>(() => {
-    const ids = new Set<string>([...following, ...followers]);
+    // Everyone you have tagged after an event: connected if they tagged you back, otherwise a private pending tag.
+    const ids = new Set<string>(tags.map(t => t.participantId));
     return Array.from(ids)
       .map(id => mockParticipants.find(p => p.id === id))
       .filter((p): p is Participant => Boolean(p))
-      .map(p => {
-        const youFollow = following.has(p.id);
-        const followsYou = followers.has(p.id);
-        const mutual = youFollow && followsYou;
-        const relationship: 'mutual' | 'followers' | 'following' = mutual
-          ? 'mutual'
-          : followsYou
-            ? 'followers'
-            : 'following';
-        return {
-          participant: p,
-          youFollow,
-          followsYou,
-          mutual,
-          relationship,
-          coAttended: crossedPathsWith(p.id) > 0,
-          tagged: tags.some(t => t.participantId === p.id),
-          inCrew: crews.some(g => g.memberIds.includes(p.id)),
-        };
-      });
-  }, [following, followers, crossedPathsWith, tags, hasTaggedMe, crews]);
+      .map(p => ({
+        participant: p,
+        connected: isConnected(p.id),
+        tagged: tags.some(t => t.participantId === p.id),
+      }));
+  }, [tags, isConnected]);
 
   const counts = useMemo(
     () => ({
-      all: enriched.length,
-      weMet: enriched.filter(e => e.coAttended).length,
-      tagged: enriched.filter(e => e.tagged).length,
-      crew: enriched.filter(e => e.inCrew).length,
-      mutual: enriched.filter(e => e.mutual).length,
-      followers: enriched.filter(e => e.relationship === 'followers').length,
-      following: enriched.filter(e => e.relationship === 'following').length,
+      connected: enriched.filter(e => e.connected).length,
+      tagged: enriched.filter(e => e.tagged && !e.connected).length,
     }),
     [enriched],
   );
@@ -105,19 +71,14 @@ const Connections = () => {
     const q = query.trim().toLowerCase();
     return enriched
       .filter(e => {
-        if (filter === 'all') return true;
-        if (filter === 'weMet') return e.coAttended;
+        if (filter === 'connected') return e.connected;
         if (filter === 'tagged') {
-          if (!e.tagged) return false;
+          if (!e.tagged || e.connected) return false;
           if (taggedEventId) {
             return tags.some(t => t.participantId === e.participant.id && t.eventId === taggedEventId);
           }
           return true;
         }
-        if (filter === 'crew') return e.inCrew;
-        if (filter === 'mutual') return e.mutual;
-        if (filter === 'followers') return e.relationship === 'followers';
-        if (filter === 'following') return e.relationship === 'following';
         return true;
       })
       .filter(e => {
@@ -128,7 +89,7 @@ const Connections = () => {
         );
       })
       .sort((a, b) => {
-        if (a.mutual !== b.mutual) return a.mutual ? -1 : 1;
+        if (a.connected !== b.connected) return a.connected ? -1 : 1;
         return a.participant.name.localeCompare(b.participant.name);
       });
   }, [enriched, filter, query, taggedEventId, tags]);
@@ -148,13 +109,8 @@ const Connections = () => {
   }, [tags]);
 
   const pills: { key: FilterKey; label: string }[] = [
-    { key: 'all', label: 'All' },
-    { key: 'weMet', label: 'We Met' },
-    { key: 'tagged', label: 'Tagged' },
-    { key: 'crew', label: 'Crew' },
-    { key: 'mutual', label: 'Mutual' },
-    { key: 'followers', label: 'Follows you' },
-    { key: 'following', label: 'You follow' },
+    { key: 'connected', label: 'Connections' },
+    { key: 'tagged', label: 'Your tags' },
   ];
 
   return (
@@ -168,8 +124,15 @@ const Connections = () => {
         <div className="flex items-center gap-2 mb-6">
           <Users className="h-6 w-6 text-primary" />
           <h1 className="text-2xl font-light tracking-[0.015em]">Connections</h1>
-          <span className="text-sm text-muted-foreground">({counts.all})</span>
+          <span className="text-sm text-muted-foreground">({counts.connected})</span>
         </div>
+
+        {/* The two ideas, in one line each, under the tabs below. */}
+        <p className="-mt-3 mb-5 text-sm text-muted-foreground">
+          {filter === 'connected'
+            ? 'People you met at an event who tagged you back. You can message each other and see each other\'s social links.'
+            : 'People you tagged who have not tagged you back yet. Only you can see this list.'}
+        </p>
 
         <div className="relative mb-4">
           <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -244,14 +207,14 @@ const Connections = () => {
         {filtered.length === 0 ? (
           <div className="text-center py-16 border border-dashed rounded-2xl">
             <Users className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
-            <p className="text-muted-foreground">No connections to show.</p>
+            <p className="text-muted-foreground">{filter === 'connected' ? 'No connections yet.' : 'No pending tags.'}</p>
             <p className="text-sm text-muted-foreground/70 mt-1">
-              Follow people from event participant lists to grow your network.
+              Tag people after an event. When they tag you back, you're connected.
             </p>
           </div>
         ) : (
           <ul className="space-y-2">
-            {filtered.map(({ participant, mutual, relationship, youFollow, coAttended, tagged, inCrew }) => (
+            {filtered.map(({ participant, tagged }) => (
               <li
                 key={participant.id}
                 className="p-3 rounded-xl border bg-card hover:shadow-card-hover transition-shadow"
@@ -275,42 +238,9 @@ const Connections = () => {
                             <span className="truncate">{participant.neighborhood}</span>
                           </span>
                         )}
-                        <span className="px-1.5 py-0.5 rounded-full bg-muted text-[10px] font-medium uppercase tracking-wide">
-                          {mutual ? 'Mutual' : relationship === 'followers' ? 'Follows you' : 'You follow'}
-                        </span>
-                        {coAttended && (
-                          <span className="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium uppercase tracking-wide">
-                            We Met
-                          </span>
-                        )}
-                        {tagged && (
-                          <span className="px-1.5 py-0.5 rounded-full bg-accent/40 text-accent-foreground text-[10px] font-medium uppercase tracking-wide">
-                            Tagged
-                          </span>
-                        )}
-                        {inCrew && (
-                          <span className="px-1.5 py-0.5 rounded-full bg-destructive/10 text-destructive text-[10px] font-medium uppercase tracking-wide">
-                            Crew
-                          </span>
-                        )}
                       </div>
                     </div>
                   </button>
-                  <Button
-                    size="sm"
-                    variant={youFollow ? 'outline' : 'default'}
-                    onClick={() => {
-                      if (youFollow) setUnfollowId(participant.id);
-                      else toggleFollow(participant.id);
-                    }}
-                    className="shrink-0"
-                  >
-                    {youFollow ? (
-                      <><Check className="h-4 w-4 mr-1" /> Following</>
-                    ) : (
-                      <><UserPlus className="h-4 w-4 mr-1" /> Follow back</>
-                    )}
-                  </Button>
                 </div>
                 {filter === 'tagged' && tagged && (() => {
                   const relevantTags = tags.filter(x =>
@@ -355,12 +285,6 @@ const Connections = () => {
           participant={profileId ? mockParticipants.find(p => p.id === profileId) ?? null : null}
           open={!!profileId}
           onOpenChange={open => !open && setProfileId(null)}
-        />
-        <UnfollowConfirmDialog
-          open={!!unfollowId}
-          name={unfollowId ? mockParticipants.find(p => p.id === unfollowId)?.name ?? '' : ''}
-          onOpenChange={open => !open && setUnfollowId(null)}
-          onConfirm={() => unfollowId && toggleFollow(unfollowId)}
         />
       </main>
     </div>

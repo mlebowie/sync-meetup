@@ -71,18 +71,6 @@ const NotificationsPopover = ({ open, onOpenChange }: Props) => {
     // and attended their first event.
     if (profile?.onboardedAt && !attendedPast) return [];
 
-    // 1. New followers
-    const newFollowers = [mockParticipants[1], mockParticipants[4]];
-    newFollowers.forEach((p, i) => list.push({
-      id: `follow-${p.id}`,
-      type: 'follow',
-      title: `${p.name} started following you`,
-      body: 'Tap to view their profile',
-      when: new Date(now - (30 + i * 45) * 60 * 1000),
-      read: false,
-      participantId: p.id,
-    }));
-
     // 2. Post-event reflect (tag) + 3. Rate — only for a real attended past event
     const pastEvent = attendedPast ?? (profile?.onboardedAt ? undefined : mockEvents[6]);
     if (pastEvent) {

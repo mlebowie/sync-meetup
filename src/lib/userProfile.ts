@@ -1,4 +1,4 @@
-import type { SocialLinks, SocialVisibility } from './socialLinks';
+import type { SocialLinks } from './socialLinks';
 import defaultProfilePhoto from '@/assets/default-profile.jpg';
 
 export const ONBOARDING_INTERESTS: { id: string; label: string; icon: string; keywords: string[] }[] = [
@@ -85,10 +85,8 @@ export interface UserProfile {
   onboardedAt?: string;
   /** ISO timestamp of when the member accepted the privacy policy (GDPR consent) at sign-up. */
   privacyAcceptedAt?: string;
-  /** Instagram and LinkedIn handles and WhatsApp number, shown on their profile to the people allowed below. */
+  /** Instagram and LinkedIn handles and WhatsApp number, shown on their profile to their connections only. */
   social?: SocialLinks;
-  /** Who can see Instagram and LinkedIn; WhatsApp is always connections only. Default: connections. */
-  socialVisibility?: SocialVisibility;
 }
 
 const KEY = 'sync.userProfile.v1';

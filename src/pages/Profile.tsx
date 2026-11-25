@@ -8,7 +8,7 @@ import EditProfileDialog from '@/components/EditProfileDialog';
 import { Button } from '@/components/ui/button';
 import { getUserProfile, saveUserProfile, clearUserProfile, backupUserProfile, ONBOARDING_INTERESTS, DEFAULT_PROFILE, calculateAge, UserProfile } from '@/lib/userProfile';
 import { saveAccountProfile } from '@/lib/authProfile';
-import { useSocial } from '@/context/SocialContext';
+import { useActivityHistory } from '@/context/ActivityHistoryContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -19,8 +19,9 @@ const Profile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const { following, followers } = useSocial();
-  const connectionsCount = new Set([...following, ...followers]).size;
+  // Connections only: people you met at an event who tagged you back.
+  const { connectionIds } = useActivityHistory();
+  const connectionsCount = connectionIds.size;
 
   const handleLogout = async () => {
     // Save the latest profile to the account before signing out, so nothing is lost.
@@ -113,9 +114,6 @@ const Profile = () => {
                 <Users className="h-3.5 w-3.5" />
                 {connectionsCount} Connections
               </Link>
-              <span className="text-xs text-muted-foreground">
-                {followers.size} followers · {following.size} following
-              </span>
             </div>
             {interests.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mt-3">

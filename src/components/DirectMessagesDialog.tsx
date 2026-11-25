@@ -32,8 +32,8 @@ const lastTs = (msgs: { timestamp: Date }[]) =>
 
 const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEventTitle }: Props) => {
   const { events: mockEvents } = useEvents();
-  const { following, isMutual, dms, sendDM, groupChats, crewChats, currentUser } = useSocial();
-  const { history, tags } = useActivityHistory();
+  const { dms, sendDM, groupChats, crewChats, currentUser } = useSocial();
+  const { history, tags, connectionIds } = useActivityHistory();
   const [metFilterOn, setMetFilterOn] = useState(true);
 
   useEffect(() => {
@@ -51,7 +51,8 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
 
   // People sorted by most recent DM
   const mutualIds = useMemo(() => {
-    const ids = new Set<string>(Array.from(following).filter(id => isMutual(id)));
+    // Friends = connections (you tagged each other after the same event).
+    const ids = new Set<string>(connectionIds);
     // Also surface anyone you already have a DM thread with (e.g. unlocked via mutual tags).
     Object.keys(dms).forEach(id => ids.add(id));
     // And the person the dialog was opened with, so a fresh chat shows up immediately.
@@ -59,7 +60,7 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
     let list = Array.from(ids);
     if (metFilterOn && metIds) list = list.filter(id => metIds.has(id) || id === initialPartnerId);
     return list.sort((a, b) => lastTs(dms[b]?.messages || []) - lastTs(dms[a]?.messages || []));
-  }, [following, isMutual, dms, initialPartnerId, metFilterOn, metIds]);
+  }, [connectionIds, dms, initialPartnerId, metFilterOn, metIds]);
 
 
 

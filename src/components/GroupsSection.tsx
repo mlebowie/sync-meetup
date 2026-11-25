@@ -14,15 +14,14 @@ interface Props {
 
 const GroupsSection = ({ onOpenDM: _onOpenDM }: Props) => {
   const { history, tags, hasTaggedMe } = useActivityHistory();
-  const { followers, following, ensureCrewChat } = useSocial();
+  const { ensureCrewChat } = useSocial();
   const [activeCrew, setActiveCrew] = useState<Group | null>(null);
 
   const mutualSet = useMemo(() => {
     const s = new Set<string>();
-    followers.forEach(id => { if (following.has(id)) s.add(id); });
     tags.forEach(t => { if (hasTaggedMe(t.participantId)) s.add(t.participantId); });
     return s;
-  }, [followers, following, tags, hasTaggedMe]);
+  }, [tags, hasTaggedMe]);
 
   const groups = useMemo(() => suggestGroups(history, tags, mutualSet), [history, tags, mutualSet]);
 

@@ -4,27 +4,20 @@ import { cleanInstagram, cleanLinkedIn, cleanWhatsApp, visibleSocialLinks } from
 const links = { instagram: 'tom.bruns', linkedin: 'tom-bruns', whatsapp: '+4915123456789' };
 
 describe('visibleSocialLinks', () => {
-  it('shows a stranger nothing by default and says links are held back', () => {
-    expect(visibleSocialLinks(links, undefined, { isSelf: false, isConnection: false })).toEqual({ shown: {}, hidden: true });
+  it('shows someone who is not a connection nothing', () => {
+    expect(visibleSocialLinks(links, { isSelf: false, isConnection: false })).toEqual({ shown: {} });
   });
 
-  it('shows Instagram and LinkedIn, never WhatsApp, to event attendees when opened to events', () => {
-    const { shown, hidden } = visibleSocialLinks(links, 'events', { isSelf: false, isConnection: false });
-    expect(shown).toEqual({ instagram: 'tom.bruns', linkedin: 'tom-bruns' });
-    expect(hidden).toBe(true);
-  });
-
-  it('shows everything, WhatsApp included, to a connection', () => {
-    expect(visibleSocialLinks(links, 'connections', { isSelf: false, isConnection: true })).toEqual({ shown: links, hidden: false });
+  it('shows a connection everything, WhatsApp included', () => {
+    expect(visibleSocialLinks(links, { isSelf: false, isConnection: true })).toEqual({ shown: links });
   });
 
   it('shows members all of their own links', () => {
-    expect(visibleSocialLinks(links, 'connections', { isSelf: true, isConnection: false }).shown).toEqual(links);
+    expect(visibleSocialLinks(links, { isSelf: true, isConnection: false }).shown).toEqual(links);
   });
 
-  it('holds nothing back when there is nothing to hide', () => {
-    expect(visibleSocialLinks({ instagram: 'a' }, 'events', { isSelf: false, isConnection: false }).hidden).toBe(false);
-    expect(visibleSocialLinks(undefined, 'connections', { isSelf: false, isConnection: false })).toEqual({ shown: {}, hidden: false });
+  it('handles members with no links', () => {
+    expect(visibleSocialLinks(undefined, { isSelf: false, isConnection: true })).toEqual({ shown: {} });
   });
 });
 

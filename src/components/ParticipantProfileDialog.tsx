@@ -11,7 +11,6 @@ import { format, formatDistanceToNow } from 'date-fns';
 import AttendedEventsMap from './AttendedEventsMap';
 import { visibleSocialLinks } from '@/lib/socialLinks';
 import SocialLinkIcons from './SocialLinkIcons';
-import UnfollowConfirmDialog from './UnfollowConfirmDialog';
 
 
 interface Props {
@@ -22,43 +21,20 @@ interface Props {
 }
 
 const ParticipantProfileDialog = ({ participant, open, onOpenChange, onOpenDM }: Props) => {
-  const { following, isMutual, toggleFollow, currentUser } = useSocial();
-  const { crossedPathsWith, isConnected, hasTaggedMe } = useActivityHistory();
-  const { toast } = useToast();
-  const [confirmUnfollow, setConfirmUnfollow] = useState(false);
+  const { currentUser } = useSocial();
+  const { crossedPathsWith, isConnected } = useActivityHistory();
 
   if (!participant) return null;
   const isMe = participant.id === currentUser.id;
-  const isFollowing = following.has(participant.id);
-  const mutual = isMutual(participant.id) || isConnected(participant.id);
+  // The one relationship: a connection (both tagged each other after the same event). No one-way following.
+  const mutual = isConnected(participant.id);
   const crossed = crossedPathsWith(participant.id);
-  // Instagram and LinkedIn follow the member's setting; WhatsApp is for connections only. Nothing hints at hidden
-  // links: they are introduced in the conversation window once a mutual tag unlocks it.
-  const { shown: links } = visibleSocialLinks(participant.social, participant.socialVisibility, {
+  // Social links show to connections only, with no hint to anyone else.
+  const { shown: links } = visibleSocialLinks(participant.social, {
     isSelf: isMe,
     isConnection: mutual,
   });
   const hasLinks = Boolean(links.instagram || links.linkedin || links.whatsapp);
-
-  const handleFollow = () => {
-    if (isFollowing) {
-      setConfirmUnfollow(true);
-      return;
-    }
-    toggleFollow(participant.id);
-    const wouldBeMutual = isMutual(participant.id) || hasTaggedMe(participant.id);
-    toast({
-      title: wouldBeMutual ? `Connected with ${participant.name} 🎉` : `Following ${participant.name}`,
-      description: wouldBeMutual
-        ? 'DMs are unlocked. You can message each other now.'
-        : 'They\'ll see you next time you cross paths at an event.',
-    });
-  };
-
-  const handleConfirmUnfollow = () => {
-    toggleFollow(participant.id);
-    toast({ title: `Unfollowed ${participant.name}` });
-  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -198,34 +174,14 @@ const ParticipantProfileDialog = ({ participant, open, onOpenChange, onOpenDM }:
         )}
 
 
-        {!isMe && (
-          <div className="flex gap-2 mt-6">
-            <Button
-              variant={isFollowing ? 'attend' : 'default'}
-              className="flex-1"
-              onClick={handleFollow}
-            >
-              {isFollowing ? (<><Check className="h-4 w-4 mr-1" /> Following</>) : (<><UserPlus className="h-4 w-4 mr-1" /> Follow</>)}
+        {!isMe && mutual && onOpenDM && (
+          <div className="flex mt-6">
+            <Button className="flex-1" onClick={() => { onOpenChange(false); onOpenDM(participant.id); }}>
+              Message
             </Button>
-            {mutual && onOpenDM && (
-              <Button variant="outline" onClick={() => { onOpenChange(false); onOpenDM(participant.id); }}>
-                <MessageCircle className="h-4 w-4 mr-1" /> Message
-              </Button>
-            )}
           </div>
         )}
-        {!isMe && isFollowing && !mutual && (
-          <p className="text-xs text-muted-foreground text-center mt-3">
-            Show up to another event together, or tag each other after one, to unlock DMs.
-          </p>
-        )}
       </DialogContent>
-      <UnfollowConfirmDialog
-        open={confirmUnfollow}
-        name={participant.name}
-        onOpenChange={setConfirmUnfollow}
-        onConfirm={handleConfirmUnfollow}
-      />
     </Dialog>
   );
 };
