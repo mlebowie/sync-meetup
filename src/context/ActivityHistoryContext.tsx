@@ -19,6 +19,8 @@ interface ActivityHistoryValue {
   hasTaggedMe: (participantId: string) => boolean;
   /** Two-way tagged connection — strongest signal, unlocks DMs. */
   isConnected: (participantId: string) => boolean;
+  /** Everyone you are connected with: you tagged each other after the same event. */
+  connectionIds: Set<string>;
 }
 
 const ActivityHistoryContext = createContext<ActivityHistoryValue | null>(null);
@@ -75,6 +77,11 @@ export const ActivityHistoryProvider = ({ children }: { children: ReactNode }) =
     return tags.some(t => t.participantId === id) && SEEDED_TAGS_OF_ME.has(id);
   }, [tags]);
 
+  const connectionIds = useMemo(
+    () => new Set(tags.filter(t => SEEDED_TAGS_OF_ME.has(t.participantId)).map(t => t.participantId)),
+    [tags],
+  );
+
   const value = useMemo<ActivityHistoryValue>(() => ({
     history,
     addAttendance,
@@ -86,7 +93,8 @@ export const ActivityHistoryProvider = ({ children }: { children: ReactNode }) =
     tagAttendee,
     hasTaggedMe,
     isConnected,
-  }), [history, addAttendance, seriesCount, crossedPathsWith, topCoAttendees, categoryAffinity, tags, tagAttendee, hasTaggedMe, isConnected]);
+    connectionIds,
+  }), [history, addAttendance, seriesCount, crossedPathsWith, topCoAttendees, categoryAffinity, tags, tagAttendee, hasTaggedMe, isConnected, connectionIds]);
 
   return (
     <ActivityHistoryContext.Provider value={value}>{children}</ActivityHistoryContext.Provider>

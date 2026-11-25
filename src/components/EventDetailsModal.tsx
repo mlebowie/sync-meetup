@@ -72,6 +72,9 @@ function syntheticTestimonials(event: Event) {
   }));
 }
 
+// V1: switch on once the friend-worthy score is defined and based on real answers, not sample data.
+const SHOW_FRIEND_SCORE = false;
+
 const EventDetailsModal = ({
   event, open, onOpenChange, isAttending, cancelArmed = false, onAttend, primaryLabel, priceLabel, onOpenGroupChat, onParticipantClick, guest = false,
 }: EventDetailsModalProps) => {
@@ -116,7 +119,8 @@ const EventDetailsModal = ({
               <span aria-hidden>{vibeMeta(event.vibe).emoji}</span>
               {vibeMeta(event.vibe).label}
             </span>
-            {friendScore(event.id) !== null && (
+            {/* "% would bring a friend" is the V1 friend-worthy score (project timeline): hidden in the MVP. */}
+            {SHOW_FRIEND_SCORE && friendScore(event.id) !== null && (
               <button
                 type="button"
                 onClick={() => testimonialsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}

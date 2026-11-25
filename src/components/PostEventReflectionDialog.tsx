@@ -2,8 +2,9 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { Event, Participant } from '@/types/event';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { secondaryLink } from '@/lib/ctaStyles';
 import { Input } from '@/components/ui/input';
-import { Check, MessageCircle, Lock, Camera, ImagePlus, Heart } from 'lucide-react';
+import { MessageCircle, Lock, Camera, ImagePlus, Heart } from 'lucide-react';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
 import { useEventRatings, FriendRating } from '@/context/EventRatingContext';
 import { useEventMedia } from '@/context/EventMediaContext';
@@ -18,13 +19,25 @@ interface Props {
   onOpenDM?: (participantId: string, metAtEventTitle?: string) => void;
 }
 
-const RATING_OPTIONS: { value: FriendRating; emoji: string; label: string; hint: string }[] = [
-  { value: 'definitely', emoji: '🙌', label: 'Definitely', hint: "I'd bring a friend next time" },
-  { value: 'maybe', emoji: '🤔', label: 'Maybe', hint: 'Depends on the crowd' },
-  { value: 'no', emoji: '👎', label: 'Probably not', hint: 'Not my thing' },
+const RATING_OPTIONS: { value: FriendRating; emoji: string; label: string }[] = [
+  { value: 'definitely', emoji: '🙌', label: 'Definitely' },
+  { value: 'maybe', emoji: '🤔', label: 'Maybe' },
+  { value: 'no', emoji: '👎', label: 'Probably not' },
 ];
 
 type Step = 'rate' | 'pick' | 'photo' | 'chat';
+
+/** Three small dots under the buttons: where you are in the three optional steps, without a "Step N of 3" label. */
+const StepDots = ({ current }: { current: 1 | 2 | 3 }) => (
+  <div className="mt-4 flex justify-center gap-2" role="img" aria-label={`Step ${current} of 3`}>
+    {[1, 2, 3].map(n => (
+      <span
+        key={n}
+        className={`h-1.5 w-1.5 rounded-full ${n === current ? 'bg-[#C1694F]' : 'bg-border'}`}
+      />
+    ))}
+  </div>
+);
 
 const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Props) => {
   const { tagAttendee, hasTaggedMe } = useActivityHistory();
@@ -138,37 +151,35 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
           <>
             <DialogHeader>
               <DialogTitle>Would you bring a friend to {event.title} next time?</DialogTitle>
-              <DialogDescription>
-                Step 1 of 3. Your answer powers the “friend-worthy” score other members see.
-              </DialogDescription>
+              {/* The "friend-worthy" score is a V1 feature (project timeline); answers are still saved for it. */}
+              <DialogDescription className="sr-only">Choose one answer.</DialogDescription>
             </DialogHeader>
 
 <div className="py-2">
-              <div className="grid grid-cols-3 gap-2">
-                {RATING_OPTIONS.map(opt => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => setRating(opt.value)}
-                    className={`relative flex flex-col items-center gap-1.5 p-3 rounded-xl border text-center transition ${
-                      rating === opt.value
-                        ? 'border-primary bg-primary/10 ring-1 ring-primary'
-                        : 'border-border hover:bg-secondary'
-                    }`}
-                  >
-                    <span className="text-2xl leading-none">{opt.emoji}</span>
-                    <span className="text-sm font-semibold text-foreground">{opt.label}</span>
-                    <span className="text-[11px] leading-tight text-muted-foreground">{opt.hint}</span>
-                    {rating === opt.value && (
-                      <span className="absolute top-1.5 right-1.5 h-5 w-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
-                        <Check className="h-3 w-3" />
-                      </span>
-                    )}
-                  </button>
-                ))}
+              {/* Answers: one per line, the same pill shape as the primary button, emoji beside the label.
+                  Selected: sage at 80%; terracotta stays for the Next button. */}
+              <div className="flex flex-col gap-3">
+                {RATING_OPTIONS.map(opt => {
+                  const selected = rating === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => setRating(opt.value)}
+                      // Left-aligned like a list: emoji at a fixed inset from the left edge, a steady gap, then the label.
+                      className={`flex h-12 w-full items-center justify-start gap-3 rounded-full border px-5 text-base transition ${
+                        selected ? 'border-transparent bg-[#9EAFAB]/80 text-[#1F110C]' : 'border-border text-foreground hover:bg-secondary'
+                      }`}
+                    >
+                      <span aria-hidden className="w-6 shrink-0 text-center text-xl leading-none">{opt.emoji}</span>
+                      <span>{opt.label}</span>
+                    </button>
+                  );
+                })}
               </div>
               <Input
-                className="mt-3"
+                className="mt-3 h-12 rounded-full px-5"
                 value={comment}
                 onChange={e => setComment(e.target.value)}
                 placeholder="Add a one-line note (optional)"
@@ -176,54 +187,64 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
               />
             </div>
 
-            <div className="flex gap-2 mt-2">
-              <Button variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>Skip</Button>
-              <Button className="flex-1" disabled={!rating} onClick={submitRating}>Next</Button>
+            <div className="mt-2 flex flex-col items-center">
+              <Button className="h-12 w-full text-base font-normal" disabled={!rating} onClick={submitRating}>Next</Button>
+              <button type="button" onClick={() => onOpenChange(false)} className={secondaryLink}>Skip</button>
             </div>
+            <StepDots current={1} />
           </>
         )}
 
         {step === 'pick' && (
           <>
-            <DialogHeader>
-              <DialogTitle>Who did you click with?</DialogTitle>
-              <DialogDescription>
-                Step 2 of 3. Tag your top 3 from {event.title}. Tags are private; only mutual tags unlock messages.
+            {/* Centred; progress is shown by the dots under the buttons. */}
+            <DialogHeader className="items-center text-center sm:text-center">
+              {/* The instruction is the heading: the notification that opens this already asks "Who did you click with?" */}
+              <DialogTitle className="text-xl font-semibold leading-7 text-[#C1694F]">Tag up to 3 people</DialogTitle>
+              <DialogDescription className="text-center">
+                <span className="block">from {event.title} you'd like to see again.</span>
+                <span className="mt-3 block">If they tag you back, your conversation unlocks.</span>
               </DialogDescription>
             </DialogHeader>
-
-            <p className="text-xs font-medium text-muted-foreground">{picked.length} of 3 selected</p>
 
             <div className="grid grid-cols-3 gap-3 py-2 max-h-[320px] overflow-y-auto">
               {options.map(p => {
                 const selected = picked.includes(p.id);
                 return (
+                  // Selected: sage at 80% (as on every selection), no tick, no outline; terracotta stays for the Tag button.
                   <button
                     key={p.id}
                     type="button"
+                    aria-pressed={selected}
                     onClick={() => toggle(p.id)}
                     className={`relative flex flex-col items-center gap-2 p-2 rounded-xl transition ${
-                      selected ? 'bg-primary/10 ring-2 ring-primary' : 'hover:bg-secondary'
+                      selected ? 'bg-[#9EAFAB]/80' : 'hover:bg-secondary'
                     }`}
                   >
-                    <img src={p.avatar} alt={p.name} className="w-14 h-14 rounded-full object-cover" />
+                    <img src={p.avatar} alt="" className="w-14 h-14 rounded-full object-cover" />
                     <span className="text-xs text-foreground line-clamp-1 w-full text-center">{p.name}</span>
-                    {selected && (
-                      <span className="absolute top-1 right-1 h-5 w-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
-                        <Check className="h-3 w-3" />
-                      </span>
-                    )}
                   </button>
                 );
               })}
             </div>
 
-            <div className="flex gap-2 mt-2">
-              <Button variant="outline" className="flex-1" onClick={() => setStep('photo')}>Skip</Button>
-              <Button className="flex-1" disabled={picked.length === 0} onClick={submitTags}>
+            {/* Between the tiles and the button, so the count sits next to the action it enables. */}
+            <p className="text-center text-xs font-medium text-muted-foreground">{picked.length} of 3 selected</p>
+
+            {/* One clear action; the way out is a quiet, honest text link rather than a second button. */}
+            <div className="mt-2 flex flex-col items-center">
+              <Button className="h-12 w-full text-base font-normal" disabled={picked.length === 0} onClick={submitTags}>
                 Tag {picked.length || ''} {picked.length === 1 ? 'person' : picked.length ? 'people' : ''}
               </Button>
+              <button
+                type="button"
+                onClick={() => setStep('photo')}
+                className={secondaryLink}
+              >
+                No one this time
+              </button>
             </div>
+            <StepDots current={2} />
           </>
         )}
 
@@ -232,7 +253,7 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
             <DialogHeader>
               <DialogTitle>Share a photo from {event.title}</DialogTitle>
               <DialogDescription>
-                Step 3 of 3. Your photo headlines the event card. The most-liked photo gets featured first, credited to whoever posted it.
+                Your photo headlines the event card. The most-liked photo gets featured first, credited to whoever posted it.
               </DialogDescription>
             </DialogHeader>
 
@@ -282,10 +303,11 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
               </p>
             </div>
 
-            <div className="flex gap-2 mt-2">
-              <Button variant="outline" className="flex-1" onClick={() => finishPhoto(false)}>Skip</Button>
-              <Button className="flex-1" disabled={!photoUrl} onClick={() => finishPhoto(true)}>Post photo</Button>
+            <div className="mt-2 flex flex-col items-center">
+              <Button className="h-12 w-full text-base font-normal" disabled={!photoUrl} onClick={() => finishPhoto(true)}>Post photo</Button>
+              <button type="button" onClick={() => finishPhoto(false)} className={secondaryLink}>Skip</button>
             </div>
+            <StepDots current={3} />
           </>
         )}
 

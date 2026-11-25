@@ -13,6 +13,7 @@ import EventGroupChatDialog from './EventGroupChatDialog';
 import CrewChatDialog from './CrewChatDialog';
 import { Group } from '@/types/event';
 import ParticipantProfileDialog from './ParticipantProfileDialog';
+import SocialLinkIcons from './SocialLinkIcons';
 import { formatDistanceToNowStrict } from 'date-fns';
 
 interface Props {
@@ -31,8 +32,8 @@ const lastTs = (msgs: { timestamp: Date }[]) =>
 
 const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEventTitle }: Props) => {
   const { events: mockEvents } = useEvents();
-  const { following, isMutual, dms, sendDM, groupChats, crewChats, currentUser } = useSocial();
-  const { history, tags } = useActivityHistory();
+  const { dms, sendDM, groupChats, crewChats, currentUser } = useSocial();
+  const { history, tags, connectionIds } = useActivityHistory();
   const [metFilterOn, setMetFilterOn] = useState(true);
 
   useEffect(() => {
@@ -50,7 +51,8 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
 
   // People sorted by most recent DM
   const mutualIds = useMemo(() => {
-    const ids = new Set<string>(Array.from(following).filter(id => isMutual(id)));
+    // Friends = connections (you tagged each other after the same event).
+    const ids = new Set<string>(connectionIds);
     // Also surface anyone you already have a DM thread with (e.g. unlocked via mutual tags).
     Object.keys(dms).forEach(id => ids.add(id));
     // And the person the dialog was opened with, so a fresh chat shows up immediately.
@@ -58,7 +60,7 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
     let list = Array.from(ids);
     if (metFilterOn && metIds) list = list.filter(id => metIds.has(id) || id === initialPartnerId);
     return list.sort((a, b) => lastTs(dms[b]?.messages || []) - lastTs(dms[a]?.messages || []));
-  }, [following, isMutual, dms, initialPartnerId, metFilterOn, metIds]);
+  }, [connectionIds, dms, initialPartnerId, metFilterOn, metIds]);
 
 
 
@@ -133,6 +135,8 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
         className="w-[calc(100vw-1.5rem)] max-w-2xl lg:w-full p-0 gap-0 flex h-[min(560px,calc(100dvh-6rem))] lg:h-[560px] overflow-hidden rounded-2xl"
         // Don't auto-focus the first control on open: it drew a focus ring round "Friends" on phones.
         onOpenAutoFocus={e => e.preventDefault()}
+        // Close X on the same middle line as the conversation bar (name, location and social icons).
+        closeClassName="top-[1.625rem]"
       >
         <DialogHeader className="sr-only">
           <DialogTitle>Direct messages</DialogTitle>
@@ -296,7 +300,8 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
             </div>
           ) : partner ? (
             <>
-              <div className="p-3 pr-12 lg:pr-3 border-b flex items-center gap-2">
+              {/* Right padding keeps the social icons clear of the window's close X. */}
+              <div className="p-3 pr-12 border-b flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setMobileThread(false)}
@@ -327,6 +332,10 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
                   )}
                   <p className="text-xs text-muted-foreground truncate">{headerSub}</p>
                 </div>
+                {/* A one-to-one chat only exists between connections, so their social links show here. */}
+                {partner?.social && (
+                  <SocialLinkIcons links={partner.social} className="ml-auto shrink-0 gap-3" iconClassName="h-[18px] w-[18px]" />
+                )}
               </div>
               <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-2">
                 {thread.length === 0 && (

@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ONBOARDING_INTERESTS, UserProfile, saveUserProfile, calculateAge } from '@/lib/userProfile';
 import { toast } from '@/hooks/use-toast';
+import { cleanInstagram, cleanLinkedIn, cleanWhatsApp } from '@/lib/socialLinks';
 
 // Latest birthdate a user may select — anything after this means they are under 18.
 const maxDob = (() => {
@@ -25,6 +26,9 @@ const EditProfileDialog = ({ open, onOpenChange, profile, onSaved }: EditProfile
   const [neighborhood, setNeighborhood] = useState(profile.neighborhood);
   const [dateOfBirth, setDateOfBirth] = useState(profile.dateOfBirth);
   const [interests, setInterests] = useState<string[]>(profile.interests);
+  const [instagram, setInstagram] = useState(profile.social?.instagram ?? '');
+  const [linkedin, setLinkedin] = useState(profile.social?.linkedin ?? '');
+  const [whatsapp, setWhatsapp] = useState(profile.social?.whatsapp ?? '');
 
   useEffect(() => {
     if (open) {
@@ -32,6 +36,9 @@ const EditProfileDialog = ({ open, onOpenChange, profile, onSaved }: EditProfile
       setNeighborhood(profile.neighborhood);
       setDateOfBirth(profile.dateOfBirth);
       setInterests(profile.interests);
+      setInstagram(profile.social?.instagram ?? '');
+      setLinkedin(profile.social?.linkedin ?? '');
+      setWhatsapp(profile.social?.whatsapp ?? '');
     }
   }, [open, profile]);
 
@@ -58,6 +65,11 @@ if (!dateOfBirth) {
       neighborhood: neighborhood.trim().slice(0, 80),
       dateOfBirth,
       interests,
+      social: {
+        instagram: cleanInstagram(instagram) || undefined,
+        linkedin: cleanLinkedIn(linkedin) || undefined,
+        whatsapp: cleanWhatsApp(whatsapp) || undefined,
+      },
     };
     saveUserProfile(updated);
     onSaved(updated);
@@ -70,7 +82,7 @@ if (!dateOfBirth) {
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit profile</DialogTitle>
-          <DialogDescription>Update your location, age, and interests.</DialogDescription>
+          <DialogDescription>Update your location, age, interests and social links.</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-5 py-2">
@@ -118,6 +130,29 @@ max={maxDob}
                 );
               })}
             </div>
+          </div>
+
+          {/* Social links: visible to the member's connections only. */}
+          <div className="space-y-4 border-t border-border/60 pt-5">
+            <div>
+              <h3 className="text-base font-light tracking-[0.015em] text-foreground">Social links</h3>
+              <p className="mt-1 text-sm text-muted-foreground">Optional. Only your connections can see them: people you met at an event who tagged you back.</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-instagram">Instagram</Label>
+                <Input id="edit-instagram" value={instagram} onChange={e => setInstagram(e.target.value)} placeholder="@yourhandle" maxLength={80} autoComplete="off" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-linkedin">LinkedIn</Label>
+                <Input id="edit-linkedin" value={linkedin} onChange={e => setLinkedin(e.target.value)} placeholder="linkedin.com/in/yourname" maxLength={120} autoComplete="off" />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="edit-whatsapp">WhatsApp</Label>
+                <Input id="edit-whatsapp" type="tel" value={whatsapp} onChange={e => setWhatsapp(e.target.value)} placeholder="+351 912 345 678" maxLength={20} autoComplete="off" />
+              </div>
+            </div>
+
           </div>
         </div>
 
