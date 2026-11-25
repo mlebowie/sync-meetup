@@ -329,6 +329,11 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
                 </div>
               </div>
               <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-2">
+                {/* Introduces the social links a mutual tag unlocks: they now show on each other's profiles. */}
+                <p className="mx-auto max-w-xs pb-2 text-center text-xs leading-5 text-muted-foreground">
+                  You tagged each other, so your conversation is open. Tap {(headerName || '').split(' ')[0]}'s photo to
+                  see their social links.
+                </p>
                 {thread.length === 0 && (
                   <p className="text-xs text-center text-muted-foreground mt-8">
                     Say hi to {(headerName || '').split(' ')[0]}.

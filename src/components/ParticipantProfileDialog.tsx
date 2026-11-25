@@ -48,8 +48,9 @@ const ParticipantProfileDialog = ({ participant, open, onOpenChange, onOpenDM }:
   const isFollowing = following.has(participant.id);
   const mutual = isMutual(participant.id) || isConnected(participant.id);
   const crossed = crossedPathsWith(participant.id);
-  // Instagram and LinkedIn follow the member's setting; WhatsApp is for connections only.
-  const { shown: links, hidden: linksHidden } = visibleSocialLinks(participant.social, participant.socialVisibility, {
+  // Instagram and LinkedIn follow the member's setting; WhatsApp is for connections only. Nothing hints at hidden
+  // links: they are introduced in the conversation window once a mutual tag unlocks it.
+  const { shown: links } = visibleSocialLinks(participant.social, participant.socialVisibility, {
     isSelf: isMe,
     isConnection: mutual,
   });
@@ -130,13 +131,6 @@ const ParticipantProfileDialog = ({ participant, open, onOpenChange, onOpenDM }:
                 </a>
               )}
             </div>
-          )}
-          {linksHidden && (
-            <p className="mt-3 max-w-[16rem] text-xs text-muted-foreground">
-              {hasLinks
-                ? `Tag each other after an event to see ${participant.name.split(' ')[0]}'s WhatsApp.`
-                : `Tag each other after an event to see ${participant.name.split(' ')[0]}'s social links.`}
-            </p>
           )}
         </div>
 
