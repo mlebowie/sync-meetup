@@ -1,10 +1,15 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, Users, MapPin, StickyNote } from 'lucide-react';
 
 import Header from '@/components/Header';
 import { Input } from '@/components/ui/input';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
+import { useAttending } from '@/context/AttendingContext';
+import { useEvents } from '@/context/EventsContext';
+import { activitySteps } from '@/lib/memberStart';
+import { Button } from '@/components/ui/button';
+import { primaryCta } from '@/lib/ctaStyles';
 import { mockParticipants } from '@/data/mockData';
 import ParticipantProfileDialog from '@/components/ParticipantProfileDialog';
 import { Participant } from '@/types/event';
@@ -21,6 +26,12 @@ interface EnrichedParticipant {
 
 const Connections = () => {
   const { tags, isConnected } = useActivityHistory();
+  const navigate = useNavigate();
+  // New members haven't been to an event yet: "first"; everyone else: "next".
+  const { events } = useEvents();
+  const { getAttendingEvents } = useAttending();
+  const { attended } = activitySteps(getAttendingEvents(events), 0);
+  const ctaLabel = attended.length === 0 ? 'Attend your first event' : 'Attend your next event';
   const [filter, setFilter] = useState<FilterKey>('connected');
   const [taggedEventId, setTaggedEventId] = useState<string | null>(null);
   const [query, setQuery] = useState('');
@@ -280,6 +291,13 @@ const Connections = () => {
             ))}
           </ul>
         )}
+
+        {/* Connections only come from events, so the way to grow this list is the next event. */}
+        <div className="mt-10">
+          <Button type="button" className={primaryCta} onClick={() => navigate('/?find=event')}>
+            {ctaLabel}
+          </Button>
+        </div>
 
         <ParticipantProfileDialog
           participant={profileId ? mockParticipants.find(p => p.id === profileId) ?? null : null}

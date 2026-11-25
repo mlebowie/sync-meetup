@@ -85,6 +85,17 @@ const Index = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { setQuery } = useSearch();
 
+  // "Attend your first/next event" from the Connections page (?find=event): open the home feed at the event picks.
+  useEffect(() => {
+    if (searchParams.get('find') !== 'event') return;
+    setSearchParams({}, { replace: true });
+    const t = setTimeout(() => {
+      const target = document.getElementById('first-event') ?? document.getElementById('upcoming');
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 400);
+    return () => clearTimeout(t);
+  }, [searchParams, setSearchParams]);
+
   // Messages opened from the bottom bar on another page (?messages=1).
   useEffect(() => {
     if (searchParams.get('messages') !== '1') return;
