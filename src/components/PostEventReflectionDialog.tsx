@@ -3,7 +3,7 @@ import { Event, Participant } from '@/types/event';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Check, MessageCircle, Lock, Camera, ImagePlus, Heart } from 'lucide-react';
+import { MessageCircle, Lock, Camera, ImagePlus, Heart } from 'lucide-react';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
 import { useEventRatings, FriendRating } from '@/context/EventRatingContext';
 import { useEventMedia } from '@/context/EventMediaContext';
@@ -158,24 +158,21 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
 <div className="py-2">
               <div className="grid grid-cols-3 gap-2">
                 {RATING_OPTIONS.map(opt => (
+                  // Selected: the card fills with sage (#9EAFAB) at 80% opacity; no tick. Terracotta is kept for actions.
                   <button
                     key={opt.value}
                     type="button"
+                    aria-pressed={rating === opt.value}
                     onClick={() => setRating(opt.value)}
                     className={`relative flex flex-col items-center gap-1.5 p-3 rounded-xl border text-center transition ${
                       rating === opt.value
-                        ? 'border-primary bg-primary/10 ring-1 ring-primary'
+                        ? 'border-transparent bg-[#9EAFAB]/80'
                         : 'border-border hover:bg-secondary'
                     }`}
                   >
                     <span className="text-2xl leading-none">{opt.emoji}</span>
-                    <span className="text-sm font-semibold text-foreground">{opt.label}</span>
-                    <span className="text-[11px] leading-tight text-muted-foreground">{opt.hint}</span>
-                    {rating === opt.value && (
-                      <span className="absolute top-1.5 right-1.5 h-5 w-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
-                        <Check className="h-3 w-3" />
-                      </span>
-                    )}
+                    <span className={`text-sm font-semibold ${rating === opt.value ? 'text-[#1F110C]' : 'text-foreground'}`}>{opt.label}</span>
+                    <span className={`text-[11px] leading-tight ${rating === opt.value ? 'text-[#1F110C]/80' : 'text-muted-foreground'}`}>{opt.hint}</span>
                   </button>
                 ))}
               </div>
