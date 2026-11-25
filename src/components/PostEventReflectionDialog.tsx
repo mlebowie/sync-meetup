@@ -167,11 +167,12 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
                       type="button"
                       aria-pressed={selected}
                       onClick={() => setRating(opt.value)}
-                      className={`flex h-12 w-full items-center justify-center gap-2 rounded-full border text-base transition ${
+                      // Left-aligned like a list: emoji at a fixed inset from the left edge, a steady gap, then the label.
+                      className={`flex h-12 w-full items-center justify-start gap-3 rounded-full border px-5 text-base transition ${
                         selected ? 'border-transparent bg-[#9EAFAB]/80 text-[#1F110C]' : 'border-border text-foreground hover:bg-secondary'
                       }`}
                     >
-                      <span aria-hidden className="text-xl leading-none">{opt.emoji}</span>
+                      <span aria-hidden className="w-6 shrink-0 text-center text-xl leading-none">{opt.emoji}</span>
                       <span>{opt.label}</span>
                     </button>
                   );
@@ -210,14 +211,14 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
               {options.map(p => {
                 const selected = picked.includes(p.id);
                 return (
-                  // Selected: a white tile lifted by the event cards' soft shadow; no tick, no outline.
+                  // Selected: sage at 80% (as on every selection), no tick, no outline; terracotta stays for the Tag button.
                   <button
                     key={p.id}
                     type="button"
                     aria-pressed={selected}
                     onClick={() => toggle(p.id)}
                     className={`relative flex flex-col items-center gap-2 p-2 rounded-xl transition ${
-                      selected ? 'bg-card shadow-card' : 'hover:bg-secondary'
+                      selected ? 'bg-[#9EAFAB]/80' : 'hover:bg-secondary'
                     }`}
                   >
                     <img src={p.avatar} alt="" className="w-14 h-14 rounded-full object-cover" />
