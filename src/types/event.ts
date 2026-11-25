@@ -39,6 +39,8 @@ export interface Participant {
     linkedin?: string;
     whatsapp?: string;
   };
+  /** Who may see Instagram and LinkedIn: 'connections' (default) or 'events'. WhatsApp is connections only. */
+  socialVisibility?: 'connections' | 'events';
 }
 
 export interface Organizer {

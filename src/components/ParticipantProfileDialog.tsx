@@ -26,6 +26,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { format, formatDistanceToNow } from 'date-fns';
 import AttendedEventsMap from './AttendedEventsMap';
+import { visibleSocialLinks } from '@/lib/socialLinks';
 import UnfollowConfirmDialog from './UnfollowConfirmDialog';
 
 
@@ -47,6 +48,12 @@ const ParticipantProfileDialog = ({ participant, open, onOpenChange, onOpenDM }:
   const isFollowing = following.has(participant.id);
   const mutual = isMutual(participant.id) || isConnected(participant.id);
   const crossed = crossedPathsWith(participant.id);
+  // Instagram and LinkedIn follow the member's setting; WhatsApp is for connections only.
+  const { shown: links, hidden: linksHidden } = visibleSocialLinks(participant.social, participant.socialVisibility, {
+    isSelf: isMe,
+    isConnection: mutual,
+  });
+  const hasLinks = Boolean(links.instagram || links.linkedin || links.whatsapp);
 
   const handleFollow = () => {
     if (isFollowing) {
@@ -87,42 +94,49 @@ const ParticipantProfileDialog = ({ participant, open, onOpenChange, onOpenDM }:
               <span>{participant.neighborhood}</span>
             </div>
           )}
-          {participant.social && (
+          {hasLinks && (
             <div className="flex items-center gap-3 mt-3">
-              {participant.social.instagram && (
+              {links.instagram && (
                 <a
-                  href={`https://instagram.com/${participant.social.instagram}`}
+                  href={`https://instagram.com/${links.instagram}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-muted-foreground hover:text-primary transition-colors"
-                  title={`@${participant.social.instagram}`}
+                  title={`@${links.instagram}`}
                 >
                   <InstagramIcon className="h-5 w-5" />
                 </a>
               )}
-              {participant.social.linkedin && (
+              {links.linkedin && (
                 <a
-                  href={`https://linkedin.com/in/${participant.social.linkedin}`}
+                  href={`https://linkedin.com/in/${links.linkedin}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-muted-foreground hover:text-primary transition-colors"
-                  title={participant.social.linkedin}
+                  title={links.linkedin}
                 >
                   <LinkedInIcon className="h-5 w-5" />
                 </a>
               )}
-              {participant.social.whatsapp && (
+              {links.whatsapp && (
                 <a
-                  href={`https://wa.me/${participant.social.whatsapp.replace(/[^0-9]/g, '')}`}
+                  href={`https://wa.me/${links.whatsapp.replace(/[^0-9]/g, '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-muted-foreground hover:text-primary transition-colors"
-                  title={participant.social.whatsapp}
+                  title={links.whatsapp}
                 >
                   <WhatsAppIcon className="h-5 w-5" />
                 </a>
               )}
             </div>
+          )}
+          {linksHidden && (
+            <p className="mt-3 max-w-[16rem] text-xs text-muted-foreground">
+              {hasLinks
+                ? `Tag each other after an event to see ${participant.name.split(' ')[0]}'s WhatsApp.`
+                : `Tag each other after an event to see ${participant.name.split(' ')[0]}'s social links.`}
+            </p>
           )}
         </div>
 
