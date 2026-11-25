@@ -200,9 +200,9 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
           <>
             {/* Centred; progress is shown by the dots under the buttons. */}
             <DialogHeader className="items-center text-center sm:text-center">
-              <DialogTitle>Who did you click with?</DialogTitle>
-              <DialogDescription className="pt-2 text-center">
-                <span className="block text-xl font-semibold leading-7 text-[#C1694F]">Tag up to 3 people</span>
+              {/* The instruction is the heading: the notification that opens this already asks "Who did you click with?" */}
+              <DialogTitle className="text-xl font-semibold leading-7 text-[#C1694F]">Tag up to 3 people</DialogTitle>
+              <DialogDescription className="text-center">
                 <span className="block">from {event.title} you'd like to see again.</span>
                 <span className="mt-3 block">If they tag you back, your conversation unlocks.</span>
               </DialogDescription>
