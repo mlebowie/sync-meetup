@@ -185,15 +185,18 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
 
         {step === 'pick' && (
           <>
-            <DialogHeader>
+            {/* Centred, with the step label styled like the onboarding screens' "Question 1 of 3". */}
+            <DialogHeader className="items-center text-center sm:text-center">
               <DialogTitle>Who did you click with?</DialogTitle>
-              <DialogDescription>
-                Step 2 of 3. Tag up to 3 people from {event.title} you'd like to see again. Your tags stay private. If
-                they tag you too, you're connected.
+              <p className="text-sm leading-5 text-[#974B35]">Step 2 of 3</p>
+              <DialogDescription className="pt-2 text-center">
+                <span className="block font-semibold text-foreground">Tag up to 3 people</span>
+                <span className="block">from {event.title} you'd like to see again.</span>
+                <span className="mt-3 block">If they tag you back, your conversation unlocks.</span>
               </DialogDescription>
             </DialogHeader>
 
-            <p className="text-xs font-medium text-muted-foreground">{picked.length} of 3 selected</p>
+            <p className="text-center text-xs font-medium text-muted-foreground">{picked.length} of 3 selected</p>
 
             <div className="grid grid-cols-3 gap-3 py-2 max-h-[320px] overflow-y-auto">
               {options.map(p => {
