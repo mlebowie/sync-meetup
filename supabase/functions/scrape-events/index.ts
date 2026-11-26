@@ -824,6 +824,43 @@ export function similarTitles(a: Set<string>, b: Set<string>): boolean {
   return shared / (shared + onlyA + onlyB) >= 0.8;
 }
 
+/** What the duplicate checks know about a listing. */
+export interface ListingFacts {
+  source: string;
+  day: string;
+  at: number;
+  tokens: Set<string>;
+  venue?: string | null;
+  organizer?: string | null;
+}
+
+/** "Fisga Warehouse" and "Fisga" are the same place; "" matches nothing. */
+function samePlace(a: string | null | undefined, b: string | null | undefined): boolean {
+  const plain = (t: string | null | undefined) => matchKey((t ?? '').normalize('NFKD').replace(/[\u0300-\u036f]/g, ''));
+  const x = plain(a);
+  const y = plain(b);
+  if (x.length < 3 || y.length < 3) return false;
+  return x === y || ` ${x} `.includes(` ${y} `) || ` ${y} `.includes(` ${x} `);
+}
+
+/**
+ * Looser than similarTitles: the same day on two different platforms, starting
+ * within three hours, and either at the same venue or by the same organiser
+ * with a word of the title in common, or sharing most of their title words
+ * ("Biodanza Weekly Class" on Meetup and "Biodanza com Ana" on Agenda Porto).
+ * Never merged by itself: the curator is asked to keep one.
+ */
+export function possibleDuplicate(a: ListingFacts, b: ListingFacts): boolean {
+  if (a.source === b.source || a.day !== b.day) return false;
+  if (Math.abs(a.at - b.at) > 3 * 3600_000) return false;
+  let shared = 0;
+  for (const w of a.tokens) if (b.tokens.has(w)) shared += 1;
+  if (!shared) return false;
+  if (samePlace(a.venue, b.venue) || samePlace(a.organizer, b.organizer)) return true;
+  const union = a.tokens.size + b.tokens.size - shared;
+  return shared >= 2 && shared / union >= 0.5;
+}
+
 /** Same normalisation as the database's match_key(): lower case, letters and digits. */
 export function matchKey(text: string | null | undefined): string {
   return (text ?? '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
@@ -1296,7 +1333,7 @@ Deno.serve(async (req) => {
   // the slow part of a run.
   const { data: knownRows } = await supabase
     .from('events')
-    .select('id,source,source_event_id,source_url,review_status,reviewed_at,title,starts_at,price_label,review_note')
+    .select('id,source,source_event_id,source_url,review_status,reviewed_at,title,starts_at,price_label,review_note,venue_name,organizer_name')
     .gte('starts_at', new Date().toISOString());
   // Wording of every event a curator published, so a new date of the same
   // series starts from what was published instead of the platform's text.
@@ -1311,23 +1348,27 @@ Deno.serve(async (req) => {
   const exclusions = (exclusionRows ?? []) as Exclusion[];
   // Every stored and newly saved event, for spotting the same event on another
   // platform (Luma, Meetup and Eventbrite often list the same run club).
-  const sameEventIndex: {
+  const sameEventIndex: (ListingFacts & {
     id?: string;
     key: string;
-    day: string;
-    at: number;
-    tokens: Set<string>;
+    title: string;
     hidden: boolean;
+    pending: boolean;
     price?: string | null;
     note?: string | null;
-  }[] =
+  })[] =
     (knownRows ?? []).map((r: Record<string, unknown>) => ({
       id: String(r.id),
       key: `${r.source}:${r.source_event_id}`,
+      source: String(r.source),
+      title: String(r.title ?? ''),
       day: new Date(String(r.starts_at)).toLocaleDateString('en-CA', { timeZone: 'Europe/Lisbon' }),
       at: new Date(String(r.starts_at)).getTime(),
       tokens: titleTokens(String(r.title ?? '')),
+      venue: (r.venue_name as string | null) ?? null,
+      organizer: (r.organizer_name as string | null) ?? null,
       hidden: r.review_status === 'rejected',
+      pending: r.review_status === 'pending',
       price: (r.price_label as string | null) ?? null,
       note: (r.review_note as string | null) ?? null,
     }));
@@ -1459,6 +1500,7 @@ Deno.serve(async (req) => {
           // The same event already in SYNC from another listing (same Porto day,
           // start within an hour, matching title): keep one card and record this
           // page as "also on" instead of adding a second card.
+          let duplicateNote: string | null = null;
           if (!known.has(`${source}:${id}`)) {
             const day = starts.toLocaleDateString('en-CA', { timeZone: 'Europe/Lisbon' });
             const tokens = titleTokens(raw.title);
@@ -1486,7 +1528,39 @@ Deno.serve(async (req) => {
               }
               continue;
             }
-            sameEventIndex.push({ key: `${source}:${id}`, day, at: starts.getTime(), tokens, hidden: false });
+            const facts: ListingFacts = {
+              source,
+              day,
+              at: starts.getTime(),
+              tokens,
+              venue: raw.venue ?? null,
+              organizer: raw.organizer ?? (raw.url ? pageOrganizers.get(raw.url) : null) ?? null,
+            };
+            // Not certain enough to merge, but likely the same event on another
+            // platform: ask the curator to keep one, on both cards.
+            const maybe = sameEventIndex.find((e) => !e.hidden && e.key !== `${source}:${id}` && possibleDuplicate(e, facts));
+            if (maybe) {
+              const at = portoTimeLabel(new Date(maybe.at));
+              duplicateNote = `Possible duplicate of "${maybe.title.slice(0, 60)}" on ${platformName(maybe.source as SourceId)} (${at}${
+                maybe.price ? `, ${maybe.price}` : ''
+              }); keep one and Hide the other`;
+              if (maybe.id && maybe.pending) {
+                const back = `Possible duplicate of "${raw.title.slice(0, 60)}" on ${platformName(source)}; keep one and Hide the other`;
+                if (!maybe.note?.includes(back)) {
+                  const note = [maybe.note, back].filter(Boolean).join(' · ').slice(0, 300);
+                  await supabase.from('events').update({ review_note: note }).eq('id', maybe.id);
+                  maybe.note = note;
+                }
+              }
+            }
+            sameEventIndex.push({
+              ...facts,
+              key: `${source}:${id}`,
+              title: raw.title,
+              hidden: false,
+              pending: true,
+              price: raw.price?.trim() || null,
+            });
           }
           // A curator already reviewed this listing (often with the SYNC Curator):
           // their description, price, photo, organiser, venue, end time and
@@ -1529,8 +1603,13 @@ Deno.serve(async (req) => {
           const linkNote = isListingUrl(source, raw.url)
             ? "Link goes to a listing page, not the event's own page; check price and time there"
             : null;
+          // Flags another platform's listing left on this card (a different price,
+          // a possible duplicate) stay until the curator saves the card.
+          const keptFlags = (sameEventIndex.find((e) => e.key === `${source}:${id}`)?.note ?? '')
+            .split(' · ')
+            .filter((f) => /^(Different price on|Possible duplicate of)/.test(f));
           const reviewNote =
-            [dateNote, raw.review_hint, linkNote, organizerNote, templateNote].filter(Boolean).join(' · ') || null;
+            [...new Set([...keptFlags, duplicateNote, dateNote, raw.review_hint, linkNote, organizerNote, templateNote])].filter(Boolean).join(' · ').slice(0, 300) || null;
           const row = {
             source,
             source_event_id: id,
