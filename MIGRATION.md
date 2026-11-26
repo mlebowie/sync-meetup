@@ -174,3 +174,11 @@ It starts in **test mode**: every decision is written to `curator_decisions` (wi
 - Switch it off: `update curator_settings set mode = 'test' where id = 1;`
 
 Events it publishes show "Published by curator" in /curate.
+
+## 19. Partner submission links
+
+Each partner in `partner_organisers` has a private link, `/submit/<submit_token>`, for sending their own events: they paste the details (one event or a list, in English or Portuguese), check the drafts, say whether each runs in English, add a photo and send. Events land in Waiting as SYNC partner events with the partner's name, bio, sign-up and WhatsApp links, and a note to check them. Nothing publishes from the link.
+
+- Copy, switch off or replace links in /curate → **Partner links**, which also adds new partners.
+- Limits per link: 15 events per send, 40 a day, photos up to 5 MB.
+- `auto_merge` (on for Founders Running Club and Unseen Connection) keeps one card per partner per day from other sites' copies; it is off for partners who may hold two events in one day.

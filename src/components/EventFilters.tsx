@@ -119,7 +119,7 @@ const EventFilters = ({ filters, onFiltersChange }: EventFiltersProps) => {
           </div>
         </div>
 
-        {/* Follow my friends */}
+        {/* Events my connections are going to */}
         <div>
           <div className="flex items-center gap-2 mb-3">
             <Heart className="h-4 w-4 text-accent-strong" />
@@ -134,7 +134,7 @@ const EventFilters = ({ filters, onFiltersChange }: EventFiltersProps) => {
             }`}
           >
             <Heart className={`h-3.5 w-3.5 ${filters.followFriends ? 'fill-current' : ''}`} />
-            Follow my friends
+            Events my connections are going to
           </button>
         </div>
       </div>

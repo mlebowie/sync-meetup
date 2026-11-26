@@ -267,7 +267,9 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
                     setDetailsOpen(true);
                   }
                 }}
-                className="text-lg md:text-xl font-semibold leading-snug tracking-[-0.01em] text-primary-text line-clamp-2 cursor-pointer hover:underline"
+                // Always two lines tall, so every card lines up; a smaller size fits
+                // titles of up to about 10 words without "…".
+                className="text-base md:text-[17px] font-semibold leading-snug tracking-[-0.01em] text-primary-text line-clamp-2 min-h-[2.75em] [text-wrap:pretty] cursor-pointer hover:underline"
               >
                 {event.title}
               </h3>
@@ -293,12 +295,15 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
                 </button>
               </div>
             </div>
-            {event.organizer && (
-              <OrganizerPopover
-                organizer={event.organizer}
-                className="mt-0.5 text-sm md:text-base font-semibold leading-snug text-sage-deep text-left hover:underline underline-offset-2"
-              />
-            )}
+            {/* The organiser line is always there, so cards keep the same height. */}
+            <div className="mt-0.5 min-h-[1.375em] text-sm md:text-base leading-snug">
+              {event.organizer && (
+                <OrganizerPopover
+                  organizer={event.organizer}
+                  className="font-semibold leading-snug text-sage-deep text-left hover:underline underline-offset-2"
+                />
+              )}
+            </div>
           </div>
 
           {/* Attendees + familiar faces (no counts: organiser-only, V2) */}

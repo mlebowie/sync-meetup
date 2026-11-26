@@ -6,7 +6,7 @@ import { useEvents } from '@/context/EventsContext';
 import { ONBOARDING_INTERESTS } from '@/lib/userProfile';
 import { Participant } from '@/types/event';
 import EventCarousel from './EventCarousel';
-import { ArrowRight, Quote } from 'lucide-react';
+import { Quote } from 'lucide-react';
 
 interface Props {
   onAttend: (id: string) => void;
@@ -23,8 +23,9 @@ const WEEK_OFFSETS = [3, 10, 26, 34, 50, 58, 74, 82, 98, 122, 130, 146].map(h =>
 const GuestLanding = ({ onAttend, onParticipantClick }: Props) => {
   const { events: allEvents, isLive } = useEvents();
 
-  // One carousel: featured partner events first, then everything else this week,
-  // soonest first. With no events in the next 7 days, fall back to the soonest ones.
+  // One carousel: everything this week, soonest first (it promises timing, so
+  // featuring an event does not move it). With no events in the next 7 days,
+  // fall back to the soonest ones.
   const { weekEvents, isThisWeek } = useMemo(() => {
     const now = Date.now();
     if (isLive) {
@@ -33,8 +34,7 @@ const GuestLanding = ({ onAttend, onParticipantClick }: Props) => {
         .sort((a, b) => a.date.getTime() - b.date.getTime());
       const thisWeek = upcoming.filter(e => e.date.getTime() <= now + WEEK);
       const pool = thisWeek.length ? thisWeek : upcoming;
-      const ordered = [...pool.filter(e => e.featured), ...pool.filter(e => !e.featured)];
-      return { weekEvents: ordered.slice(0, MAX_EVENTS), isThisWeek: thisWeek.length > 0 };
+      return { weekEvents: pool.slice(0, MAX_EVENTS), isThisWeek: thisWeek.length > 0 };
     }
     return {
       weekEvents: allEvents
@@ -53,17 +53,16 @@ const GuestLanding = ({ onAttend, onParticipantClick }: Props) => {
           <div className="max-w-6xl mx-auto">
             <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
               <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-foreground">
+                <h2 className="text-2xl md:text-3xl font-light tracking-[0.015em] text-foreground">
                   {isThisWeek ? 'Happening this week' : 'Coming up in Porto'}
                 </h2>
                 <p className="text-muted-foreground mt-1">
                   Hand-picked gatherings in Porto. Grab a spot before they fill up.
                 </p>
               </div>
-              <Link to="/signup">
+              <Link to="/onboarding">
                 <Button variant="hero">
                   Create account
-                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
             </div>
@@ -90,7 +89,7 @@ const GuestLanding = ({ onAttend, onParticipantClick }: Props) => {
           <figure className="max-w-5xl mx-auto bg-card border border-border/60 rounded-3xl px-6 py-12 md:px-12 md:py-16 text-center flex flex-col items-center gap-5">
             <Quote className="h-9 w-9 text-accent" aria-hidden="true" />
             <blockquote className="max-w-3xl flex flex-col gap-3">
-              <p className="text-5xl md:text-7xl font-light tracking-tight text-primary">About 50 hours</p>
+              <p className="text-5xl md:text-7xl font-light tracking-[0.015em] text-primary">About 50 hours</p>
               <p className="text-xl md:text-2xl text-foreground leading-snug">
                 of time together turns an acquaintance into a casual friend. Showing up regularly with the same people is how you get there.
               </p>
@@ -106,14 +105,11 @@ const GuestLanding = ({ onAttend, onParticipantClick }: Props) => {
       <section className="py-12">
         <div className="container px-4 md:px-6">
           <div className="max-w-4xl mx-auto rounded-2xl bg-gradient-to-r from-primary/15 via-accent/10 to-primary/15 p-8 md:p-10 text-center">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-3">
-              Get a feed picked for you
-            </div>
-            <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
+            <h3 className="text-2xl md:text-3xl font-light tracking-[0.015em] text-foreground mb-2">
               Create an account, add your interests, unlock your crew.
             </h3>
             <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-              Tell us what you're into and Sync curates a feed of events where you'll recognise faces — week after week.
+              Tell us what you're into and SYNC curates a feed of events where you'll recognise faces, week after week.
             </p>
 
             {/* Interest preview pills */}
@@ -132,10 +128,9 @@ const GuestLanding = ({ onAttend, onParticipantClick }: Props) => {
               </span>
             </div>
 
-            <Link to="/signup">
+            <Link to="/onboarding">
               <Button variant="hero" size="xl">
                 Create a free account
-                <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
           </div>

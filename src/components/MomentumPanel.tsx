@@ -25,7 +25,7 @@ const MomentumPanel = () => {
       <div className="container px-4 md:px-6">
         <div className="max-w-5xl mx-auto">
           <div className="flex items-baseline justify-between mb-5">
-            <h2 className="text-xl md:text-2xl font-bold text-foreground">Your momentum</h2>
+            <h2 className="text-xl md:text-2xl font-light tracking-[0.015em] text-foreground">Your momentum</h2>
             <span className="text-xs uppercase tracking-wide text-muted-foreground">Last 30 days</span>
           </div>
 
@@ -73,7 +73,7 @@ const MomentumPanel = () => {
               <p className="text-sm text-muted-foreground mt-2">
                 {topPeople.length > 0
                   ? `You keep crossing paths with ${topPeople.map(p => p!.name.split(' ')[0]).join(', ')}`
-                  : 'No recurring crew yet — show up twice and watch it form'}
+                  : 'No recurring crew yet. Show up twice and watch it form'}
               </p>
             </div>
           </div>

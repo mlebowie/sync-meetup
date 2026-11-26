@@ -1,3 +1,4 @@
+import type { SocialLinks } from './socialLinks';
 import defaultProfilePhoto from '@/assets/default-profile.jpg';
 
 export const ONBOARDING_INTERESTS: { id: string; label: string; icon: string; keywords: string[] }[] = [
@@ -82,6 +83,10 @@ export interface UserProfile {
   socialStyle?: SocialStyle;
   /** ISO timestamp of account creation — used to ignore seeded demo history. */
   onboardedAt?: string;
+  /** ISO timestamp of when the member accepted the privacy policy (GDPR consent) at sign-up. */
+  privacyAcceptedAt?: string;
+  /** Instagram and LinkedIn handles and WhatsApp number, shown on their profile to their connections only. */
+  social?: SocialLinks;
 }
 
 const KEY = 'sync.userProfile.v1';

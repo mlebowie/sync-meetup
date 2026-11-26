@@ -35,7 +35,7 @@ const FeedSetupBanner = ({ interests }: Props) => {
           >
             <X className="h-4 w-4" />
           </button>
-          <h3 className="text-lg font-semibold text-foreground">
+          <h3 className="text-lg font-light tracking-[0.015em] text-foreground">
             Your feed is set to: {labels || 'your interests'}
           </h3>
           <p className="text-sm text-muted-foreground mt-0.5">

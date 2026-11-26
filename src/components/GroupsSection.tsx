@@ -14,15 +14,14 @@ interface Props {
 
 const GroupsSection = ({ onOpenDM: _onOpenDM }: Props) => {
   const { history, tags, hasTaggedMe } = useActivityHistory();
-  const { followers, following, ensureCrewChat } = useSocial();
+  const { ensureCrewChat } = useSocial();
   const [activeCrew, setActiveCrew] = useState<Group | null>(null);
 
   const mutualSet = useMemo(() => {
     const s = new Set<string>();
-    followers.forEach(id => { if (following.has(id)) s.add(id); });
     tags.forEach(t => { if (hasTaggedMe(t.participantId)) s.add(t.participantId); });
     return s;
-  }, [followers, following, tags, hasTaggedMe]);
+  }, [tags, hasTaggedMe]);
 
   const groups = useMemo(() => suggestGroups(history, tags, mutualSet), [history, tags, mutualSet]);
 
@@ -33,7 +32,7 @@ const GroupsSection = ({ onOpenDM: _onOpenDM }: Props) => {
       <div className="container px-4 md:px-6">
         <div className="max-w-5xl mx-auto">
           <div className="flex items-baseline justify-between mb-5">
-            <h2 className="text-xl md:text-2xl font-bold text-foreground flex items-center gap-2">
+            <h2 className="text-xl md:text-2xl font-light tracking-[0.015em] text-foreground flex items-center gap-2">
               <Users2 className="h-5 w-5 text-accent-strong" />
               Your crews
             </h2>

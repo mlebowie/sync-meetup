@@ -106,7 +106,7 @@ const AttendedEventsMap = ({ history }: Props) => {
               <g key={h.eventId}>
                 <circle cx={x} cy={y} r={10} fill={color} opacity={0.2} />
                 <circle cx={x} cy={y} r={5} fill={color} stroke="#fff" strokeWidth={1.5}>
-                  <title>{h.title} — {h.location}</title>
+                  <title>{h.title}, {h.location}</title>
                 </circle>
               </g>
             );

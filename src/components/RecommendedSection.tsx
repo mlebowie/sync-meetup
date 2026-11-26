@@ -24,7 +24,11 @@ const RecommendedSection = ({ filters, profileInterests, onAttend, onParticipant
     const familiar = (e: Event) => e.participants.filter(p => crossedPathsWith(p.id) > 0).length;
     return applyFeedFilters(events, filters, profileInterests)
       .map(e => ({ e, score: familiar(e) }))
-      .sort((a, b) => b.score - a.score || a.e.date.getTime() - b.e.date.getTime())
+      // Ranked by relevance, not time, so a featured event may lead among equals.
+      .sort(
+        (a, b) =>
+          b.score - a.score || Number(!!b.e.featured) - Number(!!a.e.featured) || a.e.date.getTime() - b.e.date.getTime(),
+      )
       .map(x => x.e);
   }, [events, filters, profileInterests, crossedPathsWith]);
 
@@ -35,7 +39,7 @@ const RecommendedSection = ({ filters, profileInterests, onAttend, onParticipant
       <div className="container px-4 md:px-6">
         <div className="flex flex-wrap items-end justify-between gap-3 mb-5">
           <div>
-            <h2 className="text-xl md:text-2xl font-bold text-foreground flex items-center gap-2">
+            <h2 className="text-xl md:text-2xl font-light tracking-[0.015em] text-foreground flex items-center gap-2">
               Recommended for you
             </h2>
             <p className="text-sm text-muted-foreground mt-1">

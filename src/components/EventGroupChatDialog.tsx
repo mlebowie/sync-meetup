@@ -60,7 +60,7 @@ const EventGroupChatDialog = ({ event, open, onOpenChange }: Props) => {
     if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
       try {
         new Notification('Chat expires in 24 hours', {
-          body: `${event.title} — swap socials or start a Crew before it disappears.`,
+          body: `${event.title}: swap socials or start a Crew before it disappears.`,
         });
       } catch { /* ignore */ }
     }
@@ -113,7 +113,7 @@ const EventGroupChatDialog = ({ event, open, onOpenChange }: Props) => {
           <div className="px-4 py-2.5 border-b flex items-start gap-2 text-sm bg-accent/10 text-accent-foreground border-accent/30">
             <AlarmClock className="h-4 w-4 mt-0.5 shrink-0 text-accent-strong" />
             <p>
-              <span className="font-semibold">Chat expires in 24 hours</span> — swap socials or start a Crew before it disappears.
+              <span className="font-semibold">Chat expires in 24 hours</span>. Swap socials or start a Crew before it disappears.
             </p>
           </div>
         )}

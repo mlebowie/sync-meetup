@@ -52,7 +52,7 @@ const OrganizerPopover = ({ organizer, className }: OrganizerPopoverProps) => {
             )}
             <div className="min-w-0 flex-1">
               <h4 className="font-semibold text-foreground truncate">{organizer.name}</h4>
-              <p className="text-xs text-muted-foreground capitalize">{organizer.type === 'company' ? 'Organization' : 'Host'}</p>
+              <p className="text-xs text-muted-foreground capitalize">{organizer.type === 'company' ? 'Organisation' : 'Host'}</p>
             </div>
           </div>
 
@@ -82,7 +82,7 @@ const OrganizerPopover = ({ organizer, className }: OrganizerPopoverProps) => {
             </div>
             <p className="text-sm text-foreground/90 italic leading-snug">"{organizer.recentReview.text}"</p>
             <p className="text-xs text-muted-foreground mt-2">
-              — {organizer.recentReview.author} · {format(organizer.recentReview.date, 'MMM d')}
+              {organizer.recentReview.author} · {format(organizer.recentReview.date, 'MMM d')}
             </p>
           </div>
         )}

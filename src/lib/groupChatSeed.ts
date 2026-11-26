@@ -8,7 +8,7 @@ export const icebreakersByCategory: Record<string, string> = {
   Dance: 'What song instantly gets you moving?',
   Arts: 'Drop a photo, lyric or quote that defines your week.',
   'Food & Drinks': 'What’s the best bite you’ve had in Porto so far?',
-  Outdoors: 'Sunrise or sunset — and where’s your favourite spot for it?',
+  Outdoors: 'Sunrise or sunset, and where’s your favourite spot for it?',
 };
 
 export const getIcebreaker = (event: Event) =>
@@ -33,7 +33,7 @@ export const seedGroupChat = (event: Event): ChatMessage[] => {
           authorId: org.id,
           authorName: `${org.name} (host)`,
           authorAvatar: org.avatar || '',
-          content: `Hi all — ${org.name} here, hosting "${event.title}". Drop any questions about timing, location or what to bring right here and I'll answer the whole group.`,
+          content: `Hi all, ${org.name} here, hosting "${event.title}". Drop any questions about timing, location or what to bring right here and I'll answer the whole group.`,
           type: 'text' as const,
           timestamp: new Date(event.date.getTime() - 23.5 * 60 * 60 * 1000),
         }]
@@ -45,7 +45,7 @@ export const seedGroupChat = (event: Event): ChatMessage[] => {
       authorAvatar: p.avatar,
       content: i === 0
         ? 'Hey everyone 👋 super excited for this!'
-        : 'Same! First time joining — see you there.',
+        : 'Same! First time joining, see you there.',
       type: 'text' as const,
       timestamp: new Date(event.date.getTime() - 23 * 60 * 60 * 1000 + i * 60000),
     })),

@@ -116,12 +116,52 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_organisers: {
+        Row: {
+          id: string
+          name: string
+          match: string
+          register_url: string | null
+          whatsapp_url: string | null
+          bio: string | null
+          submit_token: string | null
+          submit_enabled: boolean
+          auto_merge: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          match: string
+          register_url?: string | null
+          whatsapp_url?: string | null
+          bio?: string | null
+          submit_token?: string | null
+          submit_enabled?: boolean
+          auto_merge?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          match?: string
+          register_url?: string | null
+          whatsapp_url?: string | null
+          bio?: string | null
+          submit_token?: string | null
+          submit_enabled?: boolean
+          auto_merge?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           activity_level: string | null
           also_on: string[]
           auto_checked_at: string | null
           auto_published_at: string | null
+          submitted_by: string | null
           attendee_count: number | null
           capacity: number | null
           category: string | null
@@ -172,6 +212,7 @@ export type Database = {
           also_on?: string[]
           auto_checked_at?: string | null
           auto_published_at?: string | null
+          submitted_by?: string | null
           attendee_count?: number | null
           capacity?: number | null
           category?: string | null
@@ -222,6 +263,7 @@ export type Database = {
           also_on?: string[]
           auto_checked_at?: string | null
           auto_published_at?: string | null
+          submitted_by?: string | null
           attendee_count?: number | null
           capacity?: number | null
           category?: string | null
