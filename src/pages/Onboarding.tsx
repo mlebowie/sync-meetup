@@ -339,10 +339,8 @@ const Onboarding = () => {
                           selected ? 'bg-[#9EAFAB]/80' : 'bg-white',
                         )}
                       >
-                        <span className="flex-1">
-                          <span className={cn('block text-base font-bold', selected ? 'text-[#1F110C]' : 'text-[#57514D]')}>{option.label}</span>
-                          <span className={cn('mt-1 block text-sm', selected ? 'text-[#1F110C]/80' : 'text-[#57514D]')}>{option.detail}</span>
-                        </span>
+                        {/* Label only: the answers are short enough to stand on their own. */}
+                        <span className={cn('flex-1 text-base font-bold', selected ? 'text-[#1F110C]' : 'text-[#57514D]')}>{option.label}</span>
                       </button>
                     );
                   })}
