@@ -69,14 +69,9 @@ const SOURCE_PAGES: Record<SourceId, string[]> = {
     'https://www.meetup.com/find/?location=pt--Porto&source=EVENTS&keywords=yoga&distance=tenMiles',
     'https://www.meetup.com/find/?location=pt--Porto&source=EVENTS&keywords=running%20hiking%20surf&distance=twentyFiveMiles',
   ],
-  // Lu.ma has no city index page, so read known Porto community calendars directly.
-  luma: [
-    'https://lu.ma/porto',
-    'https://lu.ma/portugal',
-    'https://lu.ma/portotech',
-    'https://lu.ma/portoweb3',
-    'https://lu.ma/wellnessporto',
-  ],
+  // Lu.ma's own Discover feed around Porto (read as data, no Firecrawl or AI).
+  // The Porto calendars this used to read were taken down in November 2026.
+  luma: ['luma-discover'],
   // Porto's official city agenda, read through its English section listings.
   'agenda-porto': [
     'https://www.agenda-porto.pt/en/calendario/',
@@ -166,8 +161,8 @@ const THEMED_PAGES: Record<Exclude<Focus, 'general'>, Partial<Record<SourceId, s
 /** Lu.ma has no city search, so each focus discovers calendars and events by web search. */
 const LUMA_QUERIES: Record<Focus, string[]> = {
   general: [
-    'site:lu.ma Porto Portugal events calendar',
-    'site:lu.ma Porto yoga wellness OR fitness OR run event',
+    'site:luma.com Porto Portugal events',
+    'site:luma.com Porto yoga OR wellness OR run',
   ],
   sports: [
     'site:luma.com OR site:lu.ma Porto padel OR tennis OR pickleball',
@@ -271,6 +266,7 @@ interface RawEvent {
   language_evidence?: string;
   /** Shown to the curator as a review note (for example a missing start time). */
   review_hint?: string;
+  organizer_bio?: string;
 }
 
 const decodeHtml = (s: string) =>
@@ -356,6 +352,143 @@ async function fisgaListing(page: string): Promise<RawEvent[]> {
   );
   // The listing also shows past events (its archive); keep today onwards.
   return events.filter((e): e is RawEvent => !!e && e.iso_date! >= today);
+}
+
+// --- Lu.ma ----------------------------------------------------------------------
+// Lu.ma has no Porto city page, but its Discover feed answers by location with the
+// events' details as data: organiser, price, venue, times, photo, sold out. Each
+// event's description comes from its own record.
+const LUMA_API = 'https://api.lu.ma';
+const PORTO = { latitude: 41.1579, longitude: -8.6291 };
+
+interface LumaEntry {
+  api_id: string;
+  event: {
+    name: string;
+    url: string;
+    start_at: string;
+    end_at?: string | null;
+    location_type?: string;
+    cover_url?: string | null;
+    geo_address_info?: { address?: string; full_address?: string; city?: string } | null;
+  };
+  calendar?: { name?: string; is_personal?: boolean; description_short?: string | null } | null;
+  hosts?: { name?: string; bio_short?: string | null }[];
+  guest_count?: number;
+  ticket_info?: {
+    is_free?: boolean;
+    is_sold_out?: boolean;
+    price?: { cents?: number; currency?: string } | null;
+    max_price?: { cents?: number } | null;
+  } | null;
+}
+
+const lumaJson = async (path: string) => {
+  const res = await fetch(`${LUMA_API}${path}`, {
+    headers: { Accept: 'application/json', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
+    signal: AbortSignal.timeout(15_000),
+  });
+  if (!res.ok) throw new Error(`Lu.ma returned ${res.status} for ${path.split('?')[0]}`);
+  return res.json();
+};
+
+/** Plain text from Lu.ma's rich-text description. */
+export function lumaText(node: unknown): string {
+  if (!node || typeof node !== 'object') return '';
+  const n = node as { type?: string; text?: string; content?: unknown[] };
+  const inner = (n.text ?? '') + (n.content ?? []).map(lumaText).join('');
+  return ['paragraph', 'heading', 'list_item', 'hard_break'].includes(n.type ?? '') ? `${inner}\n` : inner;
+}
+
+/** "Free", "€15", "From €10": from Lu.ma's ticket info. */
+export function lumaPrice(t: LumaEntry['ticket_info']): string | undefined {
+  if (!t) return undefined;
+  if (t.is_free) return 'Free';
+  const cents = t.price?.cents;
+  if (typeof cents !== 'number') return undefined;
+  const euros = (c: number) => `€${(c / 100).toFixed(2).replace(/\.00$/, '')}`;
+  return t.max_price?.cents && t.max_price.cents > cents ? `From ${euros(cents)}` : euros(cents);
+}
+
+/** Whether a description reads as English (more English than Portuguese function words). */
+export function looksEnglish(text: string): boolean {
+  const words = text.toLowerCase().match(/[a-zà-ú]+/g) ?? [];
+  const en = words.filter((w) => ['the', 'and', 'with', 'you', 'your', 'for', 'our', 'join', 'will'].includes(w)).length;
+  const pt = words.filter((w) => ['de', 'para', 'com', 'uma', 'que', 'não', 'você', 'vais', 'em', 'os', 'as'].includes(w)).length;
+  return en >= pt;
+}
+
+const lisbonParts = (iso: string) => {
+  const d = new Date(iso);
+  const date = d.toLocaleDateString('en-CA', { timeZone: 'Europe/Lisbon' });
+  const time = d.toLocaleTimeString('en-GB', { timeZone: 'Europe/Lisbon', hour: '2-digit', minute: '2-digit', hour12: false });
+  return { date, time };
+};
+
+async function lumaDiscover(): Promise<RawEvent[]> {
+  const entries: LumaEntry[] = [];
+  let cursor: string | null = null;
+  for (let pageNo = 0; pageNo < 4; pageNo++) {
+    const q = new URLSearchParams({
+      latitude: String(PORTO.latitude),
+      longitude: String(PORTO.longitude),
+      pagination_limit: '50',
+    });
+    if (cursor) q.set('pagination_cursor', cursor);
+    const data = await lumaJson(`/discover/get-paginated-events?${q}`);
+    entries.push(...((data?.entries ?? []) as LumaEntry[]));
+    if (!data?.has_more || !data?.next_cursor) break;
+    cursor = data.next_cursor;
+  }
+  const offline = entries.filter((e) => e.event?.location_type !== 'online' && e.event?.url && e.event?.start_at);
+
+  // Descriptions, a few at a time.
+  const descriptions = new Map<string, string>();
+  for (let i = 0; i < offline.length; i += 6) {
+    await Promise.all(
+      offline.slice(i, i + 6).map(async (e) => {
+        try {
+          const full = await lumaJson(`/event/get?event_api_id=${encodeURIComponent(e.api_id)}`);
+          descriptions.set(e.api_id, lumaText(full?.description_mirror).replace(/\n{3,}/g, '\n\n').trim());
+        } catch (err) {
+          console.error(`Lu.ma description for ${e.api_id}: ${(err as Error).message}`);
+        }
+      }),
+    );
+  }
+
+  return offline.map((e) => {
+    const start = lisbonParts(e.event.start_at);
+    const end = e.event.end_at ? lisbonParts(e.event.end_at) : null;
+    const host = e.hosts?.[0];
+    const organizer = e.calendar && !e.calendar.is_personal && e.calendar.name ? e.calendar.name : host?.name;
+    const bio = host?.bio_short ?? e.calendar?.description_short ?? undefined;
+    const description = descriptions.get(e.api_id) ?? '';
+    const geo = e.event.geo_address_info ?? {};
+    return {
+      title: e.event.name,
+      source_title: e.event.name,
+      description,
+      source_description: description,
+      url: `https://lu.ma/${e.event.url}`,
+      iso_date: start.date,
+      date_text: start.date,
+      time: end && end.date === start.date ? `${start.time}–${end.time}` : start.time,
+      venue: geo.address,
+      address: geo.full_address ?? geo.address,
+      city: geo.city,
+      image_url: e.event.cover_url ?? undefined,
+      organizer: organizer ?? undefined,
+      organizer_bio: bio ? bio.slice(0, 200) : undefined,
+      price: lumaPrice(e.ticket_info),
+      attendees: e.guest_count,
+      is_online: false,
+      english_eligible: description ? looksEnglish(`${e.event.name} ${description}`) : true,
+      event_language: description && !looksEnglish(`${e.event.name} ${description}`) ? 'Portuguese' : 'English',
+      language_evidence: 'Lu.ma description',
+      review_hint: e.ticket_info?.is_sold_out ? 'Sold out on Lu.ma: publish with Waitlist' : undefined,
+    } satisfies RawEvent;
+  });
 }
 
 class Denied extends Error {
@@ -520,7 +653,9 @@ function isEnglishEligible(raw: RawEvent): boolean {
  * for the source is used.
  */
 async function lumaPages(focus: Focus = 'general'): Promise<string[]> {
-  const urls: string[] = focus === 'general' ? [...SOURCE_PAGES.luma] : [];
+  // The Discover feed already lists every Lu.ma event around Porto.
+  if (focus === 'general') return [...SOURCE_PAGES.luma];
+  const urls: string[] = [];
   const queries = LUMA_QUERIES[focus];
 
   for (const query of queries) {
@@ -554,6 +689,49 @@ function canonicalHost(host: string): string {
   if (h === 'meetup.com') return 'www.meetup.com';
   return host.toLowerCase();
 }
+
+export interface Exclusion {
+  kind: 'event' | 'series' | 'organiser' | 'title';
+  value: string;
+}
+
+/** Whether a rule from /curate → Remove covers this event. */
+export function isExcluded(
+  rules: Exclusion[],
+  e: { key: string; seriesKey: string | null; organizer: string | null; title: string },
+): boolean {
+  const org = matchKey(e.organizer);
+  const title = ` ${matchKey(e.title)} `;
+  return rules.some(
+    (r) =>
+      (r.kind === 'event' && r.value === e.key) ||
+      (r.kind === 'series' && !!e.seriesKey && r.value === e.seriesKey) ||
+      (r.kind === 'organiser' && !!org && r.value === org) ||
+      (r.kind === 'title' && !!r.value && title.includes(` ${r.value} `)),
+  );
+}
+
+/** Prices that mean the same ("€10.00" and "10 €", "Free" and "€0"). */
+export function samePrice(a: string, b: string): boolean {
+  const norm = (p: string) => {
+    const t = p.toLowerCase().replace(/\s+/g, '');
+    if (/^(free|gr[aá]tis|€?0([.,]0+)?€?)$/.test(t)) return 'free';
+    const n = /(\d+(?:[.,]\d+)?)/.exec(t)?.[1];
+    return n ? `${t.startsWith('from') || t.startsWith('desde') ? 'from' : ''}${Number(n.replace(',', '.'))}` : t;
+  };
+  return norm(a) === norm(b);
+}
+
+const PLATFORMS: Record<SourceId, string> = {
+  eventbrite: 'Eventbrite',
+  meetup: 'Meetup',
+  luma: 'Lu.ma',
+  'agenda-porto': 'Agenda Porto',
+  'porto-coffee-week': 'Porto Coffee Week',
+  fisga: 'Fisga',
+  'ma-to': 'ma.to',
+};
+const platformName = (s: SourceId) => PLATFORMS[s] ?? s;
 
 /** True when an event's link is a listing page rather than the event itself. */
 export function isListingUrl(source: SourceId, url: string | null | undefined): boolean {
@@ -1118,7 +1296,7 @@ Deno.serve(async (req) => {
   // the slow part of a run.
   const { data: knownRows } = await supabase
     .from('events')
-    .select('id,source,source_event_id,source_url,review_status,reviewed_at,title,starts_at')
+    .select('id,source,source_event_id,source_url,review_status,reviewed_at,title,starts_at,price_label,review_note')
     .gte('starts_at', new Date().toISOString());
   // Wording of every event a curator published, so a new date of the same
   // series starts from what was published instead of the platform's text.
@@ -1128,9 +1306,21 @@ Deno.serve(async (req) => {
       'organizer_key,title_key,title,series_key,description,category,organizer_bio,image_url,women_only,lgbtq_friendly,pet_friendly,updated_at',
     );
   const templates = (templateRows ?? []) as EventTemplate[];
+  // What Emilie removed from SYNC in /curate: never collect these again.
+  const { data: exclusionRows } = await supabase.from('collector_exclusions').select('kind,value');
+  const exclusions = (exclusionRows ?? []) as Exclusion[];
   // Every stored and newly saved event, for spotting the same event on another
   // platform (Luma, Meetup and Eventbrite often list the same run club).
-  const sameEventIndex: { id?: string; key: string; day: string; at: number; tokens: Set<string>; hidden: boolean }[] =
+  const sameEventIndex: {
+    id?: string;
+    key: string;
+    day: string;
+    at: number;
+    tokens: Set<string>;
+    hidden: boolean;
+    price?: string | null;
+    note?: string | null;
+  }[] =
     (knownRows ?? []).map((r: Record<string, unknown>) => ({
       id: String(r.id),
       key: `${r.source}:${r.source_event_id}`,
@@ -1138,6 +1328,8 @@ Deno.serve(async (req) => {
       at: new Date(String(r.starts_at)).getTime(),
       tokens: titleTokens(String(r.title ?? '')),
       hidden: r.review_status === 'rejected',
+      price: (r.price_label as string | null) ?? null,
+      note: (r.review_note as string | null) ?? null,
     }));
   // One listing per title per day, even when it appears under different links.
   const dayKey = (title: string | undefined, isoDay: string | undefined) =>
@@ -1208,6 +1400,8 @@ Deno.serve(async (req) => {
           raws =
             source === 'fisga'
               ? await fisgaListing(page)
+              : page === 'luma-discover'
+                ? await lumaDiscover()
               : paused
                 ? (await scrapeListing(page)).slice(0, 5)
                 : await scrapeListing(page);
@@ -1278,6 +1472,17 @@ Deno.serve(async (req) => {
             if (twin) {
               if (twin.id && !twin.hidden && raw.url) {
                 await supabase.rpc('add_event_also_on', { _id: twin.id, _url: raw.url });
+                // Two platforms, two prices (Biodanza on Meetup and Agenda Porto):
+                // flag it so the curator checks which is right.
+                const other = raw.price?.trim();
+                if (other && twin.price && !samePrice(other, twin.price)) {
+                  const flag = `Different price on ${platformName(source)}: ${other} (card says ${twin.price})`;
+                  if (!twin.note?.includes(flag)) {
+                    const note = [twin.note, flag].filter(Boolean).join(' · ').slice(0, 300);
+                    await supabase.from('events').update({ review_note: note }).eq('id', twin.id);
+                    twin.note = note;
+                  }
+                }
               }
               continue;
             }
@@ -1308,6 +1513,10 @@ Deno.serve(async (req) => {
           const organizerName =
             raw.organizer?.trim()?.slice(0, 200) || (raw.url ? pageOrganizers.get(raw.url) : undefined) || null;
           const organizerNote = organizerName ? null : 'Organiser missing; add it from the event page';
+          if (isExcluded(exclusions, { key: `${source}:${id}`, seriesKey: series_key, organizer: organizerName, title: raw.title })) {
+            excluded++;
+            continue;
+          }
           // Start from the wording published for this organiser's earlier dates.
           const match = findTemplate(templates, organizerName, raw.title, series_key);
           const t = match?.kind === 'title' ? match.template : null;
@@ -1337,7 +1546,11 @@ Deno.serve(async (req) => {
             location: portoLocation(raw),
             image_url: raw.image_url?.startsWith('http') ? raw.image_url : (t?.image_url ?? null),
             organizer_name: organizerName,
-            ...(t?.organizer_bio ? { organizer_bio: t.organizer_bio } : {}),
+            ...(t?.organizer_bio
+              ? { organizer_bio: t.organizer_bio }
+              : raw.organizer_bio
+                ? { organizer_bio: raw.organizer_bio }
+                : {}),
             category: t?.category ?? canonicalCategory(raw, source),
             price_label: raw.price?.trim()?.slice(0, 60) || agendaPrice(raw, source),
             attendee_count:

@@ -182,3 +182,11 @@ Each partner in `partner_organisers` has a private link, `/submit/<submit_token>
 - Copy, switch off or replace links in /curate → **Partner links**, which also adds new partners.
 - Limits per link: 15 events per send, 40 a day, photos up to 5 MB.
 - `auto_merge` (on for Founders Running Club and Unseen Connection) keeps one card per partner per day from other sites' copies; it is off for partners who may hold two events in one day.
+
+## 20. Lu.ma feed, retries, cross-platform prices and Remove
+
+- **Lu.ma**: the Porto calendars the collector read were taken down, so the daily run reads Lu.ma's Discover feed around Porto (`api.lu.ma/discover/get-paginated-events`) and each event's description (`/event/get`) as data: organiser and bio, price, venue, times, photo and sold-out status. The themed runs still search luma.com.
+- **Retries**: `sync-retry-failed` (06:40 and 07:40 UTC) re-runs any source whose latest run today failed. By hand: `select public.retry_failed_collections();` or `select public.run_event_collector('eventbrite');`.
+- **Different prices**: when the same event turns up on another platform with another price, the card gets *Different price on <platform>: X (card says Y)*.
+- **Remove** (/curate): hides an event and records a rule in `collector_exclusions` (this event, every date of the series, everything from the organiser, or titles with certain words) that the collector skips from then on. Other Waiting events the rule covers are hidden too. Undo by deleting the rule and moving the event back from Hidden.
+- **Missing** badge (/curate): organiser, price or address not filled in.

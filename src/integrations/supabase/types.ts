@@ -407,6 +407,10 @@ export type Database = {
         Args: { _horizon_days?: number; _series_key?: string }
         Returns: number
       }
+      remove_from_collection: {
+        Args: { _event_id: string; _kind: string; _words?: string | null; _reason?: string | null }
+        Returns: number
+      }
       match_key: {
         Args: { _text: string }
         Returns: string

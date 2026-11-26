@@ -67,6 +67,8 @@ export interface Review {
   price_label: string | null;
   is_paid: boolean | null;
   organizer_bio: string | null;
+  /** A card title of 10 words at most, when the original is longer. */
+  title?: string | null;
   /** Who runs the event, as the page names them. */
   organizer_name?: string | null;
   image_url: string | null;
@@ -79,6 +81,7 @@ export interface Review {
 }
 
 export interface CurrentRow {
+  title?: string;
   organizer_name?: string | null;
   starts_at: string;
   ends_at: string | null;
@@ -163,11 +166,17 @@ export function decide(review: Review, page: PageFacts, row: CurrentRow, now = n
   else flags.push('Description needs writing');
 
   // --- price ----------------------------------------------------------------
-  const price = review.price_label?.trim() || null;
+  const price = review.price_label?.trim() || (review.is_paid === false ? 'Free' : null);
   if (price) patch.price_label = price;
   if (review.is_paid === true && (!price || /^free$/i.test(price))) flags.push('Paid, but price not stated');
   if (review.is_paid === true && !/paid|ticket|€/i.test(description)) flags.push('Paid event not explained');
   if (review.is_paid == null && !price) flags.push('Price not stated');
+
+  // --- title: two lines on the card, so 10 words at most ------------------------
+  const currentWords = words(row.title ?? '');
+  const shorter = review.title?.trim();
+  if (shorter && shorter !== row.title && words(shorter) <= 10) patch.title = shorter.slice(0, 120);
+  else if (currentWords > 10) flags.push('Title over 10 words');
 
   // --- organiser: every published card names one ------------------------------
   const organizer = row.organizer_name?.trim() || review.organizer_name?.trim() || null;
