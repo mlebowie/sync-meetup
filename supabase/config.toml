@@ -9,6 +9,9 @@ verify_jwt = false
 [functions.parse-event]
 verify_jwt = false
 
+[functions.auto-curate]
+verify_jwt = false
+
 # Public: partners have no account; the link's token says who they are.
 [functions.partner-submit]
 verify_jwt = false

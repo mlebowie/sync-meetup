@@ -159,6 +159,8 @@ export type Database = {
         Row: {
           activity_level: string | null
           also_on: string[]
+          auto_checked_at: string | null
+          auto_published_at: string | null
           submitted_by: string | null
           attendee_count: number | null
           capacity: number | null
@@ -208,6 +210,8 @@ export type Database = {
         Insert: {
           activity_level?: string | null
           also_on?: string[]
+          auto_checked_at?: string | null
+          auto_published_at?: string | null
           submitted_by?: string | null
           attendee_count?: number | null
           capacity?: number | null
@@ -257,6 +261,8 @@ export type Database = {
         Update: {
           activity_level?: string | null
           also_on?: string[]
+          auto_checked_at?: string | null
+          auto_published_at?: string | null
           submitted_by?: string | null
           attendee_count?: number | null
           capacity?: number | null

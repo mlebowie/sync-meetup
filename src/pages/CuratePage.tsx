@@ -28,6 +28,8 @@ type ReviewStatus = 'pending' | 'approved' | 'rejected';
 
 interface Row {
   id: string;
+  /** Set when the automatic curator published the event. */
+  auto_published_at?: string | null;
   source: string;
   source_url: string;
   title: string;
@@ -565,6 +567,7 @@ const CuratePage = () => {
                         )}
                         {(row.tags ?? []).includes('sold-out') && <Badge variant="outline">Waitlist</Badge>}
                         {(row.tags ?? []).includes('sync-partner') && <Badge variant="outline">Partner</Badge>}
+                        {row.auto_published_at && <Badge variant="outline">Published by curator</Badge>}
                         {row.generate_dates && row.recurrence && REPEAT_LABELS[row.recurrence] && (
                           <Badge variant="outline">↻ {REPEAT_LABELS[row.recurrence]}</Badge>
                         )}
