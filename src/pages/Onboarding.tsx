@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { pillField, primaryCta, secondaryLink } from '@/lib/ctaStyles';
+import { pillField, primaryCta, revealDelay, revealItem, secondaryLink } from '@/lib/ctaStyles';
 import syncWordmark from '@/assets/sync-wordmark-v2.png';
 import { useNavigate } from 'react-router-dom';
 import { Camera } from 'lucide-react';
@@ -334,23 +334,13 @@ const Onboarding = () => {
                         onClick={() => choose(currentQuestion.key, option.value)}
                         onKeyDown={event => onRadioKey(event, index)}
                         className={cn(
-                          'flex w-full items-center gap-4 rounded-[20px] p-5 sm:p-6 text-left shadow-[0_2px_12px_-4px_rgba(49,35,27,0.10)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-                          selected ? 'bg-[#FFECD2]' : 'bg-white',
+                          // Selected: sage at 80% (as on every selection in SYNC); no radio circle.
+                          'flex w-full items-center rounded-[20px] p-5 sm:p-6 text-left shadow-[0_2px_12px_-4px_rgba(49,35,27,0.10)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                          selected ? 'bg-[#9EAFAB]/80' : 'bg-white',
                         )}
                       >
-                        <span className="flex-1">
-                          <span className="block text-base font-bold text-[#57514D]">{option.label}</span>
-                          <span className="mt-1 block text-sm text-[#57514D]">{option.detail}</span>
-                        </span>
-                        <span
-                          aria-hidden="true"
-                          className={cn(
-                            'flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2',
-                            selected ? 'border-[#C1694F]' : 'border-[#57514D]',
-                          )}
-                        >
-                          {selected && <span className="h-3 w-3 rounded-full bg-[#C1694F]" />}
-                        </span>
+                        {/* Label only: the answers are short enough to stand on their own. */}
+                        <span className={cn('flex-1 text-base font-bold', selected ? 'text-[#1F110C]' : 'text-[#57514D]')}>{option.label}</span>
                       </button>
                     );
                   })}
@@ -406,18 +396,25 @@ const Onboarding = () => {
               <div className="space-y-6">
                 {INTEREST_GROUPS.map(group => (
                   <fieldset key={group.label}>
-                    <legend className="mb-2 text-xs font-semibold uppercase text-muted-foreground">{group.label}</legend>
+                    {/* Same size as the interest pills (15px). */}
+                    <legend className="mb-2.5 text-[15px] font-semibold uppercase text-muted-foreground">{group.label}</legend>
                     <div className="flex flex-wrap gap-2">
                       {group.interestIds.map(id => {
                         const interest = interestsById.get(id);
                         if (!interest) return null;
                         const selected = interests.includes(id);
                         return (
+                          // Larger than the app's small tags so they read well next to the 16px buttons;
+                          // selected fills sage at 80%.
                           <Button
                             key={id}
                             type="button"
-                            variant={selected ? 'tagActive' : 'tag'}
+                            variant="tag"
                             size="tag"
+                            className={cn(
+                              'h-10 gap-1.5 px-4 text-[15px]',
+                              selected && 'bg-[#9EAFAB]/80 text-[#1F110C] hover:bg-[#9EAFAB]/80 hover:text-[#1F110C]',
+                            )}
                             onClick={() => toggleInterest(id)}
                             disabled={!selected && interests.length >= 5}
                             aria-pressed={selected}
@@ -439,16 +436,17 @@ const Onboarding = () => {
             <div className="animate-fade-in">
               <div className="mb-8 text-center">
                 <h1 className="font-display text-[22px] leading-7 font-light tracking-[0.015em] text-foreground sm:text-4xl">
-                  How you meet people on SYNC
+                  Connect with new people
                 </h1>
               </div>
               <ol className="mx-auto max-w-md space-y-6">
                 {[
-                  'Go to an event.',
-                  "Afterwards, tag the people you'd like to see again. Your tags stay private.",
-                  "If they tag you too, you're connected: you can message each other and see each other's social links.",
+                  'Attend your first event.',
+                  'Tag the people you spoke and connected with in person.',
+                  'If they tag you back, a conversation unlocks and you can make plans to meet again.',
                 ].map((line, i) => (
-                  <li key={line} className="flex gap-4">
+                  // Gentle reveal: the lines arrive one after another.
+                  <li key={line} className={`flex gap-4 ${revealItem}`} style={revealDelay(i)}>
                     <span className="w-6 shrink-0 text-right text-2xl font-light leading-7 text-[#C1694F]">{i + 1}</span>
                     <span className="text-base leading-7 text-foreground">{line}</span>
                   </li>
@@ -505,7 +503,12 @@ const Onboarding = () => {
           )}
         </section>
 
-        <div className="mt-8 flex w-full flex-col items-center">
+        {/* On the "Connect with new people" screen the actions arrive last, after the three lines. */}
+        <div
+          key={step}
+          className={`mt-8 flex w-full flex-col items-center ${step === 5 ? revealItem : ''}`}
+          style={step === 5 ? revealDelay(3) : undefined}
+        >
           {step === 4 ? (
             <Button type="button" onClick={next} className={primaryCta}>
               Next
