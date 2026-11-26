@@ -20,6 +20,7 @@ import {
 import { EVENT_CATEGORIES, normalizeCategory } from '@/lib/categories';
 import AddPartnerEventDialog from '@/components/AddPartnerEventDialog';
 import PartnerLinksDialog from '@/components/PartnerLinksDialog';
+import RemoveEventDialog from '@/components/RemoveEventDialog';
 import EventFlagToggles, { type EventFlags } from '@/components/EventFlagToggles';
 import { isoToLisbon, lisbonToIso, timeLabelFor } from '@/lib/lisbonTime';
 import { Check, X, Pencil, ExternalLink, RotateCcw, Clock, Loader2, Star, ImagePlus, Link2 } from 'lucide-react';
@@ -77,6 +78,14 @@ interface Template {
 /** Same as the database's match_key(): lower case, letters and digits only. */
 const matchKey = (text: string | null | undefined) =>
   (text ?? '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+
+/** What a card can't be published without: organiser, price, and where it is. */
+const missingInfo = (r: { organizer_name: string | null; price_label: string | null; venue_name: string | null; location: string | null }) =>
+  [
+    !r.organizer_name?.trim() && 'organiser',
+    !r.price_label?.trim() && 'price',
+    !r.venue_name?.trim() && !r.location?.trim() && 'address',
+  ].filter(Boolean) as string[];
 
 const REPEAT_LABELS: Record<string, string> = { weekly: 'Weekly', biweekly: 'Every 2 weeks', monthly: 'Monthly' };
 
@@ -565,6 +574,14 @@ const CuratePage = () => {
                             Needs review: {row.review_note}
                           </Badge>
                         )}
+                        {missingInfo(row).length > 0 && (
+                          <Badge
+                            className="bg-red-100 text-red-900 border-red-300 hover:bg-red-100"
+                            title="Fill these in with Edit before publishing"
+                          >
+                            Missing: {missingInfo(row).join(', ')}
+                          </Badge>
+                        )}
                         {(row.tags ?? []).includes('sold-out') && <Badge variant="outline">Waitlist</Badge>}
                         {(row.tags ?? []).includes('sync-partner') && <Badge variant="outline">Partner</Badge>}
                         {row.auto_published_at && <Badge variant="outline">Published by curator</Badge>}
@@ -804,6 +821,7 @@ const CuratePage = () => {
                             <X className="h-4 w-4 mr-1" /> Hide
                           </Button>
                         )}
+                        {tab !== 'rejected' && <RemoveEventDialog event={row} onRemoved={load} />}
                         {tab !== 'pending' && (
                           <Button
                             size="sm"

@@ -19,7 +19,8 @@ const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 /** One run stays well inside the 150 s edge limit. */
 const STOP_STARTING_MS = 95_000;
-const PARALLEL = 3;
+// One at a time: the AI service limits requests per minute.
+const PARALLEL = 1;
 const MAX_PER_RUN = 12;
 
 const json = (body: unknown, status = 200) =>
@@ -148,6 +149,7 @@ Return JSON with these keys:
 - If published descriptions from this organiser are given and one covers the same event, start from that wording and change only what this date's page changes.
 - price_label: "Free", "€15", or "From €11.89" for several tiers (the lowest). null if the page does not say. Never invent a price.
 - is_paid: true if any ticket costs money, false if free, null if the page does not say.
+- title: if the stored title is longer than 10 words or carries numbering, emojis, the venue, the organiser's name, ticket words or a repeated "Porto", a shorter title of at most 10 words that keeps the event's own name; otherwise null.
 - organizer_name: who organises or hosts the event, exactly as the page names them (the group, venue or person), or null if the page does not say.
 - organizer_bio: 1 to 3 factual sentences from the page's about-the-organiser text, or null.
 - image_url: the event's own image (https), or null if only a logo or placeholder.
@@ -197,6 +199,12 @@ async function reviewEvent(
       signal: AbortSignal.timeout(60_000),
     });
   let res = await call(request);
+  // Busy or over the per-minute limit: wait and try twice more.
+  for (const wait of [15_000, 30_000]) {
+    if (res.status !== 429 && res.status !== 503) break;
+    await new Promise((r) => setTimeout(r, wait));
+    res = await call(request);
+  }
   if (res.status === 400) {
     const { response_format: _ignored, ...plain } = request;
     res = await call(plain);
@@ -260,6 +268,7 @@ Deno.serve(async (req) => {
         .limit(3);
       const review = await reviewEvent(row, page, templates ?? []);
       const outcome = decide(review, page.facts, {
+        title: String(row.title ?? ''),
         organizer_name: (row.organizer_name as string) ?? null,
         starts_at: String(row.starts_at),
         ends_at: (row.ends_at as string) ?? null,
