@@ -7,12 +7,13 @@ import { useActivityHistory } from '@/context/ActivityHistoryContext';
 
 import { mockParticipants } from '@/data/mockData';
 import { useEvents } from '@/context/EventsContext';
-import { Send, MessageCircle, Users, UsersRound, Check } from 'lucide-react';
+import { Send, MessageCircle, UsersRound, Check, ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import EventGroupChatDialog from './EventGroupChatDialog';
 import CrewChatDialog from './CrewChatDialog';
 import { Group } from '@/types/event';
 import ParticipantProfileDialog from './ParticipantProfileDialog';
+import SocialLinkIcons from './SocialLinkIcons';
 import { formatDistanceToNowStrict } from 'date-fns';
 
 interface Props {
@@ -31,8 +32,8 @@ const lastTs = (msgs: { timestamp: Date }[]) =>
 
 const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEventTitle }: Props) => {
   const { events: mockEvents } = useEvents();
-  const { following, isMutual, dms, sendDM, groupChats, crewChats, currentUser } = useSocial();
-  const { history, tags } = useActivityHistory();
+  const { dms, sendDM, groupChats, crewChats, currentUser } = useSocial();
+  const { history, tags, connectionIds } = useActivityHistory();
   const [metFilterOn, setMetFilterOn] = useState(true);
 
   useEffect(() => {
@@ -50,7 +51,8 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
 
   // People sorted by most recent DM
   const mutualIds = useMemo(() => {
-    const ids = new Set<string>(Array.from(following).filter(id => isMutual(id)));
+    // Friends = connections (you tagged each other after the same event).
+    const ids = new Set<string>(connectionIds);
     // Also surface anyone you already have a DM thread with (e.g. unlocked via mutual tags).
     Object.keys(dms).forEach(id => ids.add(id));
     // And the person the dialog was opened with, so a fresh chat shows up immediately.
@@ -58,7 +60,7 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
     let list = Array.from(ids);
     if (metFilterOn && metIds) list = list.filter(id => metIds.has(id) || id === initialPartnerId);
     return list.sort((a, b) => lastTs(dms[b]?.messages || []) - lastTs(dms[a]?.messages || []));
-  }, [following, isMutual, dms, initialPartnerId, metFilterOn, metIds]);
+  }, [connectionIds, dms, initialPartnerId, metFilterOn, metIds]);
 
 
 
@@ -85,21 +87,24 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
   const [activeCrew, setActiveCrew] = useState<Group | null>(null);
   const [draft, setDraft] = useState('');
   const [profileId, setProfileId] = useState<string | null>(null);
+  // Tablets and phones show one column at a time: the list, or (after tapping someone) the conversation.
+  const [mobileThread, setMobileThread] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (open) {
-      if (initialPartnerId) {
-        setCategory('people');
-        setActiveId(initialPartnerId);
-      } else {
-        setActiveId(category === 'people' ? mutualIds[0] || null : null);
-      }
+      setMobileThread(!!initialPartnerId);
+      // The toggle always opens on Friends.
+      setCategory('people');
+      setActiveId(initialPartnerId || mutualIds[0] || null);
     }
   }, [open, initialPartnerId]); // eslint-disable-line
 
   useEffect(() => {
-    if (category === 'groups') return;
+    if (category === 'groups') {
+      setMobileThread(false);
+      return;
+    }
     setActiveId(mutualIds[0] || null);
     // eslint-disable-next-line
   }, [category]);
@@ -125,47 +130,62 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl p-0 gap-0 flex h-[560px]">
+      {/* Phones and tablets: a near full-screen single column. Desktop (lg+): list and conversation side by side. */}
+      <DialogContent
+        className="w-[calc(100vw-1.5rem)] max-w-2xl lg:w-full p-0 gap-0 flex h-[min(560px,calc(100dvh-6rem))] lg:h-[560px] overflow-hidden rounded-2xl"
+        // Don't auto-focus the first control on open: it drew a focus ring round "Friends" on phones.
+        onOpenAutoFocus={e => e.preventDefault()}
+        // Close X on the same middle line as the conversation bar (name, location and social icons).
+        closeClassName="top-[1.625rem]"
+      >
         <DialogHeader className="sr-only">
           <DialogTitle>Direct messages</DialogTitle>
           <DialogDescription>Chats with people and event groups</DialogDescription>
         </DialogHeader>
 
-        <aside className="w-60 border-r flex flex-col">
-          <div className="p-3 border-b">
+        <aside className={cn('w-full lg:w-60 lg:border-r flex-col min-w-0', mobileThread ? 'hidden lg:flex' : 'flex')}>
+          <div className="hidden lg:block p-3 border-b">
             <h3 className="font-display text-sm">Messages</h3>
           </div>
-          <div className="grid grid-cols-2 gap-1 p-2 border-b">
-            {([
-              { id: 'people' as const, label: 'People', icon: Users, count: mutualIds.length },
-              { id: 'groups' as const, label: 'Groups', icon: UsersRound, count: groupEntries.length + crewEntries.length },
-            ]).map(tab => {
-              const Icon = tab.icon;
-              const active = category === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setCategory(tab.id)}
-                  className={cn(
-                    'flex items-center justify-center gap-1 px-1.5 py-1.5 rounded-md text-xs font-medium transition-colors',
-                    active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-secondary/60'
-                  )}
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                  {tab.label}
-                  {tab.count > 0 && (
-                    <span className={cn(
-                      'text-[10px] px-1.5 py-0.5 rounded-full',
-                      active ? 'bg-primary-foreground/20' : 'bg-muted'
-                    )}>
-                      {tab.count}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+          {/* Friends / Groups toggle: a sliding switch that starts on Friends. Right padding on smaller
+              screens keeps it clear of the close X. */}
+          <div className="p-2 pr-12 lg:pr-2 border-b">
+            <div
+              role="tablist"
+              aria-label="Show chats with"
+              className="relative grid grid-cols-2 rounded-full bg-muted p-1"
+            >
+              <span
+                aria-hidden
+                className={cn(
+                  'absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-primary shadow-sm transition-transform duration-300 ease-out',
+                  category === 'groups' && 'translate-x-full'
+                )}
+              />
+              {([
+                { id: 'people' as const, label: 'Friends', hint: 'People you both tagged after an event' },
+                { id: 'groups' as const, label: 'Groups', hint: 'Everyone going to the events you are attending' },
+              ]).map(tab => {
+                const active = category === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={active}
+                    title={tab.hint}
+                    onClick={() => setCategory(tab.id)}
+                    className={cn(
+                      'relative z-10 rounded-full py-1.5 text-sm font-medium transition-colors duration-300',
+                      active ? 'text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+                    )}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-
 
           <div className="flex-1 overflow-y-auto">
             {category === 'people' && metAtEventTitle && (
@@ -192,7 +212,7 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
                 <div className="p-4 text-center">
                   <MessageCircle className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
                   <p className="text-xs text-muted-foreground">
-                    Follow someone who follows you back to start chatting.
+                    Attend your first event and mutual connections will unlock your first conversation.
                   </p>
                 </div>
               ) : (
@@ -203,7 +223,7 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
                   return (
                     <button
                       key={id}
-                      onClick={() => setActiveId(id)}
+                      onClick={() => { setActiveId(id); setMobileThread(true); }}
                       className={`w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-secondary/50 transition-colors ${activeId === id ? 'bg-secondary' : ''}`}
                     >
                       <img src={p.avatar} alt={p.name} className="w-8 h-8 rounded-full object-cover" />
@@ -226,7 +246,7 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
                 <div className="p-4 text-center">
                   <UsersRound className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
                   <p className="text-xs text-muted-foreground">
-                    Tap "Attend" on any event or "Message crew" on a crew to start a group chat — it'll show up here.
+                    Attend an event to join its group chat.
                   </p>
                 </div>
               ) : (
@@ -272,14 +292,24 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
           </div>
         </aside>
 
-        <section className="flex-1 flex flex-col">
+        {/* Desktop always shows this column; smaller screens only once a conversation is open. */}
+        <section className={cn('flex-1 flex-col min-w-0', mobileThread ? 'flex' : 'hidden lg:flex')}>
           {category === 'groups' ? (
             <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground p-8 text-center">
               Pick a group chat on the left to jump back in.
             </div>
           ) : partner ? (
             <>
-              <div className="p-3 border-b flex items-center gap-2">
+              {/* Right padding keeps the social icons clear of the window's close X. */}
+              <div className="p-3 pr-12 border-b flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setMobileThread(false)}
+                  aria-label="Back to all messages"
+                  className="lg:hidden -ml-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
                 {headerAvatar && (
                   partner ? (
                     <button onClick={() => setProfileId(partner.id)} className="shrink-0">
@@ -302,11 +332,15 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
                   )}
                   <p className="text-xs text-muted-foreground truncate">{headerSub}</p>
                 </div>
+                {/* A one-to-one chat only exists between connections, so their social links show here. */}
+                {partner?.social && (
+                  <SocialLinkIcons links={partner.social} className="ml-auto shrink-0 gap-3" iconClassName="h-[18px] w-[18px]" />
+                )}
               </div>
               <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-2">
                 {thread.length === 0 && (
                   <p className="text-xs text-center text-muted-foreground mt-8">
-                    Say hi to {(headerName || '').split(' ')[0]}!
+                    Say hi to {(headerName || '').split(' ')[0]}.
                   </p>
                 )}
                 {thread.map(m => {

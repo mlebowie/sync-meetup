@@ -1,11 +1,12 @@
 import { useMemo, useRef, useState } from 'react';
-import { primaryCta } from '@/lib/ctaStyles';
+import { pillField, primaryCta, revealDelay, revealItem, secondaryLink } from '@/lib/ctaStyles';
 import syncWordmark from '@/assets/sync-wordmark-v2.png';
 import { useNavigate } from 'react-router-dom';
 import { Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   INTEREST_GROUPS,
   ONBOARDING_INTERESTS,
@@ -22,6 +23,7 @@ import { TypeaheadSelect } from '@/components/TypeaheadSelect';
 import { CITIES, CITY_NEIGHBORHOODS, NATIONALITIES } from '@/lib/onboardingData';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import { resetFilterTour } from '@/lib/filterTour';
 
 const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true';
 
@@ -99,6 +101,10 @@ const Onboarding = () => {
   const [neighborhood, setNeighborhood] = useState('');
   const [nationality, setNationality] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  // The "Find your flow" quiz is optional: skipping it goes straight to interests, with no social style saved.
+  const [skippedQuiz, setSkippedQuiz] = useState(false);
+  // Required GDPR consent before an account is created.
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
 
   const completePreferences = answers.planning && answers.groupSetting && answers.connectionGoal
     ? answers as SocialPreferences
@@ -143,13 +149,17 @@ const Onboarding = () => {
       toast({ title: 'Choose at least three', description: 'Three to five interests help us make useful recommendations.' });
       return;
     }
-    setStep(previous => Math.min(previous + 1, 5));
+    setStep(previous => Math.min(previous + 1, 6));
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!completePreferences || !socialStyle || !photo || !firstName || !lastName || !email || !password || !dob || !location || !neighborhood || !nationality) {
+    if (!photo || !firstName || !lastName || !email || !password || !dob || !location || !neighborhood || !nationality) {
       toast({ title: 'A few more details', description: 'Complete every required field to create your profile.' });
+      return;
+    }
+    if (!privacyAccepted) {
+      toast({ title: 'Please accept the privacy policy', description: 'Tick the box to agree to how SYNC handles your data.' });
       return;
     }
     if (password.length < 8) {
@@ -171,9 +181,11 @@ const Onboarding = () => {
       nationality: nationality.trim().slice(0, 60),
       photo,
       interests,
-      socialPreferences: completePreferences,
-      socialStyle,
+      socialPreferences: skippedQuiz ? undefined : completePreferences,
+      socialStyle: skippedQuiz ? undefined : socialStyle,
       onboardedAt: new Date().toISOString(),
+      // When consent was given, so it can be shown later if asked (GDPR Art. 7(1)).
+      privacyAcceptedAt: new Date().toISOString(),
     };
 
     if (DEMO_MODE) {
@@ -184,6 +196,7 @@ const Onboarding = () => {
         toast({ title: 'Could not save your profile', description: 'Try a different photo.', variant: 'destructive' });
         return;
       }
+      resetFilterTour();
       window.dispatchEvent(new Event('sync:profile-changed'));
       toast({ title: `Welcome, ${profile.firstName}!`, description: 'Your recommendations are ready.' });
       navigate('/', { replace: true });
@@ -196,7 +209,7 @@ const Onboarding = () => {
       password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: { first_name: profile.firstName, last_name: profile.lastName },
+        data: { first_name: profile.firstName, last_name: profile.lastName, privacy_accepted_at: profile.privacyAcceptedAt },
       },
     });
     setSubmitting(false);
@@ -206,6 +219,7 @@ const Onboarding = () => {
     }
 
     saveUserProfile(profile);
+    resetFilterTour();
     if (!data.session) {
       // Email confirmation is on: the account exists but needs the link in the inbox.
       toast({ title: 'Check your email', description: `We sent a confirmation link to ${profile.email}.` });
@@ -215,8 +229,8 @@ const Onboarding = () => {
     navigate('/', { replace: true });
   };
 
-  // Progress runs across every onboarding step: three questions, result, interests, profile.
-  const flowProgress = [17, 33, 50, 67, 83, 100][step] ?? 100;
+  // Progress runs across every onboarding step: three questions, result, interests, how connections work, profile.
+  const flowProgress = [14, 29, 43, 57, 71, 86, 100][step] ?? 100;
   const flowTop = (
     <>
       <header className="mb-6 flex justify-center">
@@ -247,13 +261,26 @@ const Onboarding = () => {
     </>
   );
 
-  const back = () => setStep(previous => previous - 1);
+  const back = () => {
+    // Back from interests after skipping the quiz returns to its first question.
+    if (step === 4 && skippedQuiz) {
+      setSkippedQuiz(false);
+      setStep(0);
+      return;
+    }
+    setStep(previous => previous - 1);
+  };
+
+  const skipQuiz = () => {
+    setSkippedQuiz(true);
+    setStep(4);
+  };
 
   const backLink = (
     <button
       type="button"
       onClick={back}
-      className="mx-auto mt-3 flex min-h-11 items-center px-3 text-base text-[#974B35] underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+      className={secondaryLink}
     >
       Back
     </button>
@@ -288,7 +315,7 @@ const Onboarding = () => {
             {currentQuestion && (
               <div key={currentQuestion.key} className="animate-fade-in">
                 <p className="text-center text-sm leading-5 text-[#974B35]">Question {step + 1} of 3</p>
-                <h1 id="flow-question" className="mt-2 text-center font-display text-[22px] font-bold leading-7 sm:text-[44px] sm:leading-[52px] text-[#A25139]">
+                <h1 id="flow-question" className="mt-2 text-center font-display text-[22px] font-light tracking-[0.015em] leading-7 sm:text-[44px] sm:leading-[52px] text-[#A25139]">
                   {currentQuestion.prompt}
                 </h1>
                 <div role="radiogroup" aria-labelledby="flow-question" className="mt-8 flex flex-col gap-3">
@@ -307,23 +334,13 @@ const Onboarding = () => {
                         onClick={() => choose(currentQuestion.key, option.value)}
                         onKeyDown={event => onRadioKey(event, index)}
                         className={cn(
-                          'flex w-full items-center gap-4 rounded-[20px] p-5 sm:p-6 text-left shadow-[0_2px_12px_-4px_rgba(49,35,27,0.10)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-                          selected ? 'bg-[#FFECD2]' : 'bg-white',
+                          // Selected: sage at 80% (as on every selection in SYNC); no radio circle.
+                          'flex w-full items-center rounded-[20px] p-5 sm:p-6 text-left shadow-[0_2px_12px_-4px_rgba(49,35,27,0.10)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                          selected ? 'bg-[#9EAFAB]/80' : 'bg-white',
                         )}
                       >
-                        <span className="flex-1">
-                          <span className="block text-base font-bold text-[#57514D]">{option.label}</span>
-                          <span className="mt-1 block text-sm text-[#57514D]">{option.detail}</span>
-                        </span>
-                        <span
-                          aria-hidden="true"
-                          className={cn(
-                            'flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2',
-                            selected ? 'border-[#C1694F]' : 'border-[#57514D]',
-                          )}
-                        >
-                          {selected && <span className="h-3 w-3 rounded-full bg-[#C1694F]" />}
-                        </span>
+                        {/* Label only: the answers are short enough to stand on their own. */}
+                        <span className={cn('flex-1 text-base font-bold', selected ? 'text-[#1F110C]' : 'text-[#57514D]')}>{option.label}</span>
                       </button>
                     );
                   })}
@@ -333,6 +350,15 @@ const Onboarding = () => {
                     Next
                   </Button>
                   {step > 0 && backLink}
+                  {step === 0 && (
+                    <button
+                      type="button"
+                      onClick={skipQuiz}
+                      className={secondaryLink}
+                    >
+                      Skip
+                    </button>
+                  )}
                 </div>
               </div>
             )}
@@ -340,7 +366,7 @@ const Onboarding = () => {
             {step === 3 && styleDetails && (
               <div className="animate-fade-in text-center">
                 <p className="text-sm leading-5 text-[#974B35]">Your starting point</p>
-                <h1 className="mt-2 font-display text-[22px] font-bold leading-7 sm:text-[44px] sm:leading-[52px] text-[#A25139]">{styleDetails.name}</h1>
+                <h1 className="mt-2 font-display text-[22px] font-light tracking-[0.015em] leading-7 sm:text-[44px] sm:leading-[52px] text-[#A25139]">{styleDetails.name}</h1>
                 <p className="mx-auto mt-6 max-w-md text-base leading-6 text-[#57514D]">{styleDetails.description}</p>
                 <div className="mt-8 flex w-full flex-col items-center">
                   <Button type="button" onClick={next} className={primaryCta}>
@@ -364,24 +390,31 @@ const Onboarding = () => {
           {step === 4 && (
             <div className="animate-fade-in">
               <div className="mb-7 text-center">
-                <h1 className="font-display text-[22px] leading-7 font-light text-foreground sm:text-4xl">Choose 3–5 interests</h1>
-                <p className="mt-3 text-sm text-muted-foreground">Personalize your homefeed with events you actually want to go to.</p>
+                <h1 className="font-display text-[22px] leading-7 font-light tracking-[0.015em] text-foreground sm:text-4xl">Choose 3–5 interests</h1>
+                <p className="mt-3 text-sm text-muted-foreground">Personalise your homefeed with events you actually want to go to.</p>
               </div>
               <div className="space-y-6">
                 {INTEREST_GROUPS.map(group => (
                   <fieldset key={group.label}>
-                    <legend className="mb-2 text-xs font-semibold uppercase text-muted-foreground">{group.label}</legend>
+                    {/* Same size as the interest pills (15px). */}
+                    <legend className="mb-2.5 text-[15px] font-semibold uppercase text-muted-foreground">{group.label}</legend>
                     <div className="flex flex-wrap gap-2">
                       {group.interestIds.map(id => {
                         const interest = interestsById.get(id);
                         if (!interest) return null;
                         const selected = interests.includes(id);
                         return (
+                          // Larger than the app's small tags so they read well next to the 16px buttons;
+                          // selected fills sage at 80%.
                           <Button
                             key={id}
                             type="button"
-                            variant={selected ? 'tagActive' : 'tag'}
+                            variant="tag"
                             size="tag"
+                            className={cn(
+                              'h-10 gap-1.5 px-4 text-[15px]',
+                              selected && 'bg-[#9EAFAB]/80 text-[#1F110C] hover:bg-[#9EAFAB]/80 hover:text-[#1F110C]',
+                            )}
                             onClick={() => toggleInterest(id)}
                             disabled={!selected && interests.length >= 5}
                             aria-pressed={selected}
@@ -398,10 +431,34 @@ const Onboarding = () => {
             </div>
           )}
 
+          {/* How connections work: the two ideas (connections, your private tags), before the profile. */}
           {step === 5 && (
+            <div className="animate-fade-in">
+              <div className="mb-8 text-center">
+                <h1 className="font-display text-[22px] leading-7 font-light tracking-[0.015em] text-foreground sm:text-4xl">
+                  Connect with new people
+                </h1>
+              </div>
+              <ol className="mx-auto max-w-md space-y-6">
+                {[
+                  'Attend your first event.',
+                  'Tag the people you spoke and connected with in person.',
+                  'If they tag you back, a conversation unlocks and you can make plans to meet again.',
+                ].map((line, i) => (
+                  // Gentle reveal: the lines arrive one after another.
+                  <li key={line} className={`flex gap-4 ${revealItem}`} style={revealDelay(i)}>
+                    <span className="w-6 shrink-0 text-right text-2xl font-light leading-7 text-[#C1694F]">{i + 1}</span>
+                    <span className="text-base leading-7 text-foreground">{line}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
+
+          {step === 6 && (
             <form id="profile-form" onSubmit={handleSubmit} className="animate-fade-in space-y-7">
               <div className="text-center">
-                <h1 className="font-display text-[22px] leading-7 font-light text-foreground sm:text-4xl">Create your profile</h1>
+                <h1 className="font-display text-[22px] leading-7 font-light tracking-[0.015em] text-foreground sm:text-4xl">Create your profile</h1>
                 <p className="mt-3 text-sm text-muted-foreground">Tell people who they will be meeting in Porto.</p>
               </div>
 
@@ -418,21 +475,45 @@ const Onboarding = () => {
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <div><Label htmlFor="firstName">First name *</Label><Input id="firstName" value={firstName} onChange={event => setFirstName(event.target.value)} maxLength={60} required /></div>
-                <div><Label htmlFor="lastName">Last name *</Label><Input id="lastName" value={lastName} onChange={event => setLastName(event.target.value)} maxLength={60} required /></div>
-                <div><Label htmlFor="email">Email address *</Label><Input id="email" type="email" value={email} onChange={event => setEmail(event.target.value)} maxLength={120} required /></div>
-                <div><Label htmlFor="password">Password *</Label><Input id="password" type="password" value={password} onChange={event => setPassword(event.target.value)} minLength={8} autoComplete="new-password" required /><p className="mt-1 text-xs text-muted-foreground">At least 8 characters.</p></div>
-                <div><Label htmlFor="dob">Date of birth *</Label><Input id="dob" type="date" value={dob} onChange={event => setDob(event.target.value)} max={maxDob} required /><p className="mt-1 text-xs text-muted-foreground">You must be 18 or older.</p></div>
-                <div><Label htmlFor="nationality">Nationality *</Label><TypeaheadSelect id="nationality" value={nationality} onChange={setNationality} placeholder="Type a nationality" options={NATIONALITIES.map(item => ({ value: item.name, label: item.name, leading: item.flag, sub: item.country, searchText: `${item.country} ${item.code}` }))} emptyText="No matching nationality" /></div>
-                <div><Label htmlFor="location">Location *</Label><TypeaheadSelect id="location" value={location} onChange={value => { setLocation(value); setNeighborhood(''); }} showChevron placeholder="Select a city" options={CITIES.map(city => ({ value: city, label: city }))} emptyText="No matching cities" /></div>
-                <div><Label htmlFor="neighborhood">Neighbourhood *</Label>{CITY_NEIGHBORHOODS[location] ? <TypeaheadSelect id="neighborhood" value={neighborhood} onChange={setNeighborhood} placeholder="Select a neighbourhood" options={CITY_NEIGHBORHOODS[location].map(item => ({ value: item, label: item }))} emptyText="No matching neighbourhoods" /> : <Input id="neighborhood" value={neighborhood} onChange={event => setNeighborhood(event.target.value)} disabled={!location} required />}</div>
+                <div><Label htmlFor="firstName">First name *</Label><Input className={pillField} id="firstName" value={firstName} onChange={event => setFirstName(event.target.value)} maxLength={60} required /></div>
+                <div><Label htmlFor="lastName">Last name *</Label><Input className={pillField} id="lastName" value={lastName} onChange={event => setLastName(event.target.value)} maxLength={60} required /></div>
+                <div><Label htmlFor="email">Email address *</Label><Input className={pillField} id="email" type="email" value={email} onChange={event => setEmail(event.target.value)} maxLength={120} required /></div>
+                <div><Label htmlFor="password">Password *</Label><Input className={pillField} id="password" type="password" value={password} onChange={event => setPassword(event.target.value)} minLength={8} autoComplete="new-password" required /><p className="mt-1 text-xs text-muted-foreground">At least 8 characters.</p></div>
+                <div><Label htmlFor="dob">Date of birth *</Label><Input className={pillField} id="dob" type="date" value={dob} onChange={event => setDob(event.target.value)} max={maxDob} required /><p className="mt-1 text-xs text-muted-foreground">You must be 18 or older.</p></div>
+                <div><Label htmlFor="nationality">Nationality *</Label><TypeaheadSelect pill id="nationality" value={nationality} onChange={setNationality} placeholder="Type a nationality" options={NATIONALITIES.map(item => ({ value: item.name, label: item.name, leading: item.flag, sub: item.country, searchText: `${item.country} ${item.code}` }))} emptyText="No matching nationality" /></div>
+                <div><Label htmlFor="location">Location *</Label><TypeaheadSelect pill id="location" value={location} onChange={value => { setLocation(value); setNeighborhood(''); }} showChevron placeholder="Select a city" options={CITIES.map(city => ({ value: city, label: city }))} emptyText="No matching cities" /></div>
+                <div><Label htmlFor="neighborhood">Neighbourhood *</Label>{CITY_NEIGHBORHOODS[location] ? <TypeaheadSelect pill id="neighborhood" value={neighborhood} onChange={setNeighborhood} placeholder="Select a neighbourhood" options={CITY_NEIGHBORHOODS[location].map(item => ({ value: item, label: item }))} emptyText="No matching neighbourhoods" /> : <Input className={pillField} id="neighborhood" value={neighborhood} onChange={event => setNeighborhood(event.target.value)} disabled={!location} required />}</div>
+              </div>
+
+              {/* Required GDPR consent. Unticked by default: consent has to be an active choice. */}
+              <div className="flex items-start gap-3">
+                <Checkbox
+                  id="privacy"
+                  checked={privacyAccepted}
+                  onCheckedChange={value => setPrivacyAccepted(value === true)}
+                  aria-required="true"
+                  className="mt-0.5 h-5 w-5 shrink-0"
+                />
+                <Label htmlFor="privacy" className="text-sm font-normal leading-5 text-muted-foreground">
+                  I agree to SYNC's privacy policy and to my personal data being processed under the GDPR to create my
+                  account and recommend events. *
+                </Label>
               </div>
             </form>
           )}
         </section>
 
-        <div className="mt-8 flex w-full flex-col items-center">
+        {/* On the "Connect with new people" screen the actions arrive last, after the three lines. */}
+        <div
+          key={step}
+          className={`mt-8 flex w-full flex-col items-center ${step === 5 ? revealItem : ''}`}
+          style={step === 5 ? revealDelay(3) : undefined}
+        >
           {step === 4 ? (
+            <Button type="button" onClick={next} className={primaryCta}>
+              Next
+            </Button>
+          ) : step === 5 ? (
             <Button type="button" onClick={next} className={primaryCta}>
               Add my details
             </Button>

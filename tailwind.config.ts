@@ -15,7 +15,8 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
-        display: ['Open Sauce One', 'system-ui', 'sans-serif'],
+        // Was 'Open Sauce One', which is never loaded; Inter keeps headings consistent on every device.
+        display: ['Inter', 'system-ui', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",

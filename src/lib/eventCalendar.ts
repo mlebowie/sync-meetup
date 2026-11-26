@@ -58,6 +58,6 @@ export function downloadIcs(event: Event) {
 export function shareStrings(event: Event) {
   const { start } = parseEventDates(event);
   const url = typeof window !== 'undefined' ? `${window.location.origin}/?event=${event.id}` : '';
-  const text = `Join me at ${event.title} on ${format(start, 'EEE, MMM d')} at ${event.time} — ${event.location}`;
+  const text = `Join me at ${event.title} on ${format(start, 'EEE, MMM d')} at ${event.time} · ${event.location}`;
   return { url, text };
 }

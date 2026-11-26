@@ -20,7 +20,7 @@ const ActivityFeed = () => {
       <div className="container px-4 md:px-6">
         <div className="max-w-5xl mx-auto">
           <div className="flex items-baseline justify-between mb-5">
-            <h2 className="text-xl md:text-2xl font-bold text-foreground">Your activity</h2>
+            <h2 className="text-xl md:text-2xl font-light tracking-[0.015em] text-foreground">Your activity</h2>
             <span className="text-xs text-muted-foreground">What you've done lately</span>
           </div>
 

@@ -1,6 +1,9 @@
-import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, ReactNode, useCallback } from 'react';
 import { Event } from '@/types/event';
 import { getUserProfile } from '@/lib/userProfile';
+import { scheduleTestRecap } from '@/lib/testMode';
+import { useAdmin } from '@/hooks/useAdmin';
+import { toast } from '@/hooks/use-toast';
 
 const KEY = 'sync.attending.v1';
 const PREFS_KEY = 'sync.attending.prefs.v1';
@@ -70,6 +73,21 @@ export const AttendingProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     window.localStorage.setItem(KEY, JSON.stringify(Array.from(attending)));
   }, [attending]);
+
+  // Test mode only (admins on their own profile): 10 seconds after registering, a "How was it?"
+  // notification arrives (src/lib/testMode.ts).
+  const { isAdmin, email: sessionEmail } = useAdmin();
+  const seenAttending = useRef<Set<string>>(attending);
+  useEffect(() => {
+    const added = [...attending].filter(id => !seenAttending.current.has(id));
+    seenAttending.current = attending;
+    const access = { isAdmin, sessionEmail, profileEmail: getUserProfile()?.email ?? null };
+    added.forEach(id =>
+      scheduleTestRecap(id, access, () =>
+        toast({ title: 'How was your event?', description: 'Open notifications to rate it. (Test mode)' }),
+      ),
+    );
+  }, [attending, isAdmin, sessionEmail]);
 
   useEffect(() => {
     window.localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));

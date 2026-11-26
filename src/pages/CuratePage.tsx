@@ -424,7 +424,7 @@ const CuratePage = () => {
     return (
       <div className="min-h-screen grid place-items-center bg-background px-6">
         <div className="max-w-md text-center space-y-3">
-          <h1 className="text-2xl font-semibold text-foreground">Curation is admin-only</h1>
+          <h1 className="text-2xl font-light tracking-[0.015em] text-foreground">Curation is admin-only</h1>
           <p className="text-sm text-muted-foreground">
             {email
               ? `${email} doesn't have curation access yet.`
@@ -459,7 +459,7 @@ const CuratePage = () => {
       <div className="container px-4 md:px-6 py-8 max-w-5xl">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Curate events</h1>
+            <h1 className="text-2xl font-light tracking-[0.015em] text-foreground">Curate events</h1>
             <p className="text-sm text-muted-foreground">
               New events collected each morning, and partner events you add, wait here until you publish them.
             </p>
@@ -528,7 +528,7 @@ const CuratePage = () => {
             ) : visible.length === 0 ? (
               <p className="py-16 text-center text-sm text-muted-foreground">
                 {tab === 'pending'
-                  ? 'Nothing waiting — you are all caught up.'
+                  ? 'Nothing waiting. You are all caught up.'
                   : 'No events here yet.'}
               </p>
             ) : (

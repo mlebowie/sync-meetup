@@ -1,0 +1,76 @@
+import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Home, MessageCircle, Search, User } from 'lucide-react';
+
+interface Props {
+  /** Opens the messages panel when the current page has one (the homepage); otherwise we go home and open it there. */
+  onOpenMessages?: () => void;
+  /** Whether the search field pinned under the header is open, and how to open or close it. */
+  searchOpen?: boolean;
+  onToggleSearch?: () => void;
+}
+
+const item =
+  'flex h-12 w-12 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground';
+const active = 'text-primary hover:text-primary';
+
+/**
+ * Members' bottom bar: home on the left, messages in the middle,
+ * then search and profile on the right. Tablets and phones only (under 1024px); desktop keeps the header icons.
+ * Sits above the phone's home indicator.
+ */
+const BottomNav = ({ onOpenMessages, searchOpen = false, onToggleSearch }: Props) => {
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+
+  // Leave room at the bottom of every page so the bar never covers the last items.
+  useEffect(() => {
+    document.body.classList.add('has-bottom-nav');
+    return () => document.body.classList.remove('has-bottom-nav');
+  }, []);
+
+  const openMessages = () => {
+    if (onOpenMessages) onOpenMessages();
+    else navigate('/?messages=1');
+  };
+
+  // Rendered straight into <body> so no page wrapper (transforms, overflow, animations) can ever unpin it;
+  // translateZ keeps it on its own layer so iOS Safari doesn't let it drift while the toolbars show and hide.
+  return createPortal(
+    <nav
+      aria-label="Main"
+      className="fixed inset-x-0 bottom-0 z-50 lg:hidden [transform:translateZ(0)] border-t border-border/50 bg-background/85 backdrop-blur-lg pb-[env(safe-area-inset-bottom)]"
+    >
+      {/* justify-evenly spaces the 48px tap areas; px-3 adds back the 12px each icon's tap area hides inside it,
+          so the visible gaps between icons and the margins at both ends all come out the same width. */}
+      <div className="flex h-16 items-center justify-evenly px-3">
+        <Link to="/" aria-label="Home" className={`${item} ${pathname === '/' ? active : ''}`}>
+          <Home className="h-6 w-6" />
+        </Link>
+
+        {/* Same size and baseline as the other icons; the bubble is mirrored so its tail points right. */}
+        <button type="button" onClick={openMessages} aria-label="Messages" className={item}>
+          <MessageCircle className="h-6 w-6 -scale-x-100" />
+        </button>
+
+        <button
+          type="button"
+          onClick={onToggleSearch}
+          aria-label={searchOpen ? 'Close search' : 'Search events'}
+          aria-expanded={searchOpen}
+          className={`${item} ${searchOpen ? active : ''}`}
+        >
+          <Search className="h-6 w-6" />
+        </button>
+
+        <Link to="/profile" aria-label="Profile" className={`${item} ${pathname.startsWith('/profile') ? active : ''}`}>
+          <User className="h-6 w-6" />
+        </Link>
+      </div>
+    </nav>,
+    document.body,
+  );
+};
+
+export default BottomNav;

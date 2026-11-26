@@ -35,7 +35,7 @@ export function rankEvents(events: Event[], ctx: ScoreContext): RankedEvent[] {
         reasons.push(`${ordinal(sCount + 1)} time for you`);
       } else if (event.recurrence && event.recurrence !== 'one-off') {
         score += 8;
-        reasons.push('Recurring crew — easy to repeat');
+        reasons.push('Recurring crew, easy to repeat');
       }
 
       const familiar = event.participants.filter(p => ctx.crossedPathsWith(p.id) > 0);

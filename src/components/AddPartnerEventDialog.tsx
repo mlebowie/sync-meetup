@@ -269,7 +269,7 @@ const AddPartnerEventDialog = ({ onAdded }: Props) => {
                 rows={9}
                 value={pasted}
                 onChange={(e) => setPasted(e.target.value)}
-                placeholder="Paste the caption, message or email here — any language is fine."
+                placeholder="Paste the caption, message or email here. Any language is fine."
               />
             </div>
             <DialogFooter>

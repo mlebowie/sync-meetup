@@ -166,9 +166,10 @@
     letter-spacing: 0.005em;
   }
 
-  /* Headings: Open Sauce One (brand). Body text stays Inter. */
+  /* Headings use Inter like the body; section headlines are set light (300), matching "About 50 hours".
+     Open Sauce One was named here but never loaded, so most visitors saw a system font instead. */
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Open Sauce One', system-ui, sans-serif;
+    font-family: 'Inter', system-ui, sans-serif;
     font-weight: 400;
     letter-spacing: -0.02em;
     line-height: 1.2;
@@ -224,7 +225,44 @@
     50% { transform: translateY(-10px) scale(1.08); opacity: 1; }
   }
 
-  
+  /* Slow "Ken Burns" pan and zoom on the hero photo, so the still reads like footage. */
+  /* Anchored to the top edge: the zoom grows from the top and the pan is sideways only, so the top never moves. */
+  .hero-pan {
+    transform-origin: 50% 0%;
+    will-change: transform;
+    animation: hero-pan 32s ease-in-out infinite alternate;
+  }
+
+  @keyframes hero-pan {
+    from { transform: scale(1.08) translate3d(-2%, 0, 0); }
+    to   { transform: scale(1.16) translate3d(2%, 0, 0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-pan { animation: none; transform: scale(1.08); }
+  }
+
+  /* Members' bottom bar (tablets and phones) is fixed; keep page content clear of it and the phone's home indicator. */
+  @media (max-width: 1023px) {
+    body.has-bottom-nav {
+      padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
+    }
+  }
+
+  /* Mobile search open: the homepage's pinned filter chips sit below the search field instead of under it. */
+  @media (max-width: 1023px) {
+    /* ...and they're switched off until search is closed: the chips fade, the bar's backing stays solid. */
+    body.mobile-search-open [data-sticky-filters] {
+      top: calc(4rem + 3.75rem);
+      pointer-events: none;
+      background-color: hsl(var(--background));
+    }
+    body.mobile-search-open [data-sticky-filters] > * {
+      opacity: 0.35;
+      filter: grayscale(0.6);
+    }
+  }
+
   .shadow-card {
     box-shadow: var(--shadow-card);
   }

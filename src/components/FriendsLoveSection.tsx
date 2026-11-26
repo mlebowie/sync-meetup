@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { withSampleDate } from '@/lib/sampleDates';
 import { useEvents } from '@/context/EventsContext';
-import { useSocial } from '@/context/SocialContext';
+import { useActivityHistory } from '@/context/ActivityHistoryContext';
 import { Event, Participant } from '@/types/event';
 import ExpandableEventGrid from './ExpandableEventGrid';
 import EventCarousel from './EventCarousel';
@@ -22,10 +22,10 @@ const WEEK_OFFSETS = [1, 3, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16].map(d => d *
 
 const FriendsLoveSection = ({ onAttend, onParticipantClick, onOpenGroupChat, interests = [] }: Props) => {
   const { events: mockEvents } = useEvents();
-  const { following } = useSocial();
+  const { connectionIds: following } = useActivityHistory();
 
   const events: Event[] = useMemo(() => {
-    // Find events where followed users attend regularly (in participants OR recurring series match)
+    // Find events your connections attend regularly (in participants OR recurring series match)
     const pool0 = mockEvents.filter(e => matchesInterests(e, interests));
     const scored = pool0.map(e => {
       let score = 0;
@@ -44,7 +44,7 @@ const FriendsLoveSection = ({ onAttend, onParticipantClick, onOpenGroupChat, int
     });
 
     let pool = scored.filter(s => s.score > 0).sort((a, b) => b.score - a.score);
-    // Fallback when user follows no one — show popular recurring events
+    // Fallback when there are no connections yet: show popular recurring events
     if (pool.length === 0) {
       pool = pool0
         .filter(e => e.recurrence && e.recurrence !== 'one-off')
@@ -58,7 +58,7 @@ const FriendsLoveSection = ({ onAttend, onParticipantClick, onOpenGroupChat, int
   const [showAll, setShowAll] = useState(false);
   const visible = events;
 
-  // Only for members who follow people: it's about where they show up.
+  // Only for members with connections: it's about where those people show up.
   if (following.size === 0 || events.length === 0) return null;
 
   const hasFriends = following.size > 0;
@@ -69,15 +69,15 @@ const FriendsLoveSection = ({ onAttend, onParticipantClick, onOpenGroupChat, int
         <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
           <div>
             <div className="text-xs uppercase tracking-wide text-accent-strong font-semibold mb-1">
-              Events your friends love
+              Events your connections love
             </div>
-            <h2 className="text-xl md:text-2xl font-bold text-foreground">
+            <h2 className="text-xl md:text-2xl font-light tracking-[0.015em] text-foreground">
               {hasFriends ? 'Where your people keep showing up' : 'Recurring events the community loves'}
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
               {hasFriends
-                ? 'Events where people you follow attend regularly'
-                : 'Follow a few faces to see where they regularly show up'}
+                ? 'Events your connections go to regularly'
+                : 'Tag people after events to see where they regularly show up'}
             </p>
           </div>
           <button

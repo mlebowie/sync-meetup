@@ -12,7 +12,6 @@ import GuestLanding from '@/components/GuestLanding';
 import FeedSetupBanner from '@/components/FeedSetupBanner';
 import HomeTour from '@/components/HomeTour';
 import MemberStartSection from '@/components/MemberStartSection';
-import HowSyncWorks from '@/components/HowSyncWorks';
 import HappeningSoonSection from '@/components/HappeningSoonSection';
 import RecommendedSection from '@/components/RecommendedSection';
 import HomeFilterBar from '@/components/HomeFilterBar';
@@ -23,8 +22,8 @@ import { useEvents } from '@/context/EventsContext';
 import { Event, Participant } from '@/types/event';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import syncWordmark from '@/assets/sync-wordmark-v2.png';
 import { MessageCircle } from 'lucide-react';
+import syncWordmark from '@/assets/sync-wordmark-v2.png';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
 import { getUserProfile, saveUserProfile } from '@/lib/userProfile';
 import { DEFAULT_FEED_FILTERS, FeedFilters } from '@/lib/feedFilters';
@@ -85,6 +84,26 @@ const Index = () => {
 
   const [searchParams, setSearchParams] = useSearchParams();
   const { setQuery } = useSearch();
+
+  // "Attend your first/next event" from the Connections page (?find=event): open the home feed at the event picks.
+  useEffect(() => {
+    if (searchParams.get('find') !== 'event') return;
+    setSearchParams({}, { replace: true });
+    const t = setTimeout(() => {
+      const target = document.getElementById('first-event') ?? document.getElementById('upcoming');
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 400);
+    return () => clearTimeout(t);
+  }, [searchParams, setSearchParams]);
+
+  // Messages opened from the bottom bar on another page (?messages=1).
+  useEffect(() => {
+    if (searchParams.get('messages') !== '1') return;
+    setDmInitialId(null);
+    setDmMetAt(null);
+    setDmOpen(true);
+    setSearchParams({}, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   // Pick up a search handed off from the header on another page (?q=...&event=...).
   useEffect(() => {
@@ -147,7 +166,7 @@ const Index = () => {
       const t = setTimeout(() => {
         toast({
           title: `How was ${latestPast.title}?`,
-          description: 'Tag the people you clicked with — only mutual tags unlock DMs.',
+          description: 'Tag the people you clicked with. Only mutual tags unlock DMs.',
         });
       }, 1200);
       return () => clearTimeout(t);
@@ -192,7 +211,6 @@ const Index = () => {
       {isGuest ? (
         <>
           <Hero />
-          <HowSyncWorks />
           <GuestLanding
             onAttend={handleAttend}
             onParticipantClick={handleParticipantClick}
@@ -208,7 +226,7 @@ const Index = () => {
             <section className="pt-6" aria-labelledby="resume-event-title">
               <div className="container px-4 md:px-6">
                 <div className="max-w-md">
-                  <h2 id="resume-event-title" className="text-lg md:text-xl font-bold text-foreground mb-3">
+                  <h2 id="resume-event-title" className="text-lg md:text-xl font-light tracking-[0.015em] text-foreground mb-3">
                     The event you picked
                   </h2>
                   <EventCard
@@ -310,15 +328,17 @@ const Index = () => {
           <MomentumPanel />
           <ActivityFeed />
 
+          {/* Desktop only: tablets and phones open messages from the bottom bar instead. */}
           <Button
             variant="hero"
             size="icon"
-            className="fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-lg z-40"
+            className="fixed bottom-6 right-6 z-40 hidden h-12 w-12 rounded-full shadow-lg lg:inline-flex"
             onClick={() => { setDmInitialId(null); setDmMetAt(null); setDmOpen(true); }}
             title="Direct messages"
           >
             <MessageCircle className="h-5 w-5" />
           </Button>
+
         </>
       )}
 
@@ -356,7 +376,7 @@ const Index = () => {
             Less searching. More belonging.
           </p>
           <p className="text-xs text-muted-foreground mt-4">
-            © 2026 Sync. All rights reserved.
+            © 2026 SYNC. All rights reserved.
           </p>
         </div>
       </footer>

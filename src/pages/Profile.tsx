@@ -8,7 +8,7 @@ import EditProfileDialog from '@/components/EditProfileDialog';
 import { Button } from '@/components/ui/button';
 import { getUserProfile, saveUserProfile, clearUserProfile, backupUserProfile, ONBOARDING_INTERESTS, DEFAULT_PROFILE, calculateAge, UserProfile } from '@/lib/userProfile';
 import { saveAccountProfile } from '@/lib/authProfile';
-import { useSocial } from '@/context/SocialContext';
+import { useActivityHistory } from '@/context/ActivityHistoryContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -19,8 +19,9 @@ const Profile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const { following, followers } = useSocial();
-  const connectionsCount = new Set([...following, ...followers]).size;
+  // Connections only: people you met at an event who tagged you back.
+  const { connectionIds } = useActivityHistory();
+  const connectionsCount = connectionIds.size;
 
   const handleLogout = async () => {
     // Save the latest profile to the account before signing out, so nothing is lost.
@@ -81,7 +82,7 @@ const Profile = () => {
           </div>
           <div className="flex-1">
             <div className="flex items-start justify-between gap-3">
-              <h1 className="text-2xl font-bold">{profile.firstName} {profile.lastName}</h1>
+              <h1 className="text-2xl font-light tracking-[0.015em]">{profile.firstName} {profile.lastName}</h1>
               <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="shrink-0">
                 <Pencil className="h-3.5 w-3.5 mr-1.5" />
                 Edit profile
@@ -113,9 +114,6 @@ const Profile = () => {
                 <Users className="h-3.5 w-3.5" />
                 {connectionsCount} Connections
               </Link>
-              <span className="text-xs text-muted-foreground">
-                {followers.size} followers · {following.size} following
-              </span>
             </div>
             {interests.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mt-3">

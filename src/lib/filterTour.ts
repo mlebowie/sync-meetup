@@ -17,3 +17,9 @@ export const setFilterTourState = (state: FilterTourState) => {
 export const startFilterTour = () => {
   window.dispatchEvent(new CustomEvent(START_FILTER_TOUR_EVENT));
 };
+
+/** A new account starts with the homepage tour unseen, even on a device that dismissed it before. */
+export const resetFilterTour = () => {
+  if (typeof window === 'undefined') return;
+  window.localStorage.removeItem(KEY);
+};

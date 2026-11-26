@@ -50,7 +50,7 @@ const WaitlistDialog = ({ event, open, onOpenChange }: Props) => {
   if (!event) return null;
   const { start, end } = parseEventDates(event);
   const shareUrl = `${window.location.origin}/?event=${event.id}`;
-  const shareText = `${event.title} on ${format(start, 'EEE, MMM d')} at ${startTime24(event.time)} — ${event.location}`;
+  const shareText = `${event.title} on ${format(start, 'EEE, MMM d')} at ${startTime24(event.time)} · ${event.location}`;
   const gcalUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&dates=${toGCalDate(start)}/${toGCalDate(end)}&details=${encodeURIComponent(event.description || '')}&location=${encodeURIComponent(event.location)}`;
 
   const joinWaitlist = () => {

@@ -33,7 +33,7 @@ export interface Participant {
   totalAttended?: number;
   /** Detailed recent attendance history (drives last-attended card, map, feed) */
   recentHistory?: PastAttendance[];
-  /** Social media handles (shown as icons under profile photo) */
+  /** Social media handles, shown as icons on their profile to their connections only */
   social?: {
     instagram?: string;
     linkedin?: string;
@@ -131,6 +131,7 @@ export interface FilterState {
   groupSize: GroupSize[];
   interests: string[];
   location: string[];
+  /** Only events at least one of your connections is going to. */
   followFriends?: boolean;
   womenOnly?: boolean;
   lgbtqFriendly?: boolean;

@@ -84,7 +84,7 @@ const PersonalizedFeed = ({ profile, onAttend, onParticipantClick, onOpenGroupCh
           <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-primary font-semibold mb-2">
             For you
           </div>
-          <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-1">
+          <h2 className="text-2xl md:text-3xl font-light tracking-[0.015em] text-foreground mb-1">
             Happening soon, picked for you
           </h2>
           <p className="text-muted-foreground mb-6">
