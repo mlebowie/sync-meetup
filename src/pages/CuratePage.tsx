@@ -346,6 +346,11 @@ const CuratePage = () => {
       group_size: draft.group_size,
       image_url: draft.image_url?.trim() ? draft.image_url.trim() : null,
       organizer_bio: draft.organizer_bio?.trim() ? draft.organizer_bio.trim() : null,
+      // Organiser, price and where it is: blank stays blank so the Missing badge shows.
+      organizer_name: draft.organizer_name?.trim() || null,
+      price_label: draft.price_label?.trim() || null,
+      venue_name: draft.venue_name?.trim() || null,
+      location: draft.location?.trim() || null,
       tags: draft.tags ?? [],
       // Saving an edit means the curator has looked at it; the collector then
       // keeps these details instead of rewriting them from the listing.
@@ -630,6 +635,40 @@ const CuratePage = () => {
                                 onChange={(e) => setWhen((w) => ({ ...w, end: e.target.value }))}
                               />
                             </label>
+                          </div>
+                          <div className="rounded-md border p-2 space-y-2">
+                            <p className="text-xs font-medium">
+                              Event details
+                              {missingInfo(draft as Row).length > 0 && (
+                                <span className="ml-2 font-normal text-destructive">
+                                  Fill in the fields marked Missing
+                                </span>
+                              )}
+                            </p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                              {(
+                                [
+                                  ['organizer_name', 'Organiser', 'Who runs it, e.g. Porto Yoga Club', !draft.organizer_name?.trim()],
+                                  ['price_label', 'Price', 'e.g. Free, €10, €5 paid at the door', !draft.price_label?.trim()],
+                                  ['venue_name', 'Venue', 'e.g. Fisga Warehouse', !draft.venue_name?.trim() && !draft.location?.trim()],
+                                  ['location', 'Address', 'Street and number, Porto', !draft.venue_name?.trim() && !draft.location?.trim()],
+                                ] as const
+                              ).map(([field, label, placeholder, missing]) => (
+                                <label key={field} className="space-y-1 text-xs text-muted-foreground">
+                                  <span>
+                                    {label}
+                                    {missing && <span className="ml-1 text-destructive font-medium">Missing</span>}
+                                  </span>
+                                  <Input
+                                    value={(draft[field] as string | null) ?? ''}
+                                    onChange={(e) => setDraft((d) => ({ ...d, [field]: e.target.value }))}
+                                    placeholder={placeholder}
+                                    aria-invalid={missing || undefined}
+                                    className={missing ? 'border-destructive' : undefined}
+                                  />
+                                </label>
+                              ))}
+                            </div>
                           </div>
                           <RepeatFields
                             value={repeat}
