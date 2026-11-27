@@ -10,12 +10,24 @@
  * - 10 seconds after you register for an event, a "How was it?" notification arrives that opens
  *   the post-event rating and tagging steps (any event, whatever its date).
  * - Everyone you tag tags you back, so each tag becomes a connection and unlocks a conversation.
- * - Your profile starts with a few demo connections (DEMO_CONNECTION_TAGS).
+ * - Your profile starts with a few demo connections (DEMO_CONNECTION_TAGS) and the two past events
+ *   where you met them (DEMO_PAST_ATTENDANCE), so event cards show "Familiar faces".
  */
 
 const KEY = 'sync.testMode.v1';
 
 export const TEST_RECAP_DELAY_MS = 10_000;
+
+/**
+ * Two past events an admin "attended" in test mode (where the demo connections were met). These
+ * attendees (picked because they appear on about a third of events) count as familiar faces.
+ */
+export const DEMO_PAST_ATTENDANCE: {
+  eventId: string; title: string; category: string; daysAgo: number; coAttendeeIds: string[]; location: string;
+}[] = [
+  { eventId: 'test-demo-brunch', title: 'Sunday Brunch Club', category: 'Dining & cooking', daysAgo: 5, coAttendeeIds: ['12', '13'], location: 'Bonfim, Porto' },
+  { eventId: 'test-demo-trail', title: 'Saturday Trail Run', category: 'Sports', daysAgo: 3, coAttendeeIds: ['3', '11'], location: 'Parque da Cidade, Porto' },
+];
 
 /** Demo connections an admin starts with in test mode: people met at a past event who tagged back. */
 export const DEMO_CONNECTION_TAGS: { participantId: string; eventId: string; eventTitle: string; eventCategory: string; daysAgo: number }[] = [
