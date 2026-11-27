@@ -7,7 +7,9 @@ import { useActivityHistory } from '@/context/ActivityHistoryContext';
 
 import { mockParticipants } from '@/data/mockData';
 import { useEvents } from '@/context/EventsContext';
-import { Send, MessageCircle, UsersRound, Check, ChevronLeft } from 'lucide-react';
+import { Send, MessageCircle, UsersRound, Check, ChevronLeft, Bell, BellOff } from 'lucide-react';
+import { dueReminder, remindersActive, setReminderState, usePlanReminders } from '@/lib/planReminders';
+import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import EventGroupChatDialog from './EventGroupChatDialog';
 import CrewChatDialog from './CrewChatDialog';
@@ -168,6 +170,30 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
   const daysLeft = metTag ? daysLeftLabel(reachOutDaysLeft(metTag.taggedAt)) : null;
   const lastMet = activeId ? lastMetAt(activeId, tags, history) : null;
   const headerSub = lastMet ? `Last met at ${lastMet.title}` : partner?.neighborhood;
+
+  // Plan reminders: 3 days, 1 week, 2 weeks and 1 month after connecting, until you've made plans.
+  // The first chat's own "Make a plan" section covers the start, so the card waits until you've written.
+  const reminderState = usePlanReminders(activeId);
+  const remindersOn = remindersActive(reminderState);
+  const reminder = metTag && remindersOn && !showStarters ? dueReminder(metTag.taggedAt) : null;
+  const planPrompt = metTag ? conversationPrompts({ firstName, eventTitle: metTag.eventTitle, category: metCategory }).plan : '';
+  const toggleReminders = () => {
+    if (!activeId) return;
+    const turnOn = !remindersOn;
+    // Turning them back on also clears "We've made plans", so the nudges start again.
+    setReminderState(activeId, turnOn ? { off: false, planned: false } : { off: true });
+    toast({
+      title: turnOn ? 'Plan reminders on' : 'Plan reminders off',
+      description: turnOn
+        ? `We'll nudge you to make plans with ${firstName}.`
+        : `No more nudges about ${firstName}. Turn them back on with the bell.`,
+    });
+  };
+  const markPlanned = () => {
+    if (!activeId) return;
+    setReminderState(activeId, { planned: true });
+    toast({ title: 'Nice, enjoy it', description: `No more plan reminders for ${firstName}. The bell turns them back on.` });
+  };
 
   const fillDraft = (text: string) => {
     setDraft(text);
@@ -390,10 +416,25 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
                   )}
                   <p className="text-xs text-muted-foreground truncate">{headerSub}</p>
                 </div>
-                {/* A one-to-one chat only exists between connections, so their social links show here. */}
-                {partner?.social && (
-                  <SocialLinkIcons links={partner.social} className="ml-auto shrink-0 gap-3" iconClassName="h-[18px] w-[18px]" />
-                )}
+                <div className="ml-auto flex shrink-0 items-center gap-3">
+                  {/* A one-to-one chat only exists between connections, so their social links show here. */}
+                  {partner?.social && (
+                    <SocialLinkIcons links={partner.social} className="shrink-0 gap-3" iconClassName="h-[18px] w-[18px]" />
+                  )}
+                  {/* Plan reminders for this person: on or off at any time. */}
+                  {metTag && (
+                    <button
+                      type="button"
+                      onClick={toggleReminders}
+                      aria-pressed={remindersOn}
+                      aria-label={remindersOn ? `Turn off plan reminders for ${firstName}` : `Turn on plan reminders for ${firstName}`}
+                      title={remindersOn ? 'Plan reminders on' : 'Plan reminders off'}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      {remindersOn ? <Bell className="h-[18px] w-[18px]" /> : <BellOff className="h-[18px] w-[18px]" />}
+                    </button>
+                  )}
+                </div>
               </div>
               {/* Your memory of how you met: the same keywords as on the Connections page, private to you. */}
               <div className="border-b px-3 py-2">
@@ -490,6 +531,39 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
                     </div>
                   );
                 })}
+                {reminder && metTag && (
+                  // Reminder to make plans, at 3 days, 1 week, 2 weeks and 1 month (only the latest one due).
+                  <div className="mx-auto mt-4 flex max-w-sm flex-col gap-2 rounded-2xl border border-[#C1694F]/40 bg-[#C1694F]/5 p-3">
+                    <p className="text-sm text-foreground">{reminder.title(firstName, metTag.eventTitle)}</p>
+                    {suggestions.map(ev => (
+                      <div key={ev.id} className="flex items-center gap-3 rounded-xl border border-border bg-white p-2">
+                        <img src={ev.imageUrl} alt="" className="h-9 w-9 shrink-0 rounded-lg object-cover" />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm text-foreground">{ev.title}</p>
+                          <p className="text-xs text-muted-foreground">{format(ev.date, 'EEE d MMM')} · {ev.time}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => fillDraft(planInvite(ev))}
+                          className="min-h-10 shrink-0 rounded px-2 text-sm font-medium text-[#974B35] hover:text-[#7A3C2A]"
+                        >
+                          Suggest
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => fillDraft(planPrompt)}
+                      className="rounded-xl border border-border bg-white px-3 py-2 text-left text-sm text-foreground hover:bg-[#9EAFAB]/30"
+                    >
+                      {planPrompt}
+                    </button>
+                    <div className="flex items-center justify-between pt-1 text-sm font-medium text-[#974B35]">
+                      <button type="button" onClick={markPlanned} className="min-h-10 hover:text-[#7A3C2A]">We've made plans</button>
+                      <button type="button" onClick={toggleReminders} className="min-h-10 hover:text-[#7A3C2A]">Turn off reminders</button>
+                    </div>
+                  </div>
+                )}
               </div>
               <form onSubmit={handleSend} className="p-3 border-t flex gap-2">
                 <Input

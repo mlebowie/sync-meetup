@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { useActivityHistory } from '@/context/ActivityHistoryContext';
 import { useSocial } from '@/context/SocialContext';
 import { reachOutDaysLeft } from '@/lib/connectionPrompts';
+import { dueReminder, remindersActive, useAllPlanReminders } from '@/lib/planReminders';
 import { useAttending } from '@/context/AttendingContext';
 import { useToast } from '@/hooks/use-toast';
 import { mockParticipants } from '@/data/mockData';
@@ -69,29 +70,49 @@ const NotificationsPopover = ({ open, onOpenChange }: Props) => {
   const navigate = useNavigate();
   const { tags, connectionIds } = useActivityHistory();
   const { dms, currentUser } = useSocial();
+  // Same rules as the chat: nothing once you've turned reminders off for them or made plans; in the
+  // first week until you write, then at 3 days, 1 week, 2 weeks and 1 month.
+  const reminderSettings = useAllPlanReminders();
   const planReminders = useMemo<Notif[]>(() => {
     const out: Notif[] = [];
     connectionIds.forEach(id => {
-      if ((dms[id]?.messages ?? []).some(m => m.authorId === currentUser.id)) return;
+      if (!remindersActive(reminderSettings[id] ?? {})) return;
       const tag = tags
         .filter(t => t.participantId === id)
         .sort((a, b) => new Date(b.taggedAt).getTime() - new Date(a.taggedAt).getTime())[0];
       const person = mockParticipants.find(p => p.id === id);
       if (!tag || !person) return;
+      const firstName = person.name.split(' ')[0];
+      const wrote = (dms[id]?.messages ?? []).some(m => m.authorId === currentUser.id);
       const daysLeft = reachOutDaysLeft(tag.taggedAt);
-      if (daysLeft < 1) return;
+      // In the first week, until you write: the countdown to reach out.
+      if (!wrote && daysLeft >= 1) {
+        out.push({
+          id: `plan-${id}-${tag.eventId}`,
+          type: 'plan',
+          title: `Make plans with ${firstName}`,
+          body: `You met at ${tag.eventTitle}. ${daysLeft > 1 ? `${daysLeft} days left` : 'Last day'} to reach out this week.`,
+          when: new Date(tag.taggedAt),
+          read: false,
+          participantId: id,
+        });
+        return;
+      }
+      // After that: the latest milestone due (3 days, 1 week, 2 weeks, 1 month).
+      const due = dueReminder(tag.taggedAt);
+      if (!due) return;
       out.push({
-        id: `plan-${id}-${tag.eventId}`,
+        id: `plan-${id}-${tag.eventId}-${due.days}`,
         type: 'plan',
-        title: `Make plans with ${person.name.split(' ')[0]}`,
-        body: `You met at ${tag.eventTitle}. ${daysLeft > 1 ? `${daysLeft} days left` : 'Last day'} to reach out this week.`,
-        when: new Date(tag.taggedAt),
+        title: `Make plans with ${firstName}`,
+        body: due.title(firstName, tag.eventTitle),
+        when: new Date(new Date(tag.taggedAt).getTime() + due.days * 24 * 60 * 60 * 1000),
         read: false,
         participantId: id,
       });
     });
     return out;
-  }, [connectionIds, tags, dms, currentUser.id]);
+  }, [connectionIds, tags, dms, currentUser.id, reminderSettings]);
 
   // Test mode: "How was it?" notifications that arrive 10 seconds after registering (src/lib/testMode.ts).
   const testRecapList = useSyncExternalStore(subscribeTestRecaps, getTestRecaps);
