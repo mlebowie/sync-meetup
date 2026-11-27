@@ -89,12 +89,12 @@ const AttendConfirmationDialog = ({ event, open, onOpenChange, onEngage }: Props
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Check className="h-5 w-5 text-primary" />
-            You're in!
+            You're in.
           </DialogTitle>
           <DialogDescription>
             Add <span className="font-medium text-foreground">{event.title}</span> to your calendar or invite a friend.
             <span className="block mt-1 text-xs">
-              We'll open the event group chat in a few seconds. It disappears 48 hours after the event takes place.
+              We'll open the event group chat in a few seconds. It disappears <span className="font-semibold text-foreground">48 hours</span> after the event takes place.
             </span>
           </DialogDescription>
         </DialogHeader>

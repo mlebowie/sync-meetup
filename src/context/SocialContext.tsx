@@ -144,7 +144,7 @@ export const SocialProvider = ({ children }: { children: ReactNode }) => {
         authorId: 'sync-bot',
         authorName: 'Sync',
         authorAvatar: '',
-        content: `👋 Welcome to ${crew.name}. ${crew.reason}.`,
+        content: `Welcome to ${crew.name}. ${crew.reason}.`,
         type: 'text',
         timestamp: new Date(),
       };
