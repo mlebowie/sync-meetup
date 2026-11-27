@@ -88,6 +88,8 @@ export interface CurrentRow {
   image_url: string | null;
   tags: string[] | null;
   category: string | null;
+  /** The collector's note, e.g. "Possible duplicate of … on Meetup". */
+  review_note?: string | null;
 }
 
 export interface Outcome {
@@ -158,6 +160,11 @@ export function decide(review: Review, page: PageFacts, row: CurrentRow, now = n
     flags.push(review.reason ? `May not fit SYNC: ${review.reason}` : 'May not fit SYNC');
   }
   if (review.decision === 'review') flags.push(review.reason || 'Needs a closer look');
+
+  // --- the same event on another platform: Emilie keeps one ------------------
+  for (const f of (row.review_note ?? '').split(' · ')) {
+    if (/^(Possible duplicate of|Different price on)/.test(f)) flags.push(f);
+  }
 
   // --- description ----------------------------------------------------------
   const description = (review.description ?? '').trim();
