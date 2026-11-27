@@ -246,6 +246,8 @@ Deno.serve(async (req) => {
     .from('events')
     .select('*')
     .eq('review_status', 'pending')
+    // Partner submissions are always reviewed by hand in /curate → Partner submissions.
+    .is('submitted_by', null)
     .gte('starts_at', new Date(Date.now() + 24 * 3600_000).toISOString())
     .order('starts_at', { ascending: true })
     .limit(limit);
