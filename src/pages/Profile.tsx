@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, MapPin, Clock, Globe, Users, Pencil, LogOut } from 'lucide-react';
+import { Calendar, MapPin, Clock, Globe, Users, Pencil } from 'lucide-react';
+import { primaryCta } from '@/lib/ctaStyles';
 import Header from '@/components/Header';
 import GroupsSection from '@/components/GroupsSection';
 import ActivityLogCard from '@/components/ActivityLogCard';
@@ -59,16 +60,6 @@ const Profile = () => {
     <div className="min-h-screen bg-background">
       <Header />
       <main className="container px-4 md:px-6 py-8 max-w-5xl">
-        <div className="flex items-center justify-between mb-6">
-          <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-4 w-4" /> Back
-          </Link>
-          <Button variant="outline" size="sm" onClick={handleLogout}>
-            <LogOut className="h-3.5 w-3.5 mr-1.5" />
-            Log out
-          </Button>
-        </div>
-
         {/* Profile header */}
         <section className="flex flex-col sm:flex-row items-start sm:items-center gap-5 mb-10">
           <div className="h-24 w-24 rounded-full overflow-hidden bg-muted ring-4 ring-primary/10 shrink-0">
@@ -160,6 +151,13 @@ const Profile = () => {
         {/* Your crews - from tagged connections & recurring co-attendance */}
         <div className="mt-10 -mx-4 md:-mx-6">
           <GroupsSection />
+        </div>
+
+        {/* Log out: the screen's main button, at the bottom, same size and colour as onboarding. */}
+        <div className="mt-12 pb-6">
+          <Button type="button" className={primaryCta} onClick={handleLogout}>
+            Log out
+          </Button>
         </div>
       </main>
       <EditProfileDialog
