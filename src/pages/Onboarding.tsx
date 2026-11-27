@@ -1,12 +1,12 @@
 import { useMemo, useRef, useState } from 'react';
 import { pillField, primaryCta, revealDelay, revealItem, secondaryLink } from '@/lib/ctaStyles';
+import ConsentFields from '@/components/ConsentFields';
 import syncWordmark from '@/assets/sync-wordmark-v2.png';
 import { useNavigate } from 'react-router-dom';
 import { Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   INTEREST_GROUPS,
   ONBOARDING_INTERESTS,
@@ -105,6 +105,8 @@ const Onboarding = () => {
   const [skippedQuiz, setSkippedQuiz] = useState(false);
   // Required GDPR consent before an account is created.
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  // Optional: emails about the test (new features, short feedback requests). Off unless ticked.
+  const [emailOptIn, setEmailOptIn] = useState(false);
 
   const completePreferences = answers.planning && answers.groupSetting && answers.connectionGoal
     ? answers as SocialPreferences
@@ -186,6 +188,8 @@ const Onboarding = () => {
       onboardedAt: new Date().toISOString(),
       // When consent was given, so it can be shown later if asked (GDPR Art. 7(1)).
       privacyAcceptedAt: new Date().toISOString(),
+      // Only when ticked, with when it was given, so it can be shown later and withdrawn.
+      ...(emailOptIn ? { emailOptInAt: new Date().toISOString() } : {}),
     };
 
     if (DEMO_MODE) {
@@ -209,7 +213,12 @@ const Onboarding = () => {
       password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: { first_name: profile.firstName, last_name: profile.lastName, privacy_accepted_at: profile.privacyAcceptedAt },
+        data: {
+          first_name: profile.firstName,
+          last_name: profile.lastName,
+          privacy_accepted_at: profile.privacyAcceptedAt,
+          email_opt_in_at: profile.emailOptInAt ?? null,
+        },
       },
     });
     setSubmitting(false);
@@ -485,20 +494,14 @@ const Onboarding = () => {
                 <div><Label htmlFor="neighborhood">Neighbourhood *</Label>{CITY_NEIGHBORHOODS[location] ? <TypeaheadSelect pill id="neighborhood" value={neighborhood} onChange={setNeighborhood} placeholder="Select a neighbourhood" options={CITY_NEIGHBORHOODS[location].map(item => ({ value: item, label: item }))} emptyText="No matching neighbourhoods" /> : <Input className={pillField} id="neighborhood" value={neighborhood} onChange={event => setNeighborhood(event.target.value)} disabled={!location} required />}</div>
               </div>
 
-              {/* Required GDPR consent. Unticked by default: consent has to be an active choice. */}
-              <div className="flex items-start gap-3">
-                <Checkbox
-                  id="privacy"
-                  checked={privacyAccepted}
-                  onCheckedChange={value => setPrivacyAccepted(value === true)}
-                  aria-required="true"
-                  className="mt-0.5 h-5 w-5 shrink-0"
-                />
-                <Label htmlFor="privacy" className="text-sm font-normal leading-5 text-muted-foreground">
-                  I agree to SYNC's privacy policy and to my personal data being processed under the GDPR to create my
-                  account and recommend events. *
-                </Label>
-              </div>
+              {/* Required privacy consent and the optional email opt-in, both unticked by default. */}
+              <ConsentFields
+                idPrefix="onboarding"
+                privacyAccepted={privacyAccepted}
+                onPrivacyAccepted={setPrivacyAccepted}
+                emailOptIn={emailOptIn}
+                onEmailOptIn={setEmailOptIn}
+              />
             </form>
           )}
         </section>
