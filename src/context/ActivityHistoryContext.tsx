@@ -1,5 +1,21 @@
-import { createContext, useContext, useMemo, useState, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState, ReactNode, useCallback } from 'react';
 import { PastAttendance, TaggedConnection } from '@/types/event';
+import { useAdmin } from '@/hooks/useAdmin';
+import { getUserProfile } from '@/lib/userProfile';
+import { DEMO_CONNECTION_TAGS, isTestMode } from '@/lib/testMode';
+
+const TEST_TAGS_KEY = 'sync.testTags.v1';
+
+/** Test mode keeps your tags across reloads, so a demo survives a refresh. */
+const loadTestTags = (): TaggedConnection[] => {
+  try {
+    const raw = window.localStorage.getItem(TEST_TAGS_KEY);
+    const list = raw ? (JSON.parse(raw) as TaggedConnection[]) : [];
+    return list.map(t => ({ ...t, taggedAt: new Date(t.taggedAt) }));
+  } catch {
+    return [];
+  }
+};
 
 interface ActivityHistoryValue {
   history: PastAttendance[];
@@ -36,7 +52,46 @@ const SEEDED_TAGS_OF_ME = new Set(['1', '4', '6', '7', '9', '12', '13']);
 
 export const ActivityHistoryProvider = ({ children }: { children: ReactNode }) => {
   const [history, setHistory] = useState<PastAttendance[]>([]);
-  const [tags, setTags] = useState<TaggedConnection[]>([]);
+  const [ownTags, setOwnTags] = useState<TaggedConnection[]>([]);
+
+  // Test mode (admins on their own profile, src/lib/testMode.ts): demo connections, and every tag is returned.
+  const { isAdmin, email: sessionEmail } = useAdmin();
+  const [profileVersion, setProfileVersion] = useState(0);
+  useEffect(() => {
+    const bump = () => setProfileVersion(v => v + 1);
+    window.addEventListener('sync:profile-changed', bump);
+    return () => window.removeEventListener('sync:profile-changed', bump);
+  }, []);
+  const testOn = useMemo(
+    () => isTestMode({ isAdmin, sessionEmail, profileEmail: getUserProfile()?.email ?? null }),
+    // profileVersion: re-check when the profile on this device changes (e.g. right after signing in).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [isAdmin, sessionEmail, profileVersion],
+  );
+  useEffect(() => {
+    if (testOn) setOwnTags(prev => (prev.length ? prev : loadTestTags()));
+  }, [testOn]);
+  useEffect(() => {
+    if (!testOn) return;
+    try {
+      window.localStorage.setItem(TEST_TAGS_KEY, JSON.stringify(ownTags));
+    } catch {
+      // Storage blocked: the demo still works until the page reloads.
+    }
+  }, [testOn, ownTags]);
+
+  const tags = useMemo<TaggedConnection[]>(() => {
+    if (!testOn) return ownTags;
+    const demo = DEMO_CONNECTION_TAGS
+      .filter(d => !ownTags.some(t => t.participantId === d.participantId))
+      .map(d => ({
+        participantId: d.participantId,
+        eventId: d.eventId,
+        eventTitle: d.eventTitle,
+        taggedAt: new Date(Date.now() - d.daysAgo * 24 * 60 * 60 * 1000),
+      }));
+    return [...demo, ...ownTags];
+  }, [testOn, ownTags]);
 
   const addAttendance = useCallback((a: PastAttendance) => {
     setHistory(prev => [a, ...prev]);
@@ -66,20 +121,21 @@ export const ActivityHistoryProvider = ({ children }: { children: ReactNode }) =
   }, [history]);
 
   const tagAttendee = useCallback((t: TaggedConnection) => {
-    setTags(prev => prev.some(x => x.participantId === t.participantId && x.eventId === t.eventId)
+    setOwnTags(prev => prev.some(x => x.participantId === t.participantId && x.eventId === t.eventId)
       ? prev
       : [...prev, t]);
   }, []);
 
-  const hasTaggedMe = useCallback((id: string) => SEEDED_TAGS_OF_ME.has(id), []);
+  // In test mode everyone tags you back, so any tag unlocks a conversation.
+  const hasTaggedMe = useCallback((id: string) => testOn || SEEDED_TAGS_OF_ME.has(id), [testOn]);
 
   const isConnected = useCallback((id: string) => {
-    return tags.some(t => t.participantId === id) && SEEDED_TAGS_OF_ME.has(id);
-  }, [tags]);
+    return tags.some(t => t.participantId === id) && hasTaggedMe(id);
+  }, [tags, hasTaggedMe]);
 
   const connectionIds = useMemo(
-    () => new Set(tags.filter(t => SEEDED_TAGS_OF_ME.has(t.participantId)).map(t => t.participantId)),
-    [tags],
+    () => new Set(tags.filter(t => hasTaggedMe(t.participantId)).map(t => t.participantId)),
+    [tags, hasTaggedMe],
   );
 
   const value = useMemo<ActivityHistoryValue>(() => ({
