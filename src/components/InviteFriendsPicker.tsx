@@ -20,10 +20,12 @@ interface Props {
   onSent?: (ids: string[]) => void;
   /** Taller list in the standalone dialog, shorter inside the Attend pop-up. */
   listClassName?: string;
+  /** Outline Send button, for screens where another button is the main one. */
+  quietSend?: boolean;
 }
 
 /** Pick mutual connections and send them an invite to `event`. */
-const InviteFriendsPicker = ({ event, onEngage, onSent, listClassName }: Props) => {
+const InviteFriendsPicker = ({ event, onEngage, onSent, listClassName, quietSend = false }: Props) => {
   const candidates = useInviteCandidates(event);
   const { invite, uninvite } = useInvites();
   const { toast } = useToast();
@@ -116,7 +118,7 @@ const InviteFriendsPicker = ({ event, onEngage, onSent, listClassName }: Props) 
         })}
       </ul>
 
-      <Button className="w-full" onClick={send} disabled={count === 0}>
+      <Button className="w-full" variant={quietSend ? 'outline' : 'default'} onClick={send} disabled={count === 0}>
         <Send className="h-4 w-4 mr-2" />
         {count === 0 ? 'Choose who to invite' : `Send ${count} invite${count === 1 ? '' : 's'}`}
       </Button>

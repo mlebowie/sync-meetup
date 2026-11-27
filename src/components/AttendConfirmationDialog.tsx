@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Event } from '@/types/event';
-import { Calendar, Apple, Share2, Mail, MessageCircle, Instagram, Link2, Check } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import InviteFriendsPicker from './InviteFriendsPicker';
+import { useInviteCandidates } from '@/hooks/useInviteCandidates';
+import { primaryCta, secondaryLink } from '@/lib/ctaStyles';
 import { startTime24 } from '@/lib/startTime';
 
 interface Props {
@@ -57,12 +58,13 @@ function buildIcs(event: Event, start: Date, end: Date) {
 
 const AttendConfirmationDialog = ({ event, open, onOpenChange, onEngage }: Props) => {
   const { toast } = useToast();
-  const [copied, setCopied] = useState(false);
+  const candidates = useInviteCandidates(event);
+  const [calendarOpen, setCalendarOpen] = useState(false);
   if (!event) return null;
 
   const { start, end } = parseEventDates(event);
   const shareUrl = `${window.location.origin}/?event=${event.id}`;
-  const shareText = `Join me at ${event.title} on ${format(start, 'EEE, MMM d')} at ${startTime24(event.time)} · ${event.location}`;
+  const shareText = `Join me at ${event.title} on ${format(start, 'EEE d MMM')} at ${startTime24(event.time)}, ${event.location}.`;
 
   const gcalUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&dates=${toGCalDate(start)}/${toGCalDate(end)}&details=${encodeURIComponent(event.description || '')}&location=${encodeURIComponent(event.location)}`;
 
@@ -76,92 +78,53 @@ const AttendConfirmationDialog = ({ event, open, onOpenChange, onEngage }: Props
     URL.revokeObjectURL(url);
   };
 
-  const copyLink = async () => {
-    await navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
-    setCopied(true);
-    toast({ title: 'Link copied', description: 'Share it anywhere.' });
-    setTimeout(() => setCopied(false), 2000);
+  // Invite someone who isn't on SYNC yet: the phone's share sheet (WhatsApp, Instagram, email...),
+  // or the link copied where there is no share sheet.
+  const inviteNewFriend = async () => {
+    onEngage?.();
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: event.title, text: shareText, url: shareUrl });
+        return;
+      }
+      await navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
+      toast({ title: 'Link copied', description: 'Paste it to a friend.' });
+    } catch {
+      // Share sheet dismissed.
+    }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={o => { onOpenChange(o); if (!o) setCalendarOpen(false); }}>
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Check className="h-5 w-5 text-primary" />
-            You're in!
-          </DialogTitle>
-          <DialogDescription>
-            Add <span className="font-medium text-foreground">{event.title}</span> to your calendar or invite a friend.
-            <span className="block mt-1 text-xs">
-              We'll open the event group chat in a few seconds. It disappears 48 hours after the event takes place.
-            </span>
-          </DialogDescription>
+        <DialogHeader className="text-center sm:text-center">
+          <DialogTitle className="text-2xl font-light tracking-[0.015em]">You're in.</DialogTitle>
+          <DialogDescription>Bring a friend to {event.title}.</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <section aria-labelledby={`bring-${event.id}`}>
-            <h3 id={`bring-${event.id}`} className="text-base font-bold">Bring someone along?</h3>
-            <p className="text-sm text-muted-foreground mb-3">People you've met at SYNC events. They'll get an invite from you.</p>
-            <InviteFriendsPicker event={event} onEngage={onEngage} listClassName="max-h-56" />
-          </section>
+        {/* Friends on SYNC first (only when you have connections to invite), then anyone else by link. */}
+        {candidates.length > 0 && (
+          <InviteFriendsPicker event={event} onEngage={onEngage} listClassName="max-h-56" quietSend />
+        )}
 
-          <div>
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Add to calendar</p>
-            <div className="grid grid-cols-2 gap-2">
-              <Button asChild variant="outline" className="justify-start">
-                <a href={gcalUrl} target="_blank" rel="noopener noreferrer">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Google
-                </a>
-              </Button>
-              <Button variant="outline" className="justify-start" onClick={downloadIcs}>
-                <Apple className="h-4 w-4 mr-2" />
-                Apple / .ics
-              </Button>
+        <div className="flex flex-col">
+          <Button className={primaryCta} onClick={inviteNewFriend}>
+            Invite a new friend
+          </Button>
+          <button type="button" className={secondaryLink} onClick={() => setCalendarOpen(v => !v)} aria-expanded={calendarOpen}>
+            Add to calendar
+          </button>
+          {calendarOpen && (
+            <div className="flex justify-center gap-6 text-sm font-medium text-[#974B35]">
+              <a href={gcalUrl} target="_blank" rel="noopener noreferrer" className="hover:text-[#7A3C2A]">Google</a>
+              <button type="button" onClick={downloadIcs} className="hover:text-[#7A3C2A]">Apple</button>
             </div>
-          </div>
-
-          <div>
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1">
-              <Share2 className="h-3 w-3" /> Share
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              <Button asChild variant="outline" className="justify-start">
-                <a
-                  href={`https://wa.me/?text=${encodeURIComponent(`${shareText} ${shareUrl}`)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <MessageCircle className="h-4 w-4 mr-2" />
-                  WhatsApp
-                </a>
-              </Button>
-              <Button asChild variant="outline" className="justify-start">
-                <a
-                  href={`mailto:?subject=${encodeURIComponent(event.title)}&body=${encodeURIComponent(`${shareText}\n\n${shareUrl}`)}`}
-                >
-                  <Mail className="h-4 w-4 mr-2" />
-                  Email
-                </a>
-              </Button>
-              <Button asChild variant="outline" className="justify-start">
-                <a
-                  href={`https://www.instagram.com/direct/new/?text=${encodeURIComponent(`${shareText} ${shareUrl}`)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Instagram className="h-4 w-4 mr-2" />
-                  Instagram
-                </a>
-              </Button>
-              <Button variant="outline" className="justify-start" onClick={copyLink}>
-                {copied ? <Check className="h-4 w-4 mr-2" /> : <Link2 className="h-4 w-4 mr-2" />}
-                {copied ? 'Copied' : 'Copy link'}
-              </Button>
-            </div>
-          </div>
+          )}
         </div>
+
+        <p className="text-center text-xs text-muted-foreground">
+          The group chat opens in a few seconds and disappears <span className="font-semibold text-foreground">48 hours</span> after the event.
+        </p>
       </DialogContent>
     </Dialog>
   );

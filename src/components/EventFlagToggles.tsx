@@ -38,7 +38,6 @@ const EventFlagToggles = ({ value, onChange }: Props) => (
               : 'bg-background text-muted-foreground border-border hover:text-foreground',
           )}
         >
-          {on ? '✓ ' : ''}
           {label}
         </button>
       );

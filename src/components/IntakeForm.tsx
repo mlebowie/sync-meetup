@@ -79,7 +79,6 @@ const IntakeForm = ({ onSubmit }: IntakeFormProps) => {
                   size="tag"
                   onClick={() => toggleInterest(interest.id)}
                 >
-                  <span className="mr-1">{interest.icon}</span>
                   {interest.label}
                 </Button>
               ))}
@@ -124,7 +123,7 @@ const IntakeForm = ({ onSubmit }: IntakeFormProps) => {
             </Label>
             <p className="text-xs text-muted-foreground mb-3">The social energy in the room, from relaxed to loud.</p>
             <div className="flex flex-wrap gap-2">
-              {VIBES.map(({ value, label, emoji, description }) => (
+              {VIBES.map(({ value, label, description }) => (
                 <Button
                   key={value}
                   type="button"
@@ -133,7 +132,7 @@ const IntakeForm = ({ onSubmit }: IntakeFormProps) => {
                   size="tag"
                   onClick={() => toggle(vibe, value, setVibe)}
                 >
-                  {emoji} {label}
+                  {label}
                 </Button>
               ))}
             </div>

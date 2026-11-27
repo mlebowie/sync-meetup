@@ -38,7 +38,6 @@ const InterestSelector = ({ selectedInterests, onInterestsChange }: InterestSele
               className="animate-fade-in"
               style={{ animationDelay: `${index * 0.05}s` }}
             >
-              <span className="mr-1">{interest.icon}</span>
               {interest.label}
             </Button>
           ))}

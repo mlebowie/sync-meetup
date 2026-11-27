@@ -124,7 +124,6 @@ max={maxDob}
                         : 'bg-muted text-muted-foreground border-transparent hover:bg-muted/80'
                     }`}
                   >
-                    <span className="mr-1">{i.icon}</span>
                     {i.label}
                   </button>
                 );
