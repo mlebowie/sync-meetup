@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import ConsentFields from '@/components/ConsentFields';
 import {
   INTEREST_GROUPS,
   ONBOARDING_INTERESTS,
@@ -42,6 +43,19 @@ const Signup = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [adult, setAdult] = useState(false);
+  // Required privacy consent and the optional email opt-in (same as the full onboarding).
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  const [emailOptIn, setEmailOptIn] = useState(false);
+  const consentTimes = () => {
+    const now = new Date().toISOString();
+    return { privacyAcceptedAt: now, ...(emailOptIn ? { emailOptInAt: now } : {}) };
+  };
+  const needPrivacy = () =>
+    toast({
+      title: 'Agree to the privacy policy',
+      description: 'Tick the privacy box to create your account.',
+      variant: 'destructive',
+    });
   const [submitting, setSubmitting] = useState(false);
 
   const totalSteps = viaGoogle ? 1 : 2;
@@ -92,7 +106,11 @@ const Signup = () => {
       window.scrollTo({ top: 0 });
       return;
     }
-    // Google: the account and a basic profile exist; add the interests to it.
+    if (!privacyAccepted) {
+      needPrivacy();
+      return;
+    }
+    // Google: the account and a basic profile exist; add the interests and consent to it.
     const { data } = await supabase.auth.getSession();
     const existing = getUserProfile();
     if (!data.session || !existing) {
@@ -102,8 +120,13 @@ const Signup = () => {
       });
       return;
     }
-    const profile = { ...existing, interests };
+    const consent = consentTimes();
+    const profile = { ...existing, interests, ...consent };
     saveUserProfile(profile); // also saves to the account
+    // Keep the consent with the account too, as the email sign-up does.
+    void supabase.auth.updateUser({
+      data: { privacy_accepted_at: consent.privacyAcceptedAt, email_opt_in_at: consent.emailOptInAt ?? null },
+    });
     finish(profile, true);
   };
 
@@ -121,6 +144,10 @@ const Signup = () => {
       toast({ title: 'SYNC is for adults', description: 'Confirm you’re 18 or older to continue.', variant: 'destructive' });
       return;
     }
+    if (!privacyAccepted) {
+      needPrivacy();
+      return;
+    }
 
     const profile: UserProfile = {
       firstName: firstName.trim().slice(0, 60),
@@ -132,6 +159,7 @@ const Signup = () => {
       nationality: '',
       interests,
       onboardedAt: new Date().toISOString(),
+      ...consentTimes(),
     };
 
     if (DEMO_MODE) {
@@ -146,7 +174,11 @@ const Signup = () => {
       password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: { first_name: profile.firstName },
+        data: {
+          first_name: profile.firstName,
+          privacy_accepted_at: profile.privacyAcceptedAt,
+          email_opt_in_at: profile.emailOptInAt ?? null,
+        },
       },
     });
     setSubmitting(false);
@@ -249,6 +281,18 @@ const Signup = () => {
               ))}
             </div>
             <div className="sticky bottom-0 mt-8 bg-background/95 pb-4 pt-3">
+              {/* Signed up with Google: there is no account step, so the consent is asked here. */}
+              {viaGoogle && (
+                <div className="mb-4">
+                  <ConsentFields
+                    idPrefix="signup-google"
+                    privacyAccepted={privacyAccepted}
+                    onPrivacyAccepted={setPrivacyAccepted}
+                    emailOptIn={emailOptIn}
+                    onEmailOptIn={setEmailOptIn}
+                  />
+                </div>
+              )}
               <p className="mb-2 text-center text-sm font-semibold text-sage-deep" aria-live="polite">
                 {interests.length} of 3–5 selected
               </p>
@@ -281,6 +325,13 @@ const Signup = () => {
                 <Checkbox id="signup-adult" checked={adult} onCheckedChange={(v) => setAdult(v === true)} />
                 I’m 18 or older
               </label>
+              <ConsentFields
+                idPrefix="signup"
+                privacyAccepted={privacyAccepted}
+                onPrivacyAccepted={setPrivacyAccepted}
+                emailOptIn={emailOptIn}
+                onEmailOptIn={setEmailOptIn}
+              />
             </div>
             <Button type="submit" className={cn(primaryCta, 'mt-8')} disabled={submitting}>
               {submitting
