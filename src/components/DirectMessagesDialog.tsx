@@ -15,7 +15,7 @@ import { Group } from '@/types/event';
 import ParticipantProfileDialog from './ParticipantProfileDialog';
 import SocialLinkIcons from './SocialLinkIcons';
 import { format, formatDistanceToNowStrict } from 'date-fns';
-import { conversationPrompts, daysLeftLabel, reachOutDaysLeft } from '@/lib/connectionPrompts';
+import { conversationPrompts, daysLeftLabel, planEvents, planInvite, reachOutDaysLeft } from '@/lib/connectionPrompts';
 import { revealDelay, revealItem } from '@/lib/ctaStyles';
 import { getUserProfile } from '@/lib/userProfile';
 import { TaggedConnection } from '@/types/event';
@@ -138,21 +138,28 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
   // plan suggests the next event in the same category when there is one.
   const metTag = latestTagFor(tags, activeId);
   const metCategory = metTag?.eventCategory ?? mockEvents.find(e => e.id === metTag?.eventId)?.category;
-  const nextEvent = useMemo(() => {
-    if (!metCategory) return null;
-    const now = Date.now();
-    return mockEvents
-      .filter(e => e.category === metCategory && e.id !== metTag?.eventId && e.date.getTime() > now)
-      .sort((a, b) => a.date.getTime() - b.date.getTime())[0] ?? null;
-  }, [mockEvents, metCategory, metTag?.eventId]);
+  const metEvent = mockEvents.find(e => e.id === metTag?.eventId);
+  // Another of the same (the next date of the series, or the same activity: another run after a
+  // run club), then another event in the same category.
+  const suggestions = useMemo(
+    () =>
+      metTag
+        ? planEvents(mockEvents, {
+            eventId: metTag.eventId,
+            title: metTag.eventTitle,
+            category: metCategory,
+            seriesId: metEvent?.seriesId,
+          })
+        : [],
+    [mockEvents, metTag, metCategory, metEvent?.seriesId],
+  );
   const reachedOut = (id: string | null) => !!id && (dms[id]?.messages ?? []).some(m => m.authorId === currentUser.id);
   const showStarters = !!partner && !!metTag && !reachedOut(activeId);
   const prompts = showStarters
-    ? conversationPrompts({ firstName, eventTitle: metTag.eventTitle, category: metCategory, nextEvent })
+    ? conversationPrompts({ firstName, eventTitle: metTag.eventTitle, category: metCategory })
     : null;
   // What you share: the event (with its date when we know it), your neighbourhood, your private note.
   const me = getUserProfile();
-  const metEvent = mockEvents.find(e => e.id === metTag?.eventId);
   const hood = (v?: string) => (v ?? '').split(',')[0].trim().toLowerCase();
   const sameHood = !!me?.neighborhood && hood(me.neighborhood) === hood(partner?.neighborhood);
   const initials = (name?: string) => (name ?? '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
@@ -437,27 +444,31 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
                           ? `Within the week, while it's fresh. ${daysLeft}.`
                           : "It's been over a week. A quick hello still works."}
                       </p>
-                      {nextEvent ? (
-                        // The next event in the same interest: suggest going together.
-                        <div className="flex items-center gap-3 rounded-2xl border border-border bg-white p-2.5">
-                          <img src={nextEvent.imageUrl} alt="" className="h-11 w-11 shrink-0 rounded-xl object-cover" />
+                      {/* Events to go to together: another of the same first, then the same category. */}
+                      {suggestions.map(ev => (
+                        <div key={ev.id} className="flex items-center gap-3 rounded-2xl border border-border bg-white p-2.5">
+                          <img src={ev.imageUrl} alt="" className="h-11 w-11 shrink-0 rounded-xl object-cover" />
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm text-foreground">{nextEvent.title}</p>
-                            <p className="text-xs text-muted-foreground">{format(nextEvent.date, 'EEE d MMM')} · {nextEvent.time}</p>
+                            <p className="truncate text-sm text-foreground">{ev.title}</p>
+                            <p className="text-xs text-muted-foreground">{format(ev.date, 'EEE d MMM')} · {ev.time}</p>
                           </div>
-                          <button type="button" onClick={() => fillDraft(prompts.plan)} className="min-h-11 shrink-0 rounded px-3 text-sm font-medium text-[#974B35] hover:text-[#7A3C2A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                          <button
+                            type="button"
+                            onClick={() => fillDraft(planInvite(ev))}
+                            className="min-h-11 shrink-0 rounded px-3 text-sm font-medium text-[#974B35] hover:text-[#7A3C2A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          >
                             Suggest
                           </button>
                         </div>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => fillDraft(prompts.plan)}
-                          className="rounded-2xl border border-border bg-white px-4 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-[#9EAFAB]/30"
-                        >
-                          {prompts.plan}
-                        </button>
-                      )}
+                      ))}
+                      {/* Or simply the same again, informally: "Up for another run this week?" */}
+                      <button
+                        type="button"
+                        onClick={() => fillDraft(prompts.plan)}
+                        className="rounded-2xl border border-border bg-white px-4 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-[#9EAFAB]/30"
+                      >
+                        {prompts.plan}
+                      </button>
                     </div>
                   </div>
                 ) : thread.length === 0 && (
