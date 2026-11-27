@@ -6,13 +6,23 @@
  * doesn't count). On top of that it must be switched on: automatically in local development, or
  * with `?test=on` in the address bar elsewhere (`?test=off` to stop; remembered in this browser).
  *
- * What it does today: 10 seconds after you register for an event, a "How was it?" notification
- * arrives that opens the post-event rating and tagging steps.
+ * What it does today:
+ * - 10 seconds after you register for an event, a "How was it?" notification arrives that opens
+ *   the post-event rating and tagging steps (any event, whatever its date).
+ * - Everyone you tag tags you back, so each tag becomes a connection and unlocks a conversation.
+ * - Your profile starts with a few demo connections (DEMO_CONNECTION_TAGS).
  */
 
 const KEY = 'sync.testMode.v1';
 
 export const TEST_RECAP_DELAY_MS = 10_000;
+
+/** Demo connections an admin starts with in test mode: people met at a past event who tagged back. */
+export const DEMO_CONNECTION_TAGS: { participantId: string; eventId: string; eventTitle: string; daysAgo: number }[] = [
+  { participantId: '7', eventId: 'test-demo-brunch', eventTitle: 'Sunday Brunch Club', daysAgo: 5 },
+  { participantId: '9', eventId: 'test-demo-brunch', eventTitle: 'Sunday Brunch Club', daysAgo: 5 },
+  { participantId: '1', eventId: 'test-demo-trail', eventTitle: 'Saturday Trail Run', daysAgo: 12 },
+];
 
 const readFlagFromUrl = () => {
   if (typeof window === 'undefined') return;
