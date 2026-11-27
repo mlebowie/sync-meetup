@@ -85,6 +85,8 @@ export interface UserProfile {
   onboardedAt?: string;
   /** ISO timestamp of when the member accepted the privacy policy (GDPR consent) at sign-up. */
   privacyAcceptedAt?: string;
+  /** ISO timestamp of when the member opted in to emails about the SYNC test (optional; absent = no). */
+  emailOptInAt?: string;
   /** Instagram and LinkedIn handles and WhatsApp number, shown on their profile to their connections only. */
   social?: SocialLinks;
 }

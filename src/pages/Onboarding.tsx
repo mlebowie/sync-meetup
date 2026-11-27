@@ -105,6 +105,8 @@ const Onboarding = () => {
   const [skippedQuiz, setSkippedQuiz] = useState(false);
   // Required GDPR consent before an account is created.
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  // Optional: emails about the test (new features, short feedback requests). Off unless ticked.
+  const [emailOptIn, setEmailOptIn] = useState(false);
 
   const completePreferences = answers.planning && answers.groupSetting && answers.connectionGoal
     ? answers as SocialPreferences
@@ -186,6 +188,8 @@ const Onboarding = () => {
       onboardedAt: new Date().toISOString(),
       // When consent was given, so it can be shown later if asked (GDPR Art. 7(1)).
       privacyAcceptedAt: new Date().toISOString(),
+      // Only when ticked, with when it was given, so it can be shown later and withdrawn.
+      ...(emailOptIn ? { emailOptInAt: new Date().toISOString() } : {}),
     };
 
     if (DEMO_MODE) {
@@ -209,7 +213,12 @@ const Onboarding = () => {
       password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: { first_name: profile.firstName, last_name: profile.lastName, privacy_accepted_at: profile.privacyAcceptedAt },
+        data: {
+          first_name: profile.firstName,
+          last_name: profile.lastName,
+          privacy_accepted_at: profile.privacyAcceptedAt,
+          email_opt_in_at: profile.emailOptInAt ?? null,
+        },
       },
     });
     setSubmitting(false);
@@ -497,6 +506,20 @@ const Onboarding = () => {
                 <Label htmlFor="privacy" className="text-sm font-normal leading-5 text-muted-foreground">
                   I agree to SYNC's privacy policy and to my personal data being processed under the GDPR to create my
                   account and recommend events. *
+                </Label>
+              </div>
+
+              {/* Optional email opt-in for people testing the app. Unticked by default and not required. */}
+              <div className="flex items-start gap-3">
+                <Checkbox
+                  id="email-opt-in"
+                  checked={emailOptIn}
+                  onCheckedChange={value => setEmailOptIn(value === true)}
+                  className="mt-0.5 h-5 w-5 shrink-0"
+                />
+                <Label htmlFor="email-opt-in" className="text-sm font-normal leading-5 text-muted-foreground">
+                  Email me about testing SYNC: new features and the occasional short feedback request. You can
+                  unsubscribe at any time.
                 </Label>
               </div>
             </form>
