@@ -407,7 +407,7 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
                     <div className={`flex flex-col items-center text-center ${revealItem}`} style={revealDelay(0)}>
                       <div className="flex -space-x-2">
                         {me?.photo ? (
-                          <img src={me.photo} alt="You" className="h-11 w-11 rounded-full object-cover ring-2 ring-background" />
+                          <img src={me.photo} alt="You" referrerPolicy="no-referrer" className="h-11 w-11 rounded-full object-cover ring-2 ring-background" />
                         ) : (
                           <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#F6E2CF] text-sm font-semibold text-[#974B35] ring-2 ring-background">
                             {initials(`${me?.firstName ?? ''} ${me?.lastName ?? ''}`)}

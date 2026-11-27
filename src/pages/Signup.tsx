@@ -272,6 +272,7 @@ const Signup = () => {
                               : 'border-sage bg-white text-foreground hover:border-sage-deep',
                           )}
                         >
+                          <span aria-hidden="true">{interest.icon}</span>
                           {interest.label}
                         </button>
                       );
