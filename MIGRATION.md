@@ -199,3 +199,7 @@ Before an event reaches Waiting, the collector compares it with every upcoming e
 - **Possibly the same** (another platform, same day, start within three hours, a shared title word and the same venue or organiser — or most title words shared): the new card is added with the note `Possible duplicate of "…" on <platform> (time, price); keep one and Hide the other`, and the other card, if still in Waiting, gets the matching note.
 
 These notes, and "Different price on …", survive later collector runs until the card is saved, and the automatic curator never publishes a card that carries one.
+
+## 22. Long descriptions
+
+Each collector run ends by shortening up to 8 Waiting descriptions that run over 300 words (Lu.ma's often do). The AI rewrites them in 120–250 words, and fills any empty Event details field (organiser, price, venue, address) that the text states. The card gets the note "Description shortened from N to M words; check it against the event page", and later runs keep the short version. Events a curator has saved are never touched. Edit on /curate shows the word count and marks it red over 300.
