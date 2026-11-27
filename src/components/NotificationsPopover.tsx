@@ -184,6 +184,7 @@ const NotificationsPopover = ({ open, onOpenChange }: Props) => {
       const ev = mockEvents.find(e => e.id === n.eventId);
       if (ev) setReflectEvent(ev);
       setDismissed(prev => new Set(prev).add(n.id));
+      onOpenChange(false);
       return;
     }
     if (n.type === 'waitlist') {

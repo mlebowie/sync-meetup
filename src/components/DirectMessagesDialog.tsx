@@ -414,7 +414,7 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
                       <p className="mt-1 text-xs text-muted-foreground">Only the two of you can see this chat.</p>
                       <p className="mt-3 text-xs text-muted-foreground">
                         Met at <span className="text-foreground">{metTag.eventTitle}</span>
-                        {metEvent && ` · ${format(metEvent.date, 'EEE d MMM')}`}
+                        {metEvent && metEvent.date.getTime() < Date.now() && ` · ${format(metEvent.date, 'EEE d MMM')}`}
                         {sameHood && ` · Both in ${partner.neighborhood?.split(',')[0]}`}
                       </p>
                       {metTag.note && (

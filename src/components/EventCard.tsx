@@ -318,7 +318,7 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
               />
               {familiarCount > 0 && (
                 <span className="inline-flex items-center h-6 px-2.5 rounded-full border border-sage-deep bg-sage/20 text-xs font-semibold text-sage-deep">
-                  {familiarCount} Familiar {familiarCount === 1 ? 'Face' : 'Faces'}
+                  {familiarCount} familiar {familiarCount === 1 ? 'face' : 'faces'}
                 </span>
               )}
               {isFull && (
