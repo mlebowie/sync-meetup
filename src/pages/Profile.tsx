@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const Profile = () => {
   const [profile, setProfile] = useState<UserProfile>(() => getUserProfile() ?? DEFAULT_PROFILE);
+  const [photoFailed, setPhotoFailed] = useState(false);
   const [isDefault, setIsDefault] = useState<boolean>(() => !getUserProfile());
   const [editOpen, setEditOpen] = useState(false);
   const navigate = useNavigate();
@@ -48,6 +49,7 @@ const Profile = () => {
 
   const handleSaveProfile = (p: UserProfile) => {
     setProfile(p);
+    setPhotoFailed(false);
     setIsDefault(false);
     saveUserProfile(p);
   };
@@ -63,8 +65,16 @@ const Profile = () => {
         {/* Profile header */}
         <section className="flex flex-col sm:flex-row items-start sm:items-center gap-5 mb-10">
           <div className="h-24 w-24 rounded-full overflow-hidden bg-muted ring-4 ring-primary/10 shrink-0">
-            {profile.photo ? (
-              <img src={profile.photo} alt={`${profile.firstName} ${profile.lastName}`} className="h-full w-full object-cover" />
+            {profile.photo && !photoFailed ? (
+              <img
+                src={profile.photo}
+                alt={`${profile.firstName} ${profile.lastName}`}
+                // Google profile pictures can refuse to load when the page sends its address.
+                referrerPolicy="no-referrer"
+                // A photo the browser can't show (e.g. an older iPhone HEIC upload): show initials instead.
+                onError={() => setPhotoFailed(true)}
+                className="h-full w-full object-cover"
+              />
             ) : (
               <div className="h-full w-full flex items-center justify-center text-2xl font-bold text-muted-foreground">
                 {profile.firstName.charAt(0)}{profile.lastName.charAt(0)}
@@ -110,7 +120,7 @@ const Profile = () => {
               <div className="flex flex-wrap gap-1.5 mt-3">
                 {interests.map(i => (
                   <span key={i.id} className="px-2.5 py-1 text-xs rounded-full bg-primary/10 text-primary font-medium">
-                    {i.label}
+                    {i.icon} {i.label}
                   </span>
                 ))}
               </div>

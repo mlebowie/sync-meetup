@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Camera } from 'lucide-react';
+import { prepareProfilePhoto } from '@/lib/profilePhoto';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,6 +31,22 @@ const EditProfileDialog = ({ open, onOpenChange, profile, onSaved }: EditProfile
   const [instagram, setInstagram] = useState(profile.social?.instagram ?? '');
   const [linkedin, setLinkedin] = useState(profile.social?.linkedin ?? '');
   const [whatsapp, setWhatsapp] = useState(profile.social?.whatsapp ?? '');
+  const [photo, setPhoto] = useState(profile.photo);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  // Same as onboarding: any photo (iPhone HEIC included) becomes a small JPEG.
+  const handlePhoto = async (file?: File) => {
+    if (!file) return;
+    if (file.size > 25 * 1024 * 1024) {
+      toast({ title: 'Photo too large', description: 'Pick an image under 25MB.', variant: 'destructive' });
+      return;
+    }
+    try {
+      setPhoto(await prepareProfilePhoto(file));
+    } catch {
+      toast({ title: "Couldn't read that photo", description: 'Try a JPEG or PNG photo instead.', variant: 'destructive' });
+    }
+  };
 
   useEffect(() => {
     if (open) {
@@ -39,6 +57,7 @@ const EditProfileDialog = ({ open, onOpenChange, profile, onSaved }: EditProfile
       setInstagram(profile.social?.instagram ?? '');
       setLinkedin(profile.social?.linkedin ?? '');
       setWhatsapp(profile.social?.whatsapp ?? '');
+      setPhoto(profile.photo);
     }
   }, [open, profile]);
 
@@ -61,6 +80,7 @@ if (!dateOfBirth) {
     }
     const updated: UserProfile = {
       ...profile,
+      photo,
       location: location.trim().slice(0, 80),
       neighborhood: neighborhood.trim().slice(0, 80),
       dateOfBirth,
@@ -82,10 +102,29 @@ if (!dateOfBirth) {
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit profile</DialogTitle>
-          <DialogDescription>Update your location, age, interests and social links.</DialogDescription>
+          <DialogDescription>Update your photo, location, age, interests and social links.</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-5 py-2">
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              aria-label="Change profile photo"
+              className="h-20 w-20 shrink-0 overflow-hidden rounded-full border border-dashed border-border bg-muted"
+            >
+              {photo ? (
+                <img src={photo} alt="Your profile photo" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+              ) : (
+                <Camera className="mx-auto h-6 w-6 text-muted-foreground" />
+              )}
+            </button>
+            <Button type="button" variant="link" className="h-auto px-0" onClick={() => fileRef.current?.click()}>
+              Change photo
+            </Button>
+            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={e => handlePhoto(e.target.files?.[0])} />
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="edit-location">City</Label>
@@ -124,6 +163,7 @@ max={maxDob}
                         : 'bg-muted text-muted-foreground border-transparent hover:bg-muted/80'
                     }`}
                   >
+                    <span className="mr-1">{i.icon}</span>
                     {i.label}
                   </button>
                 );

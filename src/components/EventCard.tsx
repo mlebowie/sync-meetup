@@ -360,7 +360,7 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
             <div className="flex gap-2.5">
               <Button
                 variant="outline"
-                className="flex-1 h-9 text-sm font-medium bg-peach border-primary-text text-primary-text hover:bg-peach hover:brightness-95 hover:text-primary-text"
+                className="flex-1 h-9 text-sm font-medium bg-transparent border-primary-text text-primary-text hover:bg-primary-text/5 hover:text-primary-text"
                 onClick={(e) => { e.stopPropagation(); markTicketPending(false); }}
               >
                 Not yet
@@ -385,7 +385,7 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
         <div className="mt-4 md:mt-5 flex gap-2.5" onMouseLeave={disarmCancel}>
           <Button
             variant="outline"
-            className="flex-1 h-9 text-sm font-medium bg-peach border-primary-text text-primary-text hover:bg-peach hover:brightness-95 hover:text-primary-text"
+            className="flex-1 h-9 text-sm font-medium bg-transparent border-primary-text text-primary-text hover:bg-primary-text/5 hover:text-primary-text"
             onClick={(e) => { e.stopPropagation(); setDetailsOpen(true); }}
           >
             View more

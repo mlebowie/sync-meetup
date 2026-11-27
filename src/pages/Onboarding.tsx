@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { pillField, primaryCta, revealDelay, revealItem, secondaryLink } from '@/lib/ctaStyles';
 import ConsentFields from '@/components/ConsentFields';
+import { prepareProfilePhoto } from '@/lib/profilePhoto';
 import syncWordmark from '@/assets/sync-wordmark-v2.png';
 import { useNavigate } from 'react-router-dom';
 import { Camera } from 'lucide-react';
@@ -26,30 +27,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { resetFilterTour } from '@/lib/filterTour';
 
 const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true';
-
-// Phone photos are several MB, and the profile lives in browser storage (about 5MB in total),
-// so shrink the photo to a small JPEG before keeping it.
-const fileToDataUrl = (file: File, maxSize = 600): Promise<string> =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = reject;
-    reader.onload = () => {
-      const img = new Image();
-      img.onerror = () => resolve(String(reader.result));
-      img.onload = () => {
-        const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
-        const canvas = document.createElement('canvas');
-        canvas.width = Math.round(img.width * scale);
-        canvas.height = Math.round(img.height * scale);
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return resolve(String(reader.result));
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL('image/jpeg', 0.82));
-      };
-      img.src = String(reader.result);
-    };
-    reader.readAsDataURL(file);
-  });
 
 const maxDob = (() => {
   const date = new Date();
@@ -142,7 +119,11 @@ const Onboarding = () => {
       toast({ title: 'Photo too large', description: 'Pick an image under 25MB.', variant: 'destructive' });
       return;
     }
-    setPhoto(await fileToDataUrl(file));
+    try {
+      setPhoto(await prepareProfilePhoto(file));
+    } catch {
+      toast({ title: "Couldn't read that photo", description: 'Try a JPEG or PNG photo instead.', variant: 'destructive' });
+    }
   };
 
   const next = () => {
@@ -428,7 +409,7 @@ const Onboarding = () => {
                             disabled={!selected && interests.length >= 5}
                             aria-pressed={selected}
                           >
-                            {interest.label}
+                            <span aria-hidden="true">{interest.icon}</span>{interest.label}
                           </Button>
                         );
                       })}
