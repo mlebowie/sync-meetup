@@ -18,10 +18,10 @@ const KEY = 'sync.testMode.v1';
 export const TEST_RECAP_DELAY_MS = 10_000;
 
 /** Demo connections an admin starts with in test mode: people met at a past event who tagged back. */
-export const DEMO_CONNECTION_TAGS: { participantId: string; eventId: string; eventTitle: string; daysAgo: number }[] = [
-  { participantId: '7', eventId: 'test-demo-brunch', eventTitle: 'Sunday Brunch Club', daysAgo: 5 },
-  { participantId: '9', eventId: 'test-demo-brunch', eventTitle: 'Sunday Brunch Club', daysAgo: 5 },
-  { participantId: '1', eventId: 'test-demo-trail', eventTitle: 'Saturday Trail Run', daysAgo: 12 },
+export const DEMO_CONNECTION_TAGS: { participantId: string; eventId: string; eventTitle: string; eventCategory: string; daysAgo: number }[] = [
+  { participantId: '7', eventId: 'test-demo-brunch', eventTitle: 'Sunday Brunch Club', eventCategory: 'Dining & cooking', daysAgo: 5 },
+  { participantId: '9', eventId: 'test-demo-brunch', eventTitle: 'Sunday Brunch Club', eventCategory: 'Dining & cooking', daysAgo: 5 },
+  { participantId: '1', eventId: 'test-demo-trail', eventTitle: 'Saturday Trail Run', eventCategory: 'Sports', daysAgo: 3 },
 ];
 
 const readFlagFromUrl = () => {

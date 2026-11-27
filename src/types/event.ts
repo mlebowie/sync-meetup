@@ -153,6 +153,8 @@ export interface TaggedConnection {
   participantId: string;
   eventId: string;
   eventTitle: string;
+  /** Interest category of that event, for conversation ideas in the first chat. */
+  eventCategory?: string;
   note?: string;
   taggedAt: Date;
 }

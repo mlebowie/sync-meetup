@@ -94,6 +94,7 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
       participantId: id,
       eventId: event.id,
       eventTitle: event.title,
+      eventCategory: event.category,
       taggedAt: new Date(),
     }));
     setTagged(options.filter(p => picked.includes(p.id)));

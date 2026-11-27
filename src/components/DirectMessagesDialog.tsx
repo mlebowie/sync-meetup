@@ -14,7 +14,11 @@ import CrewChatDialog from './CrewChatDialog';
 import { Group } from '@/types/event';
 import ParticipantProfileDialog from './ParticipantProfileDialog';
 import SocialLinkIcons from './SocialLinkIcons';
-import { formatDistanceToNowStrict } from 'date-fns';
+import { format, formatDistanceToNowStrict } from 'date-fns';
+import { conversationPrompts, daysLeftLabel, planEvents, planInvite, reachOutDaysLeft } from '@/lib/connectionPrompts';
+import { revealDelay, revealItem } from '@/lib/ctaStyles';
+import { getUserProfile } from '@/lib/userProfile';
+import { TaggedConnection } from '@/types/event';
 
 interface Props {
   open: boolean;
@@ -29,6 +33,14 @@ type Category = 'people' | 'groups';
 
 const lastTs = (msgs: { timestamp: Date }[]) =>
   msgs.length ? new Date(msgs[msgs.length - 1].timestamp).getTime() : 0;
+
+/** The most recent event where you tagged this person (where you met). */
+const latestTagFor = (tags: TaggedConnection[], id: string | null) =>
+  id
+    ? tags
+        .filter(t => t.participantId === id)
+        .sort((a, b) => new Date(b.taggedAt).getTime() - new Date(a.taggedAt).getTime())[0] ?? null
+    : null;
 
 const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEventTitle }: Props) => {
   const { events: mockEvents } = useEvents();
@@ -90,6 +102,7 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
   // Tablets and phones show one column at a time: the list, or (after tapping someone) the conversation.
   const [mobileThread, setMobileThread] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (open) {
@@ -118,8 +131,45 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
   const thread = activeId ? dms[activeId]?.messages || [] : [];
 
   const headerName = partner?.name;
+  const firstName = (headerName || '').split(' ')[0];
   const headerAvatar = partner?.avatar;
-  const headerSub = partner?.neighborhood;
+
+  // Where you met, and what to talk about: ideas follow that event's interest category, and the
+  // plan suggests the next event in the same category when there is one.
+  const metTag = latestTagFor(tags, activeId);
+  const metCategory = metTag?.eventCategory ?? mockEvents.find(e => e.id === metTag?.eventId)?.category;
+  const metEvent = mockEvents.find(e => e.id === metTag?.eventId);
+  // Another of the same (the next date of the series, or the same activity: another run after a
+  // run club), then another event in the same category.
+  const suggestions = useMemo(
+    () =>
+      metTag
+        ? planEvents(mockEvents, {
+            eventId: metTag.eventId,
+            title: metTag.eventTitle,
+            category: metCategory,
+            seriesId: metEvent?.seriesId,
+          })
+        : [],
+    [mockEvents, metTag, metCategory, metEvent?.seriesId],
+  );
+  const reachedOut = (id: string | null) => !!id && (dms[id]?.messages ?? []).some(m => m.authorId === currentUser.id);
+  const showStarters = !!partner && !!metTag && !reachedOut(activeId);
+  const prompts = showStarters
+    ? conversationPrompts({ firstName, eventTitle: metTag.eventTitle, category: metCategory })
+    : null;
+  // What you share: the event (with its date when we know it), your neighbourhood, your private note.
+  const me = getUserProfile();
+  const hood = (v?: string) => (v ?? '').split(',')[0].trim().toLowerCase();
+  const sameHood = !!me?.neighborhood && hood(me.neighborhood) === hood(partner?.neighborhood);
+  const initials = (name?: string) => (name ?? '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  const daysLeft = metTag ? daysLeftLabel(reachOutDaysLeft(metTag.taggedAt)) : null;
+  const headerSub = metTag ? `Met at ${metTag.eventTitle}` : partner?.neighborhood;
+
+  const fillDraft = (text: string) => {
+    setDraft(text);
+    inputRef.current?.focus();
+  };
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
@@ -220,6 +270,9 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
                   const p = mockParticipants.find(x => x.id === id);
                   if (!p) return null;
                   const last = dms[id]?.messages?.[dms[id].messages.length - 1];
+                  // New connection you haven't written to yet: nudge to make a plan within the week.
+                  const rowTag = reachedOut(id) ? null : latestTagFor(tags, id);
+                  const rowDaysLeft = rowTag ? daysLeftLabel(reachOutDaysLeft(rowTag.taggedAt)) : null;
                   return (
                     <button
                       key={id}
@@ -229,7 +282,9 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
                       <img src={p.avatar} alt={p.name} className="w-8 h-8 rounded-full object-cover" />
                       <div className="min-w-0 flex-1">
                         <p className="text-sm truncate">{p.name}</p>
-                        {last && (
+                        {rowDaysLeft ? (
+                          <p className="text-[11px] font-medium text-[#974B35] truncate">Make a plan · {rowDaysLeft}</p>
+                        ) : last && (
                           <p className="text-[11px] text-muted-foreground truncate">
                             {formatDistanceToNowStrict(new Date(last.timestamp), { addSuffix: true })}
                           </p>
@@ -338,9 +393,87 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
                 )}
               </div>
               <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-2">
-                {thread.length === 0 && (
+                {showStarters && prompts ? (
+                  // First chat after a mutual tag: who you are to each other, what you share, ideas to say
+                  // hello, and a nudge to make a plan within the week.
+                  <div key={activeId} className="mx-auto flex max-w-sm flex-col gap-6 pb-2 pt-2">
+                    <div className={`flex flex-col items-center text-center ${revealItem}`} style={revealDelay(0)}>
+                      <div className="flex -space-x-2">
+                        {me?.photo ? (
+                          <img src={me.photo} alt="You" className="h-11 w-11 rounded-full object-cover ring-2 ring-background" />
+                        ) : (
+                          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#F6E2CF] text-sm font-semibold text-[#974B35] ring-2 ring-background">
+                            {initials(`${me?.firstName ?? ''} ${me?.lastName ?? ''}`)}
+                          </span>
+                        )}
+                        <img src={partner.avatar} alt={partner.name} className="h-11 w-11 rounded-full object-cover ring-2 ring-background" />
+                      </div>
+                      <h3 className="mt-3 text-lg font-light tracking-[0.015em] text-[#974B35]">
+                        You and {firstName} tagged each other
+                      </h3>
+                      <p className="mt-1 text-xs text-muted-foreground">Only the two of you can see this chat.</p>
+                      <p className="mt-3 text-xs text-muted-foreground">
+                        Met at <span className="text-foreground">{metTag.eventTitle}</span>
+                        {metEvent && ` · ${format(metEvent.date, 'EEE d MMM')}`}
+                        {sameHood && ` · Both in ${partner.neighborhood?.split(',')[0]}`}
+                      </p>
+                      {metTag.note && (
+                        <p className="mt-1 text-xs text-muted-foreground">Your note: {metTag.note}</p>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <p className={`text-xs font-semibold text-muted-foreground ${revealItem}`} style={revealDelay(1)}>Say hello</p>
+                      {prompts.hello.map((text, i) => (
+                        <button
+                          key={text}
+                          type="button"
+                          onClick={() => fillDraft(text)}
+                          className={`rounded-2xl border border-border bg-white px-4 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-[#9EAFAB]/30 ${revealItem}`}
+                          style={revealDelay(i + 2)}
+                        >
+                          {text}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className={`flex flex-col gap-2 ${revealItem}`} style={revealDelay(4)}>
+                      <p className="text-xs font-semibold text-muted-foreground">Make a plan</p>
+                      <p className="text-xs font-medium text-[#974B35]">
+                        {daysLeft
+                          ? `Within the week, while it's fresh. ${daysLeft}.`
+                          : "It's been over a week. A quick hello still works."}
+                      </p>
+                      {/* Events to go to together: another of the same first, then the same category. */}
+                      {suggestions.map(ev => (
+                        <div key={ev.id} className="flex items-center gap-3 rounded-2xl border border-border bg-white p-2.5">
+                          <img src={ev.imageUrl} alt="" className="h-11 w-11 shrink-0 rounded-xl object-cover" />
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm text-foreground">{ev.title}</p>
+                            <p className="text-xs text-muted-foreground">{format(ev.date, 'EEE d MMM')} · {ev.time}</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => fillDraft(planInvite(ev))}
+                            className="min-h-11 shrink-0 rounded px-3 text-sm font-medium text-[#974B35] hover:text-[#7A3C2A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          >
+                            Suggest
+                          </button>
+                        </div>
+                      ))}
+                      {/* Or simply the same again, informally: "Up for another run this week?" */}
+                      <button
+                        type="button"
+                        onClick={() => fillDraft(prompts.plan)}
+                        className="rounded-2xl border border-border bg-white px-4 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-[#9EAFAB]/30"
+                      >
+                        {prompts.plan}
+                      </button>
+                    </div>
+                  </div>
+                ) : thread.length === 0 && (
                   <p className="text-xs text-center text-muted-foreground mt-8">
-                    Say hi to {(headerName || '').split(' ')[0]}.
+                    Say hi to {firstName}.
                   </p>
                 )}
                 {thread.map(m => {
@@ -356,9 +489,10 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
               </div>
               <form onSubmit={handleSend} className="p-3 border-t flex gap-2">
                 <Input
+                  ref={inputRef}
                   value={draft}
                   onChange={e => setDraft(e.target.value)}
-                  placeholder={`Message ${(headerName || '').split(' ')[0]}...`}
+                  placeholder={`Message ${firstName}...`}
                   className="flex-1"
                 />
                 <Button type="submit" size="icon" disabled={!draft.trim()}>
