@@ -275,6 +275,7 @@ Deno.serve(async (req) => {
         image_url: (row.image_url as string) ?? null,
         tags: (row.tags as string[]) ?? [],
         category: (row.category as string) ?? null,
+        review_note: (row.review_note as string) ?? null,
       });
 
       const now = new Date().toISOString();

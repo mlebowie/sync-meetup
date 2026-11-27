@@ -824,6 +824,43 @@ export function similarTitles(a: Set<string>, b: Set<string>): boolean {
   return shared / (shared + onlyA + onlyB) >= 0.8;
 }
 
+/** What the duplicate checks know about a listing. */
+export interface ListingFacts {
+  source: string;
+  day: string;
+  at: number;
+  tokens: Set<string>;
+  venue?: string | null;
+  organizer?: string | null;
+}
+
+/** "Fisga Warehouse" and "Fisga" are the same place; "" matches nothing. */
+function samePlace(a: string | null | undefined, b: string | null | undefined): boolean {
+  const plain = (t: string | null | undefined) => matchKey((t ?? '').normalize('NFKD').replace(/[\u0300-\u036f]/g, ''));
+  const x = plain(a);
+  const y = plain(b);
+  if (x.length < 3 || y.length < 3) return false;
+  return x === y || ` ${x} `.includes(` ${y} `) || ` ${y} `.includes(` ${x} `);
+}
+
+/**
+ * Looser than similarTitles: the same day on two different platforms, starting
+ * within three hours, and either at the same venue or by the same organiser
+ * with a word of the title in common, or sharing most of their title words
+ * ("Biodanza Weekly Class" on Meetup and "Biodanza com Ana" on Agenda Porto).
+ * Never merged by itself: the curator is asked to keep one.
+ */
+export function possibleDuplicate(a: ListingFacts, b: ListingFacts): boolean {
+  if (a.source === b.source || a.day !== b.day) return false;
+  if (Math.abs(a.at - b.at) > 3 * 3600_000) return false;
+  let shared = 0;
+  for (const w of a.tokens) if (b.tokens.has(w)) shared += 1;
+  if (!shared) return false;
+  if (samePlace(a.venue, b.venue) || samePlace(a.organizer, b.organizer)) return true;
+  const union = a.tokens.size + b.tokens.size - shared;
+  return shared >= 2 && shared / union >= 0.5;
+}
+
 /** Same normalisation as the database's match_key(): lower case, letters and digits. */
 export function matchKey(text: string | null | undefined): string {
   return (text ?? '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
@@ -1122,6 +1159,113 @@ function recurrenceOf(raw: RawEvent): { recurrence: string; series_key: string |
   return { recurrence, series_key: key || null };
 }
 
+/** Cards show at most this many words of description. */
+export const MAX_DESCRIPTION_WORDS = 300;
+const MAX_TIDY_PER_RUN = 8;
+export const wordCount = (s: string | null | undefined) => (s ?? '').trim().split(/\s+/).filter(Boolean).length;
+
+/**
+ * Platform descriptions (Lu.ma especially) can run to a thousand words. Events
+ * in Waiting whose description is over 300 words are rewritten to 120–250
+ * words by the AI, and the practical details it finds there (organiser, price,
+ * venue, address) fill the card's empty Event details fields. Nothing a curator
+ * saved is touched, and the card says it was shortened.
+ */
+// deno-lint-ignore no-explicit-any
+async function tidyLongDescriptions(supabase: any): Promise<number> {
+  const { data: pending } = await supabase
+    .from('events')
+    .select('id,title,description,organizer_name,price_label,venue_name,location,review_note')
+    .eq('review_status', 'pending')
+    .is('reviewed_at', null)
+    .gte('starts_at', new Date().toISOString())
+    .order('starts_at', { ascending: true })
+    .limit(300);
+  const long = (pending ?? [])
+    .filter((e: Record<string, unknown>) => wordCount(e.description as string) > MAX_DESCRIPTION_WORDS)
+    .slice(0, MAX_TIDY_PER_RUN) as Record<string, string | null>[];
+  let tidied = 0;
+  for (let i = 0; i < long.length; i += 4) {
+    const batch = long.slice(i, i + 4);
+    const res = await fetch(AI_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${AI_API_KEY}` },
+      signal: AbortSignal.timeout(50_000),
+      body: JSON.stringify({
+        model: AI_MODEL,
+        messages: [
+          {
+            role: 'system',
+            content:
+              'You edit event listings for SYNC, an app that helps expats in Porto meet people. For each event, rewrite the ' +
+              'description in English in 120 to 250 words: what happens, who it suits, what to bring or know. Keep every fact ' +
+              'that matters and invent nothing. Leave out the schedule of speakers, long bios, sponsor lists, hashtags and ' +
+              'sign-up instructions copied from the platform. If tickets cost money, say so in one sentence. Plain paragraphs, ' +
+              'no headings or lists. Separately, give the organiser, price (e.g. "Free", "€10"), venue name and street address ' +
+              'only when the text states them, else null. Reply with JSON only: ' +
+              '{"items":[{"id":"...","description":"...","organizer_name":null,"price_label":null,"venue_name":null,"address":null}]}',
+          },
+          {
+            role: 'user',
+            content: JSON.stringify(
+              batch.map((e) => ({ id: e.id, title: e.title, description: String(e.description ?? '').slice(0, 6000) })),
+            ),
+          },
+        ],
+      }),
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      console.error(`Description tidy failed [${res.status}]: ${body.slice(0, 200)}`);
+      if (res.status === 402 || res.status === 403) throw new Denied(res.status, body.slice(0, 300));
+      break;
+    }
+    const payload = await res.json();
+    const content: string = payload?.choices?.[0]?.message?.content ?? '';
+    let items: Record<string, string | null>[] = [];
+    try {
+      items = JSON.parse(content.replace(/```json|```/g, '').trim())?.items ?? [];
+    } catch {
+      console.error('Description tidy returned non-JSON');
+      continue;
+    }
+    for (const item of items) {
+      const e = batch.find((b) => b.id === item.id);
+      const text = String(item.description ?? '').trim();
+      const n = wordCount(text);
+      if (!e || n < 60 || n > MAX_DESCRIPTION_WORDS) continue;
+      const fill = (have: string | null, found: string | null | undefined, max: number) =>
+        have?.trim() ? {} : found?.trim() ? { value: found.trim().slice(0, max) } : {};
+      const organizer = fill(e.organizer_name, item.organizer_name, 200);
+      const price = fill(e.price_label, item.price_label, 60);
+      const venue = fill(e.venue_name, item.venue_name, 200);
+      const address = fill(e.location, item.address, 300);
+      const note = `Description shortened from ${wordCount(e.description)} to ${n} words; check it against the event page`;
+      const { error } = await supabase
+        .from('events')
+        .update({
+          description: text,
+          ...('value' in organizer ? { organizer_name: organizer.value } : {}),
+          ...('value' in price ? { price_label: price.value } : {}),
+          ...('value' in venue ? { venue_name: venue.value } : {}),
+          ...('value' in address ? { location: address.value } : {}),
+          review_note: [
+            ...(e.review_note ?? '').split(' · ').filter((f) => f && !(f.startsWith('Organiser missing') && 'value' in organizer)),
+            note,
+          ]
+            .join(' · ')
+            .slice(0, 300),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', String(e.id))
+        .eq('review_status', 'pending')
+        .is('reviewed_at', null);
+      if (!error) tidied += 1;
+    }
+  }
+  return tidied;
+}
+
 async function classifyPending(supabase: ReturnType<typeof createClient>) {
   const { data: pending } = await supabase
     .from('events')
@@ -1296,7 +1440,7 @@ Deno.serve(async (req) => {
   // the slow part of a run.
   const { data: knownRows } = await supabase
     .from('events')
-    .select('id,source,source_event_id,source_url,review_status,reviewed_at,title,starts_at,price_label,review_note')
+    .select('id,source,source_event_id,source_url,review_status,reviewed_at,title,starts_at,price_label,review_note,venue_name,organizer_name')
     .gte('starts_at', new Date().toISOString());
   // Wording of every event a curator published, so a new date of the same
   // series starts from what was published instead of the platform's text.
@@ -1311,23 +1455,27 @@ Deno.serve(async (req) => {
   const exclusions = (exclusionRows ?? []) as Exclusion[];
   // Every stored and newly saved event, for spotting the same event on another
   // platform (Luma, Meetup and Eventbrite often list the same run club).
-  const sameEventIndex: {
+  const sameEventIndex: (ListingFacts & {
     id?: string;
     key: string;
-    day: string;
-    at: number;
-    tokens: Set<string>;
+    title: string;
     hidden: boolean;
+    pending: boolean;
     price?: string | null;
     note?: string | null;
-  }[] =
+  })[] =
     (knownRows ?? []).map((r: Record<string, unknown>) => ({
       id: String(r.id),
       key: `${r.source}:${r.source_event_id}`,
+      source: String(r.source),
+      title: String(r.title ?? ''),
       day: new Date(String(r.starts_at)).toLocaleDateString('en-CA', { timeZone: 'Europe/Lisbon' }),
       at: new Date(String(r.starts_at)).getTime(),
       tokens: titleTokens(String(r.title ?? '')),
+      venue: (r.venue_name as string | null) ?? null,
+      organizer: (r.organizer_name as string | null) ?? null,
       hidden: r.review_status === 'rejected',
+      pending: r.review_status === 'pending',
       price: (r.price_label as string | null) ?? null,
       note: (r.review_note as string | null) ?? null,
     }));
@@ -1459,6 +1607,7 @@ Deno.serve(async (req) => {
           // The same event already in SYNC from another listing (same Porto day,
           // start within an hour, matching title): keep one card and record this
           // page as "also on" instead of adding a second card.
+          let duplicateNote: string | null = null;
           if (!known.has(`${source}:${id}`)) {
             const day = starts.toLocaleDateString('en-CA', { timeZone: 'Europe/Lisbon' });
             const tokens = titleTokens(raw.title);
@@ -1486,7 +1635,39 @@ Deno.serve(async (req) => {
               }
               continue;
             }
-            sameEventIndex.push({ key: `${source}:${id}`, day, at: starts.getTime(), tokens, hidden: false });
+            const facts: ListingFacts = {
+              source,
+              day,
+              at: starts.getTime(),
+              tokens,
+              venue: raw.venue ?? null,
+              organizer: raw.organizer ?? (raw.url ? pageOrganizers.get(raw.url) : null) ?? null,
+            };
+            // Not certain enough to merge, but likely the same event on another
+            // platform: ask the curator to keep one, on both cards.
+            const maybe = sameEventIndex.find((e) => !e.hidden && e.key !== `${source}:${id}` && possibleDuplicate(e, facts));
+            if (maybe) {
+              const at = portoTimeLabel(new Date(maybe.at));
+              duplicateNote = `Possible duplicate of "${maybe.title.slice(0, 60)}" on ${platformName(maybe.source as SourceId)} (${at}${
+                maybe.price ? `, ${maybe.price}` : ''
+              }); keep one and Hide the other`;
+              if (maybe.id && maybe.pending) {
+                const back = `Possible duplicate of "${raw.title.slice(0, 60)}" on ${platformName(source)}; keep one and Hide the other`;
+                if (!maybe.note?.includes(back)) {
+                  const note = [maybe.note, back].filter(Boolean).join(' · ').slice(0, 300);
+                  await supabase.from('events').update({ review_note: note }).eq('id', maybe.id);
+                  maybe.note = note;
+                }
+              }
+            }
+            sameEventIndex.push({
+              ...facts,
+              key: `${source}:${id}`,
+              title: raw.title,
+              hidden: false,
+              pending: true,
+              price: raw.price?.trim() || null,
+            });
           }
           // A curator already reviewed this listing (often with the SYNC Curator):
           // their description, price, photo, organiser, venue, end time and
@@ -1529,14 +1710,21 @@ Deno.serve(async (req) => {
           const linkNote = isListingUrl(source, raw.url)
             ? "Link goes to a listing page, not the event's own page; check price and time there"
             : null;
+          // Flags another platform's listing left on this card (a different price,
+          // a possible duplicate) stay until the curator saves the card.
+          const keptFlags = (sameEventIndex.find((e) => e.key === `${source}:${id}`)?.note ?? '')
+            .split(' · ')
+            .filter((f) => /^(Different price on|Possible duplicate of|Description shortened from)/.test(f));
+          // Once shortened, the platform's long text never replaces it again.
+          const shortened = keptFlags.some((f) => f.startsWith('Description shortened from'));
           const reviewNote =
-            [dateNote, raw.review_hint, linkNote, organizerNote, templateNote].filter(Boolean).join(' · ') || null;
+            [...new Set([...keptFlags, duplicateNote, dateNote, raw.review_hint, linkNote, organizerNote, templateNote])].filter(Boolean).join(' · ').slice(0, 300) || null;
           const row = {
             source,
             source_event_id: id,
             source_url: raw.url!,
             title: raw.title.trim().slice(0, 300),
-            description: t?.description ?? ((raw.description ?? '').slice(0, 4000) || null),
+            ...(shortened ? {} : { description: t?.description ?? ((raw.description ?? '').slice(0, 4000) || null) }),
             starts_at: starts.toISOString(),
             time_label: confirmed
               ? portoTimeLabel(confirmed)
@@ -1572,6 +1760,13 @@ Deno.serve(async (req) => {
               : {}),
             last_seen_at: new Date().toISOString(),
           };
+          // A known card keeps details filled in since (by the description tidy or
+          // from another listing) when this listing has none.
+          if (known.has(`${source}:${id}`)) {
+            for (const k of ['organizer_name', 'price_label', 'venue_name', 'location'] as const) {
+              if (row[k] == null) delete (row as Record<string, unknown>)[k];
+            }
+          }
 
           const { data: saved, error } = await supabase
             .from('events')
@@ -1609,6 +1804,18 @@ Deno.serve(async (req) => {
       pausedReason = `AI labelling returned ${err.status}: ${err.message}`.slice(0, 500);
     }
   }
+
+  // Long platform descriptions down to 300 words, details into their own fields.
+  let tidied = 0;
+  if (!pausedReason && elapsed() < STOP_LABELS_MS) {
+    try {
+      tidied = await tidyLongDescriptions(supabase);
+    } catch (e) {
+      const err = e as Denied;
+      pausedReason = `AI description tidy returned ${err.status}: ${err.message}`.slice(0, 500);
+    }
+  }
+  if (tidied) console.log(`Shortened ${tidied} long description${tidied === 1 ? '' : 's'}`);
 
   // Partner organisers: badge, sign-up and WhatsApp links, one card per day.
   try {

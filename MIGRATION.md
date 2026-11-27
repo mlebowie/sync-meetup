@@ -190,3 +190,16 @@ Each partner in `partner_organisers` has a private link, `/submit/<submit_token>
 - **Different prices**: when the same event turns up on another platform with another price, the card gets *Different price on <platform>: X (card says Y)*.
 - **Remove** (/curate): hides an event and records a rule in `collector_exclusions` (this event, every date of the series, everything from the organiser, or titles with certain words) that the collector skips from then on. Other Waiting events the rule covers are hidden too. Undo by deleting the rule and moving the event back from Hidden.
 - **Missing** badge (/curate): organiser, price or address not filled in.
+
+## 21. Duplicates across platforms
+
+Before an event reaches Waiting, the collector compares it with every upcoming event already in SYNC:
+
+- **Certainly the same** (same Porto day, start within an hour, nearly the same title): no second card. The new page is added to the existing card's "also on" links, and a different price is flagged on it.
+- **Possibly the same** (another platform, same day, start within three hours, a shared title word and the same venue or organiser — or most title words shared): the new card is added with the note `Possible duplicate of "…" on <platform> (time, price); keep one and Hide the other`, and the other card, if still in Waiting, gets the matching note.
+
+These notes, and "Different price on …", survive later collector runs until the card is saved, and the automatic curator never publishes a card that carries one.
+
+## 22. Long descriptions
+
+Each collector run ends by shortening up to 8 Waiting descriptions that run over 300 words (Lu.ma's often do). The AI rewrites them in 120–250 words, and fills any empty Event details field (organiser, price, venue, address) that the text states. The card gets the note "Description shortened from N to M words; check it against the event page", and later runs keep the short version. Events a curator has saved are never touched. Edit on /curate shows the word count and marks it red over 300.

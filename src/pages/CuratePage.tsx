@@ -691,6 +691,14 @@ const CuratePage = () => {
                             }
                             placeholder="Description"
                           />
+                          {(() => {
+                            const n = (draft.description ?? '').trim().split(/\s+/).filter(Boolean).length;
+                            return (
+                              <p className={`text-xs ${n > 300 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                                {n} words{n > 300 ? ' — keep it to 300 or fewer; put practical details in Event details above' : ''}
+                              </p>
+                            );
+                          })()}
                           {templates.length > 0 && (
                             <div className="rounded-md border bg-muted/40 p-2 space-y-2">
                               <p className="text-xs font-medium">
