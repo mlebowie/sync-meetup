@@ -21,11 +21,14 @@ import { EVENT_CATEGORIES, normalizeCategory } from '@/lib/categories';
 import AddPartnerEventDialog from '@/components/AddPartnerEventDialog';
 import PartnerLinksDialog from '@/components/PartnerLinksDialog';
 import RemoveEventDialog from '@/components/RemoveEventDialog';
+import PartnerSubmissionsPanel from '@/components/PartnerSubmissionsPanel';
 import EventFlagToggles, { type EventFlags } from '@/components/EventFlagToggles';
 import { isoToLisbon, lisbonToIso, timeLabelFor } from '@/lib/lisbonTime';
 import { Check, X, Pencil, ExternalLink, RotateCcw, Clock, Loader2, Star, ImagePlus, Link2 } from 'lucide-react';
 
 type ReviewStatus = 'pending' | 'approved' | 'rejected';
+/** The tabs: the three review states, plus partner submissions (pending, sent via /submit). */
+type CurateTab = ReviewStatus | 'partners';
 
 interface Row {
   id: string;
@@ -125,7 +128,8 @@ const dayLabel = (iso: string) =>
 const CuratePage = () => {
   const { loading: authLoading, isAdmin, email } = useAdmin();
   const { toast } = useToast();
-  const [tab, setTab] = useState<ReviewStatus>('pending');
+  const [tab, setTab] = useState<CurateTab>('pending');
+  const [partnerWaiting, setPartnerWaiting] = useState<number | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [sourceFilter, setSourceFilter] = useState<string>('all');
@@ -142,8 +146,12 @@ const CuratePage = () => {
   const [templates, setTemplates] = useState<Template[]>([]);
 
   const load = useCallback(async () => {
+    // Partner submissions load in their own panel.
+    if (tab === 'partners') return;
     setLoading(true);
     let query = supabase.from('events').select('*').eq('review_status', tab);
+    // Partner submissions are reviewed in the Partner submissions tab, not here.
+    if (tab === 'pending') query = query.is('submitted_by', null);
     // Waiting shows only events at least 24 hours away, so anything reviewed can
     // still be published in time. Published hides events that have passed.
     if (tab === 'pending') query = query.gte('starts_at', new Date(Date.now() + 24 * 3600_000).toISOString());
@@ -159,6 +167,18 @@ const CuratePage = () => {
   useEffect(() => {
     if (isAdmin) load();
   }, [isAdmin, load]);
+
+  // How many partner submissions are waiting, for the tab label.
+  useEffect(() => {
+    if (!isAdmin) return;
+    supabase
+      .from('events')
+      .select('id', { count: 'exact', head: true })
+      .eq('review_status', 'pending')
+      .not('submitted_by', 'is', null)
+      .gte('starts_at', new Date().toISOString())
+      .then(({ count }) => setPartnerWaiting(count ?? 0));
+  }, [isAdmin]);
 
   const sources = useMemo(
     () => Array.from(new Set(rows.map((r) => r.source))).sort(),
@@ -472,7 +492,7 @@ const CuratePage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container px-4 md:px-6 py-8 max-w-5xl">
+      <div className={`container px-4 md:px-6 py-8 ${tab === 'partners' ? 'max-w-[1400px]' : 'max-w-5xl'}`}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-light tracking-[0.015em] text-foreground">Curate events</h1>
@@ -496,14 +516,17 @@ const CuratePage = () => {
           </div>
         )}
 
-        <Tabs value={tab} onValueChange={(v) => setTab(v as ReviewStatus)} className="mt-6">
+        <Tabs value={tab} onValueChange={(v) => { setSourceFilter('all'); setTab(v as CurateTab); }} className="mt-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <TabsList>
               <TabsTrigger value="pending">Waiting</TabsTrigger>
+              <TabsTrigger value="partners">
+                Partner submissions{partnerWaiting ? ` (${partnerWaiting})` : ''}
+              </TabsTrigger>
               <TabsTrigger value="approved">Published</TabsTrigger>
               <TabsTrigger value="rejected">Hidden</TabsTrigger>
             </TabsList>
-            <div className="flex items-center gap-2">
+            <div className={`flex items-center gap-2 ${tab === 'partners' ? 'hidden' : ''}`}>
               <Select value={sourceFilter} onValueChange={setSourceFilter}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="All sources" />
@@ -531,7 +554,11 @@ const CuratePage = () => {
             </div>
           </div>
 
-          <TabsContent value={tab} className="mt-5 space-y-4">
+          <TabsContent value="partners" className="mt-5">
+            {tab === 'partners' && <PartnerSubmissionsPanel onCount={setPartnerWaiting} />}
+          </TabsContent>
+
+          <TabsContent value={tab === 'partners' ? '__none' : tab} className="mt-5 space-y-4">
             {tab === 'pending' && (
               <p className="text-xs text-muted-foreground">
                 Events at least 24 hours away. Waiting events that start sooner are hidden automatically.
