@@ -19,6 +19,8 @@ import { conversationPrompts, daysLeftLabel, planEvents, planInvite, reachOutDay
 import { revealDelay, revealItem } from '@/lib/ctaStyles';
 import { getUserProfile } from '@/lib/userProfile';
 import { TaggedConnection } from '@/types/event';
+import ConnectionNoteField from './ConnectionNoteField';
+import { lastMetAt } from '@/lib/connectionNotes';
 
 interface Props {
   open: boolean;
@@ -164,7 +166,8 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
   const sameHood = !!me?.neighborhood && hood(me.neighborhood) === hood(partner?.neighborhood);
   const initials = (name?: string) => (name ?? '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
   const daysLeft = metTag ? daysLeftLabel(reachOutDaysLeft(metTag.taggedAt)) : null;
-  const headerSub = metTag ? `Met at ${metTag.eventTitle}` : partner?.neighborhood;
+  const lastMet = activeId ? lastMetAt(activeId, tags, history) : null;
+  const headerSub = lastMet ? `Last met at ${lastMet.title}` : partner?.neighborhood;
 
   const fillDraft = (text: string) => {
     setDraft(text);
@@ -392,6 +395,10 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
                   <SocialLinkIcons links={partner.social} className="ml-auto shrink-0 gap-3" iconClassName="h-[18px] w-[18px]" />
                 )}
               </div>
+              {/* Your memory of how you met: the same keywords as on the Connections page, private to you. */}
+              <div className="border-b px-3 py-2">
+                <ConnectionNoteField key={partner.id} personId={partner.id} firstName={firstName} />
+              </div>
               <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-2">
                 {showStarters && prompts ? (
                   // First chat after a mutual tag: who you are to each other, what you share, ideas to say
@@ -417,9 +424,6 @@ const DirectMessagesDialog = ({ open, onOpenChange, initialPartnerId, metAtEvent
                         {metEvent && metEvent.date.getTime() < Date.now() && ` · ${format(metEvent.date, 'EEE d MMM')}`}
                         {sameHood && ` · Both in ${partner.neighborhood?.split(',')[0]}`}
                       </p>
-                      {metTag.note && (
-                        <p className="mt-1 text-xs text-muted-foreground">Your note: {metTag.note}</p>
-                      )}
                     </div>
 
                     <div className="flex flex-col gap-2">

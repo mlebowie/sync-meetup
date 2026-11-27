@@ -1,6 +1,6 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, Users, MapPin, StickyNote } from 'lucide-react';
+import { ArrowLeft, Search, Users, MapPin } from 'lucide-react';
 
 import Header from '@/components/Header';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,9 @@ import { primaryCta } from '@/lib/ctaStyles';
 import { mockParticipants } from '@/data/mockData';
 import ParticipantProfileDialog from '@/components/ParticipantProfileDialog';
 import { Participant } from '@/types/event';
+import ConnectionNoteField from '@/components/ConnectionNoteField';
+import { lastMetAt } from '@/lib/connectionNotes';
+import { format } from 'date-fns';
 
 // One relationship: a connection is two people who were at the same event and tagged each other.
 // Your own tags stay private until they are returned; there is no one-way following.
@@ -25,7 +28,7 @@ interface EnrichedParticipant {
 }
 
 const Connections = () => {
-  const { tags, isConnected } = useActivityHistory();
+  const { tags, history, isConnected } = useActivityHistory();
   const navigate = useNavigate();
   // New members haven't been to an event yet: "first"; everyone else: "next".
   const { events } = useEvents();
@@ -36,27 +39,6 @@ const Connections = () => {
   const [taggedEventId, setTaggedEventId] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [profileId, setProfileId] = useState<string | null>(null);
-  const [notes, setNotes] = useState<Record<string, string>>(() => {
-    try {
-      const raw = localStorage.getItem('sync:tag-notes');
-      return raw ? JSON.parse(raw) : {};
-    } catch {
-      return {};
-    }
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('sync:tag-notes', JSON.stringify(notes));
-    } catch {
-      // ignore
-    }
-  }, [notes]);
-
-  const noteKey = (participantId: string, eventId: string) => `${participantId}::${eventId}`;
-
-
-
   const enriched = useMemo<EnrichedParticipant[]>(() => {
     // Everyone you have tagged after an event: connected if they tagged you back, otherwise a private pending tag.
     const ids = new Set<string>(tags.map(t => t.participantId));
@@ -225,15 +207,14 @@ const Connections = () => {
           </div>
         ) : (
           <ul className="space-y-2">
-            {filtered.map(({ participant, tagged }) => (
-              <li
-                key={participant.id}
-                className="p-3 rounded-xl border bg-card hover:shadow-card-hover transition-shadow"
-              >
-                <div className="flex items-center gap-3">
+            {filtered.map(({ participant }) => {
+              const met = lastMetAt(participant.id, tags, history);
+              const firstName = participant.name.split(' ')[0];
+              return (
+                <li key={participant.id} className="p-3 rounded-xl border bg-card">
                   <button
                     onClick={() => setProfileId(participant.id)}
-                    className="flex items-center gap-3 flex-1 min-w-0 text-left"
+                    className="flex w-full items-center gap-3 min-w-0 text-left"
                   >
                     <img
                       src={participant.avatar}
@@ -242,53 +223,24 @@ const Connections = () => {
                     />
                     <div className="min-w-0 flex-1">
                       <p className="font-medium truncate">{participant.name}</p>
-                      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                        {participant.neighborhood && (
-                          <span className="flex items-center gap-1 truncate">
-                            <MapPin className="h-3 w-3 shrink-0" />
-                            <span className="truncate">{participant.neighborhood}</span>
-                          </span>
-                        )}
-                      </div>
+                      {met && (
+                        <p className="text-xs text-muted-foreground truncate mt-0.5">
+                          Last met at <span className="text-foreground">{met.title}</span> · {format(met.date, 'd MMM')}
+                        </p>
+                      )}
+                      {participant.neighborhood && (
+                        <p className="flex items-center gap-1 text-xs text-muted-foreground truncate mt-0.5">
+                          <MapPin className="h-3 w-3 shrink-0" />
+                          <span className="truncate">{participant.neighborhood}</span>
+                        </p>
+                      )}
                     </div>
                   </button>
-                </div>
-                {filter === 'tagged' && tagged && (() => {
-                  const relevantTags = tags.filter(x =>
-                    x.participantId === participant.id &&
-                    (!taggedEventId || x.eventId === taggedEventId),
-                  );
-                  if (relevantTags.length === 0) return null;
-                  return (
-                    <div className="mt-3 pl-15 space-y-2">
-                      {relevantTags.map(t => {
-                        const key = noteKey(participant.id, t.eventId);
-                        return (
-                          <div key={key} className="rounded-lg border bg-muted/30 p-2">
-                            <p className="text-xs text-muted-foreground">
-                              Tagged at <span className="font-medium text-foreground">{t.eventTitle}</span>
-                              {' · '}
-                              {new Date(t.taggedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                            </p>
-                            <div className="mt-1.5 flex items-center gap-1.5">
-                              <StickyNote className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                              <Input
-                                value={notes[key] ?? ''}
-                                onChange={e => setNotes(prev => ({ ...prev, [key]: e.target.value }))}
-                                placeholder="Add keywords (last convo, interests, vibe...)"
-                                maxLength={140}
-                                className="h-8 text-xs"
-                              />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })()}
-              </li>
-
-            ))}
+                  {/* Your keywords about how you met: private, and shown in your 1:1 chat with them too. */}
+                  <ConnectionNoteField personId={participant.id} firstName={firstName} className="mt-3" />
+                </li>
+              );
+            })}
           </ul>
         )}
 
