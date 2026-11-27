@@ -175,17 +175,13 @@ const Index = () => {
 
   const handleAttend = (eventId: string) => {
     const event = events.find(e => e.id === eventId);
-    if (event) {
-      // EventCard toggles the attending store before calling this, so the value
-      // read here is the pre-toggle one.
-      const isNowAttending = !isAttendingFn(eventId);
-      toast({
-        title: isNowAttending ? "You're in. See you there." : 'Event removed',
-        description: isNowAttending
-          ? `Locked in for "${event.title}". Group chat opens before it starts.`
-          : `Removed "${event.title}" from your events.`,
-      });
-    }
+    // EventCard toggles the attending store before calling this, so the value
+    // read here is the pre-toggle one. Cancelling shows its own message from the card.
+    if (!event || isAttendingFn(eventId)) return;
+    toast({
+      title: "You're in. See you there.",
+      description: `Locked in for "${event.title}". Group chat opens before it starts.`,
+    });
   };
 
   const handleParticipantClick = (p: Participant) => {
