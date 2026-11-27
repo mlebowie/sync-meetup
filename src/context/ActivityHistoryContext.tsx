@@ -88,6 +88,7 @@ export const ActivityHistoryProvider = ({ children }: { children: ReactNode }) =
         participantId: d.participantId,
         eventId: d.eventId,
         eventTitle: d.eventTitle,
+        eventCategory: d.eventCategory,
         taggedAt: new Date(Date.now() - d.daysAgo * 24 * 60 * 60 * 1000),
       }));
     return [...demo, ...ownTags];

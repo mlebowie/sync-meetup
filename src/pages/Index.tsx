@@ -99,7 +99,8 @@ const Index = () => {
   // Messages opened from the bottom bar on another page (?messages=1).
   useEffect(() => {
     if (searchParams.get('messages') !== '1') return;
-    setDmInitialId(null);
+    // ?with=<id>: straight into the chat with that connection (from a "Make plans" reminder).
+    setDmInitialId(searchParams.get('with'));
     setDmMetAt(null);
     setDmOpen(true);
     setSearchParams({}, { replace: true });
