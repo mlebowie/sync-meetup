@@ -9,7 +9,7 @@ import OrganizerPopover from './OrganizerPopover';
 import EventDetailsModal from './EventDetailsModal';
 import EventPhotoCarousel from './EventPhotoCarousel';
 import AttendConfirmationDialog from './AttendConfirmationDialog';
-import CancelRegistrationDialog from './CancelRegistrationDialog';
+import CancelRegistrationDialog, { registrationCancelledToast } from './CancelRegistrationDialog';
 import WaitlistDialog from './WaitlistDialog';
 import InviteFriendsDialog from './InviteFriendsDialog';
 import InvitedSummary from './InvitedSummary';
@@ -195,6 +195,7 @@ const EventCard = ({ event, onAttend, onParticipantClick, onOpenGroupChat, guest
     setCancelOpen(false);
     toggleAttending(event.id);
     onAttend?.(event.id);
+    toast(registrationCancelledToast(event));
   };
 
   return (

@@ -17,6 +17,12 @@ interface CancelRegistrationDialogProps {
   onConfirm: () => void;
 }
 
+/** The one message shown after a registration is cancelled, wherever it was cancelled from. */
+export const registrationCancelledToast = (event: Pick<Event, 'title'>) => ({
+  title: 'Registration cancelled',
+  description: `The organiser of "${event.title}" has been notified.`,
+});
+
 const CancelRegistrationDialog = ({ event, open, onOpenChange, onConfirm }: CancelRegistrationDialogProps) => (
   <AlertDialog open={open} onOpenChange={onOpenChange}>
     <AlertDialogContent>

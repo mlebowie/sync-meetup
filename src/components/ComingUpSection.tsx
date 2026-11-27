@@ -11,6 +11,7 @@ import { useAttending, ReminderMethod } from '@/context/AttendingContext';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import EventDetailsModal from '@/components/EventDetailsModal';
+import CancelRegistrationDialog, { registrationCancelledToast } from '@/components/CancelRegistrationDialog';
 import EventGroupChatDialog from '@/components/EventGroupChatDialog';
 import InviteFriendsDialog from '@/components/InviteFriendsDialog';
 import InvitedSummary from '@/components/InvitedSummary';
@@ -77,6 +78,7 @@ const ComingUpCard = ({ event, prefs, onUpdate, onRemove }: CardProps) => {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
   const { toast } = useToast();
   const share = shareStrings(event);
 
@@ -107,12 +109,13 @@ const ComingUpCard = ({ event, prefs, onUpdate, onRemove }: CardProps) => {
     });
   };
 
-  const handleCancel = () => {
+  // Same as the event cards: ask first, then cancel and say the organiser has been told.
+  const handleCancel = () => setCancelOpen(true);
+  const confirmCancel = () => {
+    setCancelOpen(false);
+    setDetailsOpen(false);
     onRemove();
-    toast({
-      title: 'Registration cancelled',
-      description: `The organiser of "${event.title}" has been notified.`,
-    });
+    toast(registrationCancelledToast(event));
   };
 
   return (
@@ -125,8 +128,8 @@ const ComingUpCard = ({ event, prefs, onUpdate, onRemove }: CardProps) => {
               <p className="font-semibold text-sm line-clamp-2">{event.title}</p>
               <button
                 type="button"
-                onClick={onRemove}
-                aria-label="Remove from coming up"
+                onClick={handleCancel}
+                aria-label="Cancel registration"
                 className="text-muted-foreground hover:text-foreground shrink-0"
               >
                 <X className="h-4 w-4" />
@@ -304,11 +307,12 @@ const ComingUpCard = ({ event, prefs, onUpdate, onRemove }: CardProps) => {
         open={detailsOpen}
         onOpenChange={setDetailsOpen}
         isAttending={true}
-        onAttend={onRemove}
+        onAttend={handleCancel}
         onOpenGroupChat={() => { setDetailsOpen(false); setChatOpen(true); }}
       />
       <EventGroupChatDialog event={event} open={chatOpen} onOpenChange={setChatOpen} />
       <InviteFriendsDialog event={event} open={inviteOpen} onOpenChange={setInviteOpen} />
+      <CancelRegistrationDialog event={event} open={cancelOpen} onOpenChange={setCancelOpen} onConfirm={confirmCancel} />
     </>
   );
 };
