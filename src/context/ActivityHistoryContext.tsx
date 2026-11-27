@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState, ReactNode, use
 import { PastAttendance, TaggedConnection } from '@/types/event';
 import { useAdmin } from '@/hooks/useAdmin';
 import { getUserProfile } from '@/lib/userProfile';
-import { DEMO_CONNECTION_TAGS, DEMO_PAST_ATTENDANCE, isTestMode } from '@/lib/testMode';
+import { DEMO_CONNECTION_TAGS, DEMO_PAST_ATTENDANCE, isTestMode, lastTestMode, rememberTestMode } from '@/lib/testMode';
 
 const TEST_TAGS_KEY = 'sync.testTags.v1';
 
@@ -55,7 +55,7 @@ export const ActivityHistoryProvider = ({ children }: { children: ReactNode }) =
   const [ownTags, setOwnTags] = useState<TaggedConnection[]>([]);
 
   // Test mode (admins on their own profile, src/lib/testMode.ts): demo connections, and every tag is returned.
-  const { isAdmin, email: sessionEmail } = useAdmin();
+  const { loading: adminLoading, isAdmin, email: sessionEmail } = useAdmin();
   const [profileVersion, setProfileVersion] = useState(0);
   useEffect(() => {
     const bump = () => setProfileVersion(v => v + 1);
@@ -63,22 +63,18 @@ export const ActivityHistoryProvider = ({ children }: { children: ReactNode }) =
     return () => window.removeEventListener('sync:profile-changed', bump);
   }, []);
   const testOn = useMemo(
-    () => isTestMode({ isAdmin, sessionEmail, profileEmail: getUserProfile()?.email ?? null }),
+    () => {
+      const profileEmail = getUserProfile()?.email ?? null;
+      // While the admin check loads, use the last answer for this profile; then the real one.
+      if (adminLoading) return lastTestMode(profileEmail);
+      const on = isTestMode({ isAdmin, sessionEmail, profileEmail });
+      rememberTestMode(profileEmail, on);
+      return on;
+    },
     // profileVersion: re-check when the profile on this device changes (e.g. right after signing in).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [isAdmin, sessionEmail, profileVersion],
+    [adminLoading, isAdmin, sessionEmail, profileVersion],
   );
-  useEffect(() => {
-    if (testOn) setOwnTags(prev => (prev.length ? prev : loadTestTags()));
-  }, [testOn]);
-  useEffect(() => {
-    if (!testOn) return;
-    try {
-      window.localStorage.setItem(TEST_TAGS_KEY, JSON.stringify(ownTags));
-    } catch {
-      // Storage blocked: the demo still works until the page reloads.
-    }
-  }, [testOn, ownTags]);
 
   // Test mode: the past events where you met your demo connections, for "Familiar faces" on cards.
   const history = useMemo<PastAttendance[]>(() => {
