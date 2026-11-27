@@ -101,7 +101,8 @@ const Index = () => {
     if (searchParams.get('messages') !== '1') return;
     // ?with=<id>: straight into the chat with that connection (from a "Make plans" reminder).
     setDmInitialId(searchParams.get('with'));
-    setDmMetAt(null);
+    // &met=<event title>: opened after tagging, so the list shows the people met there.
+    setDmMetAt(searchParams.get('met'));
     setDmOpen(true);
     setSearchParams({}, { replace: true });
   }, [searchParams, setSearchParams]);

@@ -11,6 +11,7 @@ import { useEventMedia } from '@/context/EventMediaContext';
 import { getUserProfile } from '@/lib/userProfile';
 import { useToast } from '@/hooks/use-toast';
 import { mockParticipants } from '@/data/mockData';
+import { useNavigate } from 'react-router-dom';
 
 interface Props {
   event: Event | null;
@@ -44,6 +45,7 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
   const { rateEvent } = useEventRatings();
   const { addPhoto } = useEventMedia();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [step, setStep] = useState<Step>('rate');
@@ -140,9 +142,15 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
     onOpenChange(false);
   };
 
+  // Open the 1:1 chat with them. Pages that host messages pass onOpenDM; anywhere else (the
+  // notifications bell, the calendar) goes to the home page, which opens the chat from the address.
   const startChat = (p: Participant) => {
     onOpenChange(false);
-    onOpenDM?.(p.id, event.title);
+    if (onOpenDM) {
+      onOpenDM(p.id, event.title);
+      return;
+    }
+    navigate(`/?messages=1&with=${encodeURIComponent(p.id)}&met=${encodeURIComponent(event.title)}`);
   };
 
   return (
@@ -313,14 +321,23 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
         {step === 'chat' && (
           <>
             <DialogHeader>
-              <DialogTitle>Start a private chat?</DialogTitle>
-              <DialogDescription>
-                Message anyone who tagged you back. The rest stay private until they tag you too.
-              </DialogDescription>
+              {tagged.every(p => hasTaggedMe(p.id)) ? (
+                <>
+                  <DialogTitle>You tagged each other</DialogTitle>
+                  <DialogDescription>Say hello while it's fresh. Only the two of you see each chat.</DialogDescription>
+                </>
+              ) : (
+                <>
+                  <DialogTitle>Start a private chat?</DialogTitle>
+                  <DialogDescription>
+                    Message anyone who tagged you back. The rest stay private until they tag you too.
+                  </DialogDescription>
+                </>
+              )}
             </DialogHeader>
 
             <div className="space-y-2 py-2">
-              {tagged.map(p => {
+              {[...tagged].sort((a, b) => Number(hasTaggedMe(b.id)) - Number(hasTaggedMe(a.id))).map(p => {
                 const mutual = hasTaggedMe(p.id);
                 return (
                   <div key={p.id} className="flex items-center gap-3 p-2 rounded-xl border border-border">
@@ -328,7 +345,7 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium text-foreground truncate">{p.name}</p>
                       <p className="text-xs text-muted-foreground truncate">
-                        {mutual ? 'Tagged you back. DMs unlocked' : 'Waiting for them to tag you'}
+                        {mutual ? 'Tagged you back' : 'Waiting for them to tag you'}
                       </p>
                     </div>
                     {mutual ? (
