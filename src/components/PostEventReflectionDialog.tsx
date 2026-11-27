@@ -19,10 +19,10 @@ interface Props {
   onOpenDM?: (participantId: string, metAtEventTitle?: string) => void;
 }
 
-const RATING_OPTIONS: { value: FriendRating; emoji: string; label: string }[] = [
-  { value: 'definitely', emoji: '🙌', label: 'Definitely' },
-  { value: 'maybe', emoji: '🤔', label: 'Maybe' },
-  { value: 'no', emoji: '👎', label: 'Probably not' },
+const RATING_OPTIONS: { value: FriendRating; label: string }[] = [
+  { value: 'definitely', label: 'Definitely' },
+  { value: 'maybe', label: 'Maybe' },
+  { value: 'no', label: 'Probably not' },
 ];
 
 type Step = 'rate' | 'pick' | 'photo' | 'chat';
@@ -157,7 +157,7 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
             </DialogHeader>
 
 <div className="py-2">
-              {/* Answers: one per line, the same pill shape as the primary button, emoji beside the label.
+              {/* Answers: one per line, the same pill shape as the primary button, label only.
                   Selected: sage at 80%; terracotta stays for the Next button. */}
               <div className="flex flex-col gap-3">
                 {RATING_OPTIONS.map(opt => {
@@ -168,12 +168,10 @@ const PostEventReflectionDialog = ({ event, open, onOpenChange, onOpenDM }: Prop
                       type="button"
                       aria-pressed={selected}
                       onClick={() => setRating(opt.value)}
-                      // Left-aligned like a list: emoji at a fixed inset from the left edge, a steady gap, then the label.
                       className={`flex h-12 w-full items-center justify-start gap-3 rounded-full border px-5 text-base transition ${
                         selected ? 'border-transparent bg-[#9EAFAB]/80 text-[#1F110C]' : 'border-border text-foreground hover:bg-secondary'
                       }`}
                     >
-                      <span aria-hidden className="w-6 shrink-0 text-center text-xl leading-none">{opt.emoji}</span>
                       <span>{opt.label}</span>
                     </button>
                   );

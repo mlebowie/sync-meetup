@@ -213,7 +213,7 @@ const UpcomingEventsSection = ({
                 <div className="flex flex-wrap gap-2">
                   {VIBES.map(v => (
                     <button key={v.value} title={v.description} onClick={() => toggleVibe(v.value)} className={pill(vibe.includes(v.value))}>
-                      {v.emoji} {v.label}
+                      {v.label}
                     </button>
                   ))}
                 </div>

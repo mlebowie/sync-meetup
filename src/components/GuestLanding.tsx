@@ -119,7 +119,6 @@ const GuestLanding = ({ onAttend, onParticipantClick }: Props) => {
                   key={i.id}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card border border-border text-sm text-foreground"
                 >
-                  <span>{i.icon}</span>
                   {i.label}
                 </span>
               ))}

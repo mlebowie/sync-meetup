@@ -55,7 +55,7 @@ const EventFilters = ({ filters, onFiltersChange }: EventFiltersProps) => {
           </div>
           <p className="text-xs text-muted-foreground mb-3">The social energy in the room.</p>
           <div className="flex flex-wrap gap-2">
-            {VIBES.map(({ value, label, emoji, description }) => (
+            {VIBES.map(({ value, label, description }) => (
               <button
                 key={value}
                 title={description}
@@ -66,7 +66,6 @@ const EventFilters = ({ filters, onFiltersChange }: EventFiltersProps) => {
                     : 'bg-muted text-muted-foreground hover:bg-muted/80'
                 }`}
               >
-                <span aria-hidden>{emoji}</span>
                 {label}
               </button>
             ))}

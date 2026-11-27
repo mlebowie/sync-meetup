@@ -119,7 +119,7 @@ const Profile = () => {
               <div className="flex flex-wrap gap-1.5 mt-3">
                 {interests.map(i => (
                   <span key={i.id} className="px-2.5 py-1 text-xs rounded-full bg-primary/10 text-primary font-medium">
-                    {i.icon} {i.label}
+                    {i.label}
                   </span>
                 ))}
               </div>

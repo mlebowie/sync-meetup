@@ -419,7 +419,7 @@ const Onboarding = () => {
                             disabled={!selected && interests.length >= 5}
                             aria-pressed={selected}
                           >
-                            <span aria-hidden="true">{interest.icon}</span>{interest.label}
+                            {interest.label}
                           </Button>
                         );
                       })}
