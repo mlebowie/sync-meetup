@@ -17,8 +17,6 @@ import HeaderSearch from './HeaderSearch';
 import { getUserProfile } from '@/lib/userProfile';
 import { useAttending } from '@/context/AttendingContext';
 import syncWordmark from '@/assets/sync-wordmark-v2.png';
-import { useAdmin } from '@/hooks/useAdmin';
-import { supabase } from '@/integrations/supabase/client';
 
 interface HeaderProps {
   onOpenMessages?: () => void;
@@ -68,8 +66,6 @@ const Header = ({ onOpenMessages }: HeaderProps) => {
   const [notifOpen, setNotifOpen] = useState(false);
   const [isGuest, setIsGuest] = useState(() => !getUserProfile());
   const { attending } = useAttending();
-  const { isAdmin } = useAdmin();
-  const [pendingCount, setPendingCount] = useState(0);
 
   // Tablets and phones: search opened from the bottom bar, pinned under this header.
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
@@ -98,22 +94,6 @@ const Header = ({ onOpenMessages }: HeaderProps) => {
     return () => window.removeEventListener('sync:profile-changed', sync);
   }, []);
 
-  // Curators see how many collected events are still waiting for review.
-  useEffect(() => {
-    if (!isAdmin) return;
-    let cancelled = false;
-    supabase
-      .from('events')
-      .select('id', { count: 'exact', head: true })
-      .eq('review_status', 'pending')
-      .then(({ count }) => {
-        if (!cancelled) setPendingCount(count ?? 0);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [isAdmin]);
-
   // Notifications only start once a registered user has signed up for their first event
   const showNotifications = !isGuest && attending.size > 0;
   const iconTone = overHero
@@ -128,24 +108,8 @@ const Header = ({ onOpenMessages }: HeaderProps) => {
       }`}
     >
       <div className="container grid h-16 grid-cols-[1fr_auto_1fr] items-center px-4 md:px-6">
-        {/* Left: curators get their queue link; everyone else gets balanced empty space */}
-        <div className="flex items-center">
-          {isAdmin && (
-            <Link
-              to="/curate"
-              className={`hidden md:flex items-center gap-2 text-sm font-medium transition-colors ${
-                overHero ? 'text-hero-muted hover:text-hero-foreground' : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Curate events
-              {pendingCount > 0 && (
-                <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground">
-                  {pendingCount}
-                </span>
-              )}
-            </Link>
-          )}
-        </div>
+        {/* Left: empty, balancing the menu on the right. Curators reach their queue at /curate (no link). */}
+        <div />
 
         {/* Centre: the wordmark, light over the hero photo */}
         <Link to="/" className="flex items-center justify-center" aria-label="SYNC home">
